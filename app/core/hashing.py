@@ -1,37 +1,46 @@
-import hmac
+import hmac 
 import hashlib 
-from app.config import settings
+from app.config import settings 
 
-def generate_network_token(phone:str) -> str:
-    """
-    Creates a global identifier for internal Tap2Med use.
-    The same phone number + same secret = same hash everywhere.
-    """
-    # We use HMAC to 'sign' the phone number with our master secret
-    hasher = hmac.new(settings.SECRET_KEY.encode(), phone.encode(), digestmod= hashlib.sha256)
-    return hasher.hexdigest()
 
-def generate_local_token(phone:str, clinic_salt:str) ->str:
+def generate_network_token(phone: str, member_id: int) -> str:
     """
-    Creates a clinic-specific identifier.
-    The clinic salt ensures this hash is unique to only one clinic.
+    Identifies a specific family member across the entire Tap2Med network.
+    Input: '9810012345' + 1 (Father) vs '9810012345' + 2 (Mother).
     """
-    # We derive a unique key for this specific clinic
+   
+    combined_input = f"{phone}:{member_id}"
     
+    return hmac.new(
+        settings.SECRET_KEY.encode(),
+        combined_input.encode(),     
+        digestmod=hashlib.sha256     
+    ).hexdigest()
+
+
+def generate_local_token(phone: str, member_id: int, clinic_salt: str) -> str:
+    """
+    Identifies a specific family member ONLY within one specific clinic.
+    The clinic_salt ensures this hash is useless to any other clinic.
+    """
+   
     combined_key = f"{settings.SECRET_KEY}:{clinic_salt}"
+   
+    combined_input = f"{phone}:{member_id}"
+    
+    return hmac.new(
+        combined_key.encode(),  
+        combined_input.encode(), 
+        digestmod=hashlib.sha256
+    ).hexdigest()
 
-    hasher = hmac.new(combined_key.encode(), phone.encode(), digestmod= hashlib.sha256)
-    return hasher.hexdigest()
 
-def generate_identity_tokens(phone:str, clinic_salt:str) -> dict:
+def generate_identity_tokens(phone: str, member_id: int, clinic_salt: str) -> dict:
     """
-    The 'Identity Wrapper'. This is the ONLY function the API calls.
-    It generates the dual-token pair and effectively 'erases' the phone.
+    Convenience wrapper for the API. 
+    Returns the 'Ghosts' that will be stored in PostgreSQL.
     """
-    net_token = generate_network_token(phone)
-    loc_token= generate_local_token(phone, clinic_salt)
-
-    return{
-        "network_token": net_token,
-        "local_token": loc_token
+    return {
+        "network_token": generate_network_token(phone, member_id), 
+        "local_token": generate_local_token(phone, member_id, clinic_salt) 
     }

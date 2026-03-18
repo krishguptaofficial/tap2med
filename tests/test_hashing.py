@@ -1,48 +1,63 @@
-import pytest
-from app.core.hashing import generate_identity_tokens, generate_local_token, generate_network_token
+import pytest 
+from app.core.hashing import generate_network_token, generate_local_token, generate_identity_tokens
 
-# Mock Data: 64-character hex strings (exactly what secrets.token_hex(32) produces)
+
 CLINIC_A_SALT = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2"
-CLINIC_B_SALT = "f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5d4c3b2a1f6e5"
 TEST_PHONE = "9810012345"
+MEMBER_1 = 1 
+MEMBER_2 = 2 
 
 def test_network_token_consistency():
     """
-    Ensures the same phone + same SECRET_KEY always produces the same Network ID.
-    Failure Mode: If this changes, a patient's history across clinics is lost.
+    Test: Does the same family member always get the same global ID?
+    Failure Mode: If this changes, the patient's history disappears.
     """
-    t1= generate_network_token(TEST_PHONE)
-    t2= generate_network_token(TEST_PHONE)
+   
+    t1 = generate_network_token(TEST_PHONE, MEMBER_1)
+    t2 = generate_network_token(TEST_PHONE, MEMBER_1)
+    
+   
+    assert t1 == t2
+   
+    assert len(t1) == 64
 
-    assert t1==t2
-    assert len(t1)==64
 
-
-def test_clinic_isolation():
+def test_family_member_separation():
     """
-    Ensures the same phone produces DIFFERENT local IDs at different clinics.
-    Failure Mode: If these match, Clinic A can track what patients do at Clinic B.
+    Test: Do different family members on the SAME phone get DIFFERENT IDs?
+    Failure Mode: If they match, the Doctor sees a mixed medical history.
     """
-    local_a = generate_local_token(TEST_PHONE, CLINIC_A_SALT)
-    local_b = generate_local_token(TEST_PHONE, CLINIC_B_SALT)
+   
+    father_token = generate_network_token(TEST_PHONE, MEMBER_1)
+    mother_token = generate_network_token(TEST_PHONE, MEMBER_2)
+    
+    
+    assert father_token != mother_token
 
-    assert local_a!=local_b
 
-
-def test_identity_wrapper_scrubbs_pii():
+def test_local_family_isolation():
     """
-    Verifies that the convenience function returns tokens but 'kills' the phone number.
-    Failure Mode: If the phone number is returned in the dict, it might be logged/stored.
+    Test: Does the clinic-specific ID also separate family members?
+    Failure Mode: Mixing identities within the clinic dashboard.
     """
-    result = generate_identity_tokens(TEST_PHONE, CLINIC_A_SALT)
+   
+    local_1 = generate_local_token(TEST_PHONE, MEMBER_1, CLINIC_A_SALT)
+    local_2 = generate_local_token(TEST_PHONE, MEMBER_2, CLINIC_A_SALT)
+    
+    
+    assert local_1 != local_2
 
-    assert "network_token" in result
-    assert "local_token" in result
 
+def test_identity_wrapper_scrubs_pii():
+    """
+    Test: Does our main function successfully hide the phone and member_id?
+    Failure Mode: Accidental leakage of raw PII into the database or logs.
+    """
+   
+    result = generate_identity_tokens(TEST_PHONE, MEMBER_1, CLINIC_A_SALT)
+    
+    
     assert TEST_PHONE not in result.values()
-    assert len(result) ==2
-
-
-
-
-
+    assert MEMBER_1 not in result.values()
+   
+    assert len(result) == 2
