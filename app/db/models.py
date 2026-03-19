@@ -36,6 +36,9 @@ class Event(Base):
 
 
 class Prescription(Base):
+
+    __tablename__ = "prescriptions"
+    
     prescription_id =  Column(UUID(as_uuid= True), primary_key= True, default=uuid.uuid4)
     event_id = Column(UUID(as_uuid= True), ForeignKey("events.event_id"),nullable = False)
     network_token = Column(Text, index= True, nullable = False )
