@@ -1,6 +1,7 @@
 import hmac 
 import hashlib 
 from app.config import settings 
+import secrets
 
 
 def generate_network_token(phone: str, member_id: int) -> str:
@@ -44,3 +45,9 @@ def generate_identity_tokens(phone: str, member_id: int, clinic_salt: str) -> di
         "network_token": generate_network_token(phone, member_id), 
         "local_token": generate_local_token(phone, member_id, clinic_salt) 
     }
+
+
+def generate_clinic_salt() -> str :
+    return secrets.token_hex(32)
+
+
