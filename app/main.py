@@ -24,3 +24,20 @@ def read_root():
       "project": "Tap2Med",
       "version": "0.1.0"
    }
+
+@app.post("/clinics/")
+def onboard_clinic(
+   doctor_name : str,
+   clinic_name: str,
+   db : Session= Depends(get_db)
+):
+ try:
+        new_clinic = crud.create_clinic(db=db, doctor_name=doctor_name, clinic_name=clinic_name)
+        return {
+            "status": "success",
+            "clinic_id": new_clinic.clinic_id,
+            "doctor": new_clinic.doctor_name
+        }
+ except Exception as e:
+        
+        raise HTTPException(status_code=500, detail=str(e))
