@@ -41,3 +41,28 @@ def onboard_clinic(
  except Exception as e:
         
         raise HTTPException(status_code=500, detail=str(e))
+ 
+@app.get("/scan/{clinic_id}")
+def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session =  Depends(get_db)):
+
+    try:
+        crud.create_patient_event(
+            db = db,
+            clinic_id= clinic_id,
+            phone= phone,
+            member_id = member_id
+        )
+        event = None
+
+        if event is None:
+            raise HTTPException(status_code=404, detail= "Clinic not found")
+        
+        return {
+            "status": "success",
+            "message": "Ghost token generated",
+            "network_token": event.network_token, 
+            "local_token": event.local_token
+        }
+    except Exception as e:
+        # Our resilient error handler
+        raise HTTPException(status_code=500, detail=str(e))
