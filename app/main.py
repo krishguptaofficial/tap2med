@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.db import database, models, crud
 import uuid
+from datetime import date,time
+from sqlalchemy import func
+
 
 app = FastAPI(title= "Tap2Med V0")
 
@@ -42,17 +45,16 @@ def onboard_clinic(
         
         raise HTTPException(status_code=500, detail=str(e))
  
-@app.get("/scan/{clinic_id}")
+@app.post("/scan/{clinic_id}")
 def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session =  Depends(get_db)):
 
     try:
-        crud.create_patient_event(
+        event = crud.create_patient_event(
             db = db,
             clinic_id= clinic_id,
             phone= phone,
             member_id = member_id
         )
-        event = None
 
         if event is None:
             raise HTTPException(status_code=404, detail= "Clinic not found")
@@ -63,6 +65,11 @@ def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session 
             "network_token": event.network_token, 
             "local_token": event.local_token
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        # Our resilient error handler
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+ 
+        
