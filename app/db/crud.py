@@ -18,7 +18,7 @@ def create_clinic(db : Session, doctor_name : str, clinic_name : str ):
     db.refresh(db_clinic)
     return db_clinic
 
-def create_patient_event(db:Session, clinic_id : uuid.UUID, phone: str, member_id: int=0):
+def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, network_token:str, member_id: int=0):
 
     #getting the clinic to access its private salt
     clinic= db.query(models.Clinic).filter(models.Clinic.clinic_id==clinic_id).first()
@@ -26,15 +26,12 @@ def create_patient_event(db:Session, clinic_id : uuid.UUID, phone: str, member_i
 
     if clinic is None:
         return None
-    
-    net_token = hashing.generate_network_token(phone,member_id)
 
-    loc_token = hashing.generate_local_token(phone, member_id, str(clinic.clinic_salt))
 
     db_event = models.Event(
         clinic_id= clinic_id,
-        network_token = net_token,
-        local_token = loc_token,
+        network_token = network_token,
+        local_token = local_token,
         event_type = "visit"
     )
 
