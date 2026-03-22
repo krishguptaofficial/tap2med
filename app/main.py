@@ -4,7 +4,7 @@ from app.db import database, models, crud
 import uuid
 from datetime import date,time
 from sqlalchemy import func
-
+from app.core import hashing
 
 app = FastAPI(title= "Tap2Med V0")
 
@@ -47,27 +47,29 @@ def onboard_clinic(
 @app.post("/scan/{clinic_id}")
 def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session =  Depends(get_db)):
 
-    try:
-        event = crud.create_patient_event(
-            db = db,
-            clinic_id= clinic_id,
-            phone= phone,
-            member_id = member_id
-        )
 
-        if event is None:
-            raise HTTPException(status_code=404, detail= "Clinic not found")
-        
-        return {
-            "status": "success",
-            "message": "token generated",
-            "network_token": event.network_token, 
-            "local_token": event.local_token
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    clinic  = db.query(models.Clinic).filter(models.Clinic.clinic_id==clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+
+
+    tokens = hashing.generate_identity_tokens(
+    phone,
+    member_id,
+    str(clinic.clinic_salt)
+)
+
+# kill phone
+    del phone
+
+
+    event = crud.create_patient_event(
+    db=db,
+    clinic_id=clinic_id,
+    network_token=tokens["network_token"],
+    local_token=tokens["local_token"],
+    member_id=member_id
+)
     
 
 @app.get("/clinics/{clinic_id}/receptionist/queue")
@@ -102,17 +104,16 @@ def get_doctor_view(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
         return {
             "status": "success",
             "date": today,
-            # BLANK 3: Return the local_token paired with the position
+            # Return the local_token paired with the position
             "patients": [
                 {"pos": i + 1, "token": event.local_token} for i, event in enumerate(queue)
             ]
         }
     except Exception as e:
-        # BLANK 4 & 5: Standard HTTP exception for errors
+      
         raise HTTPException(status_code=500, detail=str(e))
     
 
-# THE PATIENT'S TICKET: "How long until my turn?"
 @app.get("/scan/status/{local_token}")
 def get_patient_status(local_token: str, db: Session = Depends(get_db)):
     try:
@@ -127,21 +128,5 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
         if not current_visit:
             raise HTTPException(status_code=404, detail="Active visit not found for today")
 
-        # 2. Count how many people scanned BEFORE this patient today
-        # BLANK 1: Query the Event model
-        # BLANK 2 & 3: Filter by same clinic AND earlier timestamp
-        ahead = db.query(models.Event).filter(
-            models.Event.clinic_id == current_visit.clinic_id,
-            func.date(models.Event.timestamp) == today,
-            models.Event.timestamp < current_visit.timestamp # BLANK 2: The "Who came first" logic
-        ).count()
-
-        # BLANK 4: Logic for current position (ahead + 1)
-        return {
-            "status": "In Queue",
-            "your_position": ahead + 1,
-            "people_ahead": ahead,
-            "estimated_wait": f"{ahead * 10} mins" # BLANK 5: V0 simple estimate (10m per patient)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        
+        
