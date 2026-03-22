@@ -70,6 +70,12 @@ def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session 
     local_token=tokens["local_token"],
     member_id=member_id
 )
+    return{
+        "status": "success",
+        "network_token": tokens["network_token"],
+        "local_token": tokens["local_token"],
+        "event_type": "visit"
+    }
     
 
 @app.get("/clinics/{clinic_id}/receptionist/queue")

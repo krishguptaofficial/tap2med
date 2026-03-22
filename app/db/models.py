@@ -17,7 +17,7 @@ class Clinic(Base):
     #qr_code = Column(Text, nullable = True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    events = relationship("Event", back_populates="clinics")
+    events = relationship("Event", back_populates="clinic")
 
     
 class Event(Base):
