@@ -129,4 +129,18 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Active visit not found for today")
 
         
-        
+        ahead = db.query(models.Event).filter(
+            models.Event.clinic_id == current_visit.clinic_id,
+            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp < current_visit.timestamp 
+        ).count()
+
+      
+        return {
+            "status": "In Queue",
+            "your_position": ahead + 1,
+            "people_ahead": ahead,
+            "estimated_wait": f"{ahead * 10} mins" 
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
