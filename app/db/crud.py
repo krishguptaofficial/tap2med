@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.core import hashing
 from app.db import models
 import uuid
+from datetime import datetime, timedelta, timezone
 
 
 
@@ -34,6 +35,16 @@ def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, net
         local_token = local_token,
         event_type = "visit"
     )
+
+    recent = db.query(models.Event).filter(
+        models.Event.clinic_id == clinic_id,
+        models.Event.local_token ==local_token,
+        models.Event.timestamp>= datetime.now(timezone.utc) - timedelta(minutes =2)
+    ).first()
+
+    if recent:
+        return recent
+        return recent
 
     db.add(db_event)
     db.commit()

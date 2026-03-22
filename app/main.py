@@ -101,7 +101,7 @@ def get_reception_view(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
 def get_doctor_view(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         today = date.today()
-        # BLANK 2: Use the same filtering logic as above
+       
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
             func.date(models.Event.timestamp) == today
@@ -110,7 +110,7 @@ def get_doctor_view(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
         return {
             "status": "success",
             "date": today,
-            # Return the local_token paired with the position
+           
             "patients": [
                 {"pos": i + 1, "token": event.local_token} for i, event in enumerate(queue)
             ]
