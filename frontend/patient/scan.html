@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap2Med | Check-In</title>
+</head>
+<body>
+
+    <main id="phone-entry-container">
+        <header>
+            <h1>Clinic Check-In</h1>
+            <p>Enter your mobile number to join the queue.</p>
+        </header>
+
+        <section id="input-area">
+            <div class="field">
+                <label for="phone-input">Mobile Number</label>
+                <input 
+                    type="tel" 
+                    id="phone-input" 
+                    placeholder="9876543210" 
+                    maxlength="10" 
+                    pattern="[0-9]{10}"
+                    required
+                >
+            </div>
+
+            <button id="next-btn">Next</button>
+        </section>
+
+        <footer>
+            <p>Your number is encrypted and never stored.</p>
+            <p>Privacy by Tap2Med</p>
+        </footer>
+    </main>
+
+
+</body>
+</html>
