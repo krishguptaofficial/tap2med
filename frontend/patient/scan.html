@@ -34,7 +34,20 @@
             <p>Privacy by Tap2Med</p>
         </footer>
     </main>
+ <script>
+        const nextBtn = document.getElementById('next-btn');
+        const phoneInput = document.getElementById('phone-input');
 
+        nextBtn.addEventListener('click', () => {
+            const phone = phoneInput.value;
+            if (phone.length === 10) {
+                console.log("Phone entered:", phone);
+                
+            } else {
+                alert("Please enter a valid 10-digit phone number.");
+            }
+        });
+    </script>
 
 </body>
 </html>
