@@ -3,51 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tap2Med | Check-In</title>
+    <title>Tap2Med | Patient Check-in</title>
 </head>
 <body>
 
-    <main id="phone-entry-container">
-        <header>
-            <h1>Clinic Check-In</h1>
-            <p>Enter your mobile number to join the queue.</p>
-        </header>
+    <header id="header">
+        <div class="logo-container">
+            <span id="logo-icon">✚</span> <strong>Tap2Med</strong>
+        </div>
+        
+        <div class="welcome-section">
+            <h1>Welcome to <span id="clinic-name-text">&lt;clinic_name&gt;</span></h1>
+            <p>Powered By Tap2Med</p>
+        </div>
+    </header>
 
-        <section id="input-area">
-            <div class="field">
-                <label for="phone-input">Mobile Number</label>
-                <input 
-                    type="tel" 
-                    id="phone-input" 
-                    placeholder="9876543210" 
-                    maxlength="10" 
-                    pattern="[0-9]{10}"
-                    required
-                >
-            </div>
+    <main id="main-content">
+        <p class="instruction-text">Enter your mobile number to get the token number</p>
 
-            <button id="next-btn">Next</button>
-        </section>
+        <div class="input-container">
+            <input 
+                type="tel" 
+                id="phone-input" 
+                placeholder="Enter mobile number" 
+                maxlength="10" 
+                required
+            >
+        </div>
 
-        <footer>
-            <p>Your number is encrypted and never stored.</p>
-            <p>Privacy by Tap2Med</p>
-        </footer>
+        <button id="submit-btn" onclick="goToMemberSelection()">Submit</button>
     </main>
- <script>
-        const nextBtn = document.getElementById('next-btn');
-        const phoneInput = document.getElementById('phone-input');
 
-        nextBtn.addEventListener('click', () => {
-            const phone = phoneInput.value;
-            if (phone.length === 10) {
-                console.log("Phone entered:", phone);
-                
-            } else {
-                alert("Please enter a valid 10-digit phone number.");
-            }
-        });
-    </script>
+    <footer id="privacy-footer">
+        <p>We do not store your phone number or any other personal identifier in our system.</p>
+    </footer>
 
+    
 </body>
 </html>
