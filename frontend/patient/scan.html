@@ -38,6 +38,18 @@
         <p>We do not store your phone number or any other personal identifier in our system.</p>
     </footer>
 
+    <script>
+        function goToMemberSelection() {
+            const phone = document.getElementById('phone-input').value;
+            if (phone.length === 10) {
+                // BLANK 1: Logic to hide this screen and show the Member List
+                console.log("Proceeding to member selection for:", phone);
+            } else {
+                alert("Please enter a valid 10-digit mobile number.");
+            }
+        }
+    </script>
+
     
 </body>
 </html>
