@@ -20,3 +20,14 @@ It replaces messy paper queues with an anonymized digital flow.
 2. Backend generates `local_token` = HMAC(Phone, Secret + Clinic_Salt).
 3. Phone is discarded from memory.
 4. `local_token` is the only identifier visible to clinic staff.
+
+## Quick Start
+1. `pip install -r requirements.txt`
+2. `docker-compose up -d` (PostgreSQL)
+3. `uvicorn app.main:app --reload`
+
+## V0 Launch Checklist
+- [x] 2-Minute Buffer for duplicate scans.
+- [x] Multi-member support (Shared Phone logic).
+- [x] Responsive Dashboard (MacBook & Android support).
+- [ ] SSL/HTTPS Setup (Mandatory for Production).
