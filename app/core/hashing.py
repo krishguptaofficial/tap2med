@@ -52,6 +52,16 @@ def generate_local_token(phone: str, member_id: int, clinic_salt: str) -> str:
         digestmod=hashlib.sha256
     ).hexdigest()
 
+def generate_identity_tokens(phone: str, member_id: int, clinic_salt: str) -> dict:
+    """
+    Convenience wrapper for the API. 
+    Returns the 'Ghosts' that will be stored in PostgreSQL.
+    """
+    phone = normalize_phone(phone)
+    return {
+        "network_token": generate_network_token(phone, member_id), 
+        "local_token": generate_local_token(phone, member_id, clinic_salt) 
+    }
 
 
 
