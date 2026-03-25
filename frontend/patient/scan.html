@@ -1,0 +1,17 @@
+<div id="phone-view" class="card">
+    <h2>Welcome to <span class="clinic-name">...</span></h2>
+    <input type="tel" id="phone" placeholder="Enter mobile number" maxlength="10">
+    <button onclick="showMembers()" class="btn-primary">Next</button>
+    <p class="privacy-note">We shred your number. Privacy guaranteed.</p>
+</div>
+
+<div id="member-view" class="card" style="display:none">
+    <h2>Who is visiting?</h2>
+    <div id="member-list">
+        <button onclick="joinQueue(0)">Self (Primary)</button>
+        <button onclick="joinQueue(1)">Family Member 1</button>
+        <button onclick="joinQueue(2)">Family Member 2</button>
+    </div>
+    <button onclick="goBack()" class="btn-link">Back</button>
+</div>
+
