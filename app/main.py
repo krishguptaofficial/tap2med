@@ -8,6 +8,7 @@ from app.core import hashing
 
 app = FastAPI(title= "Tap2Med V0")
 
+
 def get_db():
 
    db = database.SessionLocal()
@@ -27,6 +28,7 @@ def read_root():
       "version": "0.1.0"
    }
 
+
 @app.post("/clinics/")
 def onboard_clinic(
    doctor_name : str,
@@ -44,6 +46,7 @@ def onboard_clinic(
         
         raise HTTPException(status_code=500, detail=str(e))
  
+
 @app.post("/scan/{clinic_id}")
 def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session =  Depends(get_db)):
 
