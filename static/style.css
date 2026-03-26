@@ -1,0 +1,65 @@
+/* tap2med/static/style.css */
+:root {
+    --primary: #007bff;
+    --success: #28a745;
+    --bg: #f8f9fa;
+    --text: #333;
+}
+
+body {
+    font-family: -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    margin: 0;
+    display: flex;
+    justify-content: center;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    text-align: center;
+}
+
+/* UI Components */
+button {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    background-color: var(--primary);
+    color: white;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box; /* Prevents input from overflowing */
+}
+
+/* Dashboard Specifics */
+.queue-card {
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.token-badge {
+    background: #e9ecef;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+}
