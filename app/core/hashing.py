@@ -13,6 +13,9 @@ def normalize_phone(phone:str):
     elif phone.startswith("91") and len(phone)==12:
         phone = phone[2:]
 
+    elif phone.startswith("0") and len(phone)==11:
+        phone = phone[1:]
+
     if len(phone)!=10 or not phone.isdigit():
         raise ValueError("Invalid Phone Number")
     return phone
