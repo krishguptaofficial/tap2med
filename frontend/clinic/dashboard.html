@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap2Med | Doctor Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <header style="text-align: left; margin-bottom: 20px;">
+            <h1>Dr. Dashboard</h1>
+            <p id="clinic-name-display">Loading Clinic...</p>
+        </header>
+
+        <section id="queue-section">
+            <h3 style="text-align: left;">Live Patient Queue</h3>
+            <div id="patient-list">
+                <p>Waiting for patients to scan...</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // In V0, we assume the clinic_id is stored in the browser session 
+        // after the doctor logs in.
+        const clinicId = 1; 
+
+        async function fetchQueue() {
+            // Fetch list of visits for this clinic today
+            const response = await fetch(`/api/clinics/${clinicId}/queue`);
+            
+            if (response.ok) {
+                const patients = await response.json();
+                renderQueue(patients);
+            }
+        }
+
+        function renderQueue(patients) {
+            const listDiv = document.getElementById('patient-list');
+            
+            if (patients.length === 0) {
+                listDiv.innerHTML = "<p>No patients in queue.</p>";
+                return;
+            }
+
+            // Create HTML for each patient in the list
+            listDiv.innerHTML = patients.map(p => `
+                <div class="queue-card">
+                    <div>
+                        <span class="token-badge">#${p.token_no}</span>
+                        <strong>${p.patient_label}</strong> </div>
+                    <button style="width: auto; padding: 5px 15px;" 
+                            onclick="callPatient('${p.local_token}')">
+                        Call
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        async function callPatient(localToken) {
+            // Logic to mark patient as "In Consultation"
+            console.log("Calling patient:", localToken);
+            alert("Calling Token " + localToken.substring(0,5));
+        }
+
+        // Refresh the queue every 10 seconds
+        setInterval(fetchQueue, 10000);
+        fetchQueue(); // Initial load
+    </script>
+</body>
+</html>
