@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tap2Med | Patient Check-in</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <section id="screen-phone">
+            <h2>Welcome to <span id="display-clinic-name">'Clinic_name'</span></h2>
+            <p>Enter your mobile number to get the token number</p>
+            <input type="tel" id="input-phone" placeholder="99999 99999">
+            <button onclick="submitPhone()">Submit</button>
+            <footer>We do not store your phone number or<br>
+                 any other personal identity marker.</footer>
+        </section>
+
+        <section id="screen-selection" style="display:none;">
+            <h3>Who is visiting today?</h3>
+            <div class="list">
+                <button onclick="setPatient('Self')">Self</button>
+                <button onclick="setPatient('Mother')">Mother</button>
+                <button onclick="setPatient('Father')">Father</button>
+            </div>
+            <button class="primary" onclick="confirmCheckIn()">Check-in</button>
+        </section>
+
+        <section id="screen-success" style="display:none;">
+            <h2 style="color: rgb(2, 251, 2);">VISIT CREATED!</h2>
+            <p>Your Token no. is:</p>
+            <h1 id="display-token-no">#--</h1>
+            <p class="wait-time">Estimated Wait: 15 mins</p>
+            <p>Kindly take a seat and wait for your turn.</p>
+        </section>
+    </main>
+</body>
+</html>
