@@ -64,7 +64,22 @@
                 document.getElementById('screen-selection').style.display = 'block';
             }
         }
+        async function confirmCheckIn() {
+            // Tell backend this token is now "Checked In"
+            const response = await fetch('/api/events/checkin', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: currentLocalToken })
+            });
 
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('display-token-no').innerText = "#" + [____]; // BLANK 2: What variable in your DB/Schema holds the queue number?
+                
+                document.getElementById('screen-selection').style.display = 'none';
+                document.getElementById('screen-success').style.display = 'block';
+            }
+        }
         
     </script>
 </body>
