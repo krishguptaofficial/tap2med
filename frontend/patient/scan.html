@@ -36,36 +36,36 @@
         </section>
     </main>
     <script>
-        // 1. Get the Clinic ID from the URL (e.g. scan.html?clinic_id=1)
+        
         const urlParams = new URLSearchParams(window.location.search);
         const clinicId = urlParams.get('clinic_id');
         let currentLocalToken = null;
 
-        // 2. The function that runs when you hit "Submit"
+        
         async function submitPhone() {
             const phoneVal = document.getElementById('input-phone').value;
             
-            // This is the "Fetch" call to your FastAPI backend
+            
             const response = await fetch('/api/events/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
                     phone: phoneVal, 
-                    clinic_id: [____] // BLANK 1: Which JS variable has the clinic ID?
+                    clinic_id: [____] 
                 })
             });
 
             if (response.ok) {
                 const data = await response.json();
-                currentLocalToken = data.local_token; // Store token for next step
+                currentLocalToken = data.local_token; 
                 
-                // Hide Screen 1, Show Screen 2
+                
                 document.getElementById('screen-phone').style.display = 'none';
                 document.getElementById('screen-selection').style.display = 'block';
             }
         }
         async function confirmCheckIn() {
-            // Tell backend this token is now "Checked In"
+          
             const response = await fetch('/api/events/checkin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -74,7 +74,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                document.getElementById('display-token-no').innerText = "#" + [____]; // BLANK 2: What variable in your DB/Schema holds the queue number?
+                document.getElementById('display-token-no').innerText = "#" + [____]; 
                 
                 document.getElementById('screen-selection').style.display = 'none';
                 document.getElementById('screen-success').style.display = 'block';
