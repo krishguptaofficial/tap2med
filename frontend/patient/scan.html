@@ -38,11 +38,12 @@
           </div>
 
           <div id="add-member-container" class="add-input-box" hidden>
-            <input
-              type="text"
-              id="new-member-name"
-              placeholder="Relation (e.g. Sister)"
-            />
+            <select id="relation-dropdown">
+              <option value="Brother">Brother</option>
+              <option value="Sister">Sister</option>
+              <option value="Wife">Wife</option>
+              <option value="Husband">Husband</option>
+            </select>
             <button class="btn-add-small" onclick="addNewMember()">
               Add to List
             </button>
@@ -55,7 +56,7 @@
       <div id="screen-token" hidden>
         <div class="success-text">VISIT<br />CREATED!</div>
         <p><b>Your Token no. is:</b></p>
-        <div class="token-no">#1</div>
+        <div class="token-no" id="token-display">#1</div>
         <p>Estimated Wait time:</p>
         <div class="wait-note">Kindly take a seat and wait for your turn</div>
       </div>
@@ -63,110 +64,135 @@
 
     <script>
       // 1. GLOBAL STATE (The app's memory)
-let selectedMemberId = ""; 
-let currentClinicId = new URLSearchParams(window.location.search).get('cid') || "default_clinic";
+      let selectedMemberId = "";
+      let currentClinicId =
+        new URLSearchParams(window.location.search).get("cid") ||
+        "default_clinic";
 
+      window.onload = async function () {
+        const hasToken = getCookie("tap2med_token");
 
-window.onload = async function() {
-    const hasToken = getCookie("tap2med_token");
+        if (hasToken) {
+          await loadFamilyMembers();
+          showScreen("screen-family");
+        } else {
+          showScreen("screen-login");
+        }
+      };
 
-    if (hasToken) {
-        
-        await loadFamilyMembers(); 
-        showScreen('screen-family');
-    } else {
-      
-        showScreen('screen-login');
-    }
-};
-
-
-async function goToStep2() {
+      async function goToStep2() {
+        async function goToStep2() {
     const phoneValue = document.getElementById("phone-input").value.trim();
     if (phoneValue.length < 10) return alert("Enter 10 digits");
+    
+    // 1. Grab the Clinic ID from your browser's URL 
+    // (You must test this page using: scan.html?cid=YOUR_DB_UUID)
+    const urlParams = new URLSearchParams(window.location.search);
+    const cid = urlParams.get('cid'); 
+
+    if (!cid) {
+        alert("Missing Clinic ID. URL must have ?cid=YOUR_UUID");
+        return;
+    }
 
     try {
-        const response = await fetch("/api/events/scan", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ phone: phoneValue, clinic_id: currentClinicId })
+        // 2. Build the exact URL your main.py expects: /scan/{clinic_id}?phone={phoneValue}
+        const apiUrl = `http://127.0.0.1:8000/scan/${cid}?phone=${phoneValue}`;
+
+        // 3. Send the POST request. 
+        // Notice we REMOVED the JSON body, because your Python doesn't need it.
+        const response = await fetch(apiUrl, {
+            method: "POST"
         });
 
         if (response.ok) {
-            await loadFamilyMembers(); 
-            showScreen('screen-family');
+            // Success! The token was created in the DB.
+            document.getElementById("screen-login").hidden = true;
+            document.getElementById("screen-family").hidden = false;
+        } else {
+            // If FastAPI rejects it (e.g. invalid UUID format or missing DB record)
+            const errorData = await response.json();
+            console.error("FastAPI Error:", errorData);
+            alert("Backend Error: " + JSON.stringify(errorData.detail));
         }
-    } catch (e) { alert("Server Error"); }
-}
-
-
-function toggleAddInput() {
-    
-    document.getElementById('add-member-container').hidden = false;
-}
-
-function addNewMember() {
-    const dropdown = document.getElementById('relation-dropdown');
-    const relation = dropdown.value;
-
-    // Create the new row in the UI
-    const list = document.getElementById('family-list');
-    const newRow = document.createElement('div');
-    newRow.className = 'selection-item';
-    newRow.innerText = relation;
-    newRow.onclick = function() { selectMember(this); };
-
-    // Insert before the Add button
-    list.insertBefore(newRow, document.querySelector('.add-btn'));
-
-    // Remove from dropdown so they can't add "Mother" twice
-    dropdown.remove(dropdown.selectedIndex);
-    document.getElementById('add-member-container').hidden = true;
-}
-
-
-function selectMember(element) {
-    document.querySelectorAll('.selection-item').forEach(el => el.classList.remove('selected-row'));
-    element.classList.add('selected-row');
-    selectedMemberId = element.innerText; // In V0, we just use the name/relation
-}
-
-// 6. FINAL STEP: Check In
-async function goTostep3() {
-    if (!selectedMemberId) return alert("Please select who is visiting");
-
-    const response = await fetch("/api/events/checkin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-            member: selectedMemberId,
-            clinic_id: currentClinicId 
-        })
-    });
-
-    if (response.ok) {
-        const data = await response.json();
-        document.getElementById("token-display").innerText = "#" + data.token_no;
-        showScreen('screen-token');
+    } catch (error) {
+        alert("Network failure: Is uvicorn running?");
     }
 }
+      }
 
-// --- HELPERS ---
-function showScreen(id) {
-    document.querySelectorAll('.mobile-container > div[id^="screen"]').forEach(s => s.hidden = true);
-    document.getElementById(id).hidden = false;
-}
+      function toggleAddInput() {
+        document.getElementById("add-member-container").hidden = false;
+      }
 
-function getCookie(name) {
-    let value = `; ${document.cookie}`;
-    let parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-}
+      function addNewMember() {
+        const dropdown = document.getElementById("relation-dropdown");
+        const relation = dropdown.value;
 
-async function loadFamilyMembers() {
-    
-    console.log("Loading members from backend...");
-}
+        // Create the new row in the UI
+        const list = document.getElementById("family-list");
+        const newRow = document.createElement("div");
+        newRow.className = "selection-item";
+        newRow.innerText = relation;
+        newRow.onclick = function () {
+          selectMember(this);
+        };
+
+        // Insert before the Add button
+        list.insertBefore(newRow, document.querySelector(".add-btn"));
+
+        // Remove from dropdown so they can't add "Mother" twice
+        dropdown.remove(dropdown.selectedIndex);
+        document.getElementById("add-member-container").hidden = true;
+      }
+
+      function selectMember(element) {
+        document
+          .querySelectorAll(".selection-item")
+          .forEach((el) => el.classList.remove("selected-row"));
+        element.classList.add("selected-row");
+        selectedMemberId = element.innerText; // In V0, we just use the name/relation
+      }
+
+      // 6. FINAL STEP: Check In
+      async function goTostep3() {
+        if (!selectedMemberId) return alert("Please select who is visiting");
+
+        const response = await fetch("/api/events/checkin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            member: selectedMemberId,
+            clinic_id: currentClinicId,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById("token-display").innerText =
+            "#" + data.token_no;
+          showScreen("screen-token");
+        }
+      }
+
+      // --- HELPERS ---
+      function showScreen(id) {
+        document
+          .querySelectorAll('div[id^="screen"]')
+          .forEach((s) => (s.hidden = true));
+        document.getElementById(id).hidden = false;
+      }
+
+      function getCookie(name) {
+        let value = `; ${document.cookie}`;
+        let parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(";").shift();
+      }
+
+      async function loadFamilyMembers() {
+        console.log("Loading members...");
+        return true;
+      }
     </script>
   </body>
 </html>

@@ -5,6 +5,8 @@ import uuid
 from datetime import date,time
 from sqlalchemy import func
 from app.core import hashing
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI(title= "Tap2Med V0")
 
@@ -18,6 +20,13 @@ def get_db():
 
    finally:
       db.close()
+
+
+
+
+class ScanRequest(BaseModel):
+    phone: str
+    member_id: int = 0
 
 
 @app.get("/")
@@ -48,7 +57,7 @@ def onboard_clinic(
  
 
 @app.post("/scan/{clinic_id}")
-def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session =  Depends(get_db)):
+def patient_scan(clinic_id: uuid.UUID, body: ScanRequest, db:Session =  Depends(get_db)):
 
 
     clinic  = db.query(models.Clinic).filter(models.Clinic.clinic_id==clinic_id).first()
@@ -57,13 +66,10 @@ def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session 
 
 
     tokens = hashing.generate_identity_tokens(
-    phone,
-    member_id,
+    body.phone,
+    body.member_id,
     str(clinic.clinic_salt)
 )
-
-# kill phone
-    del phone
 
 
     event = crud.create_patient_event(
@@ -71,7 +77,7 @@ def patient_scan(clinic_id: uuid.UUID, phone:str, member_id : int=0, db:Session 
     clinic_id=clinic_id,
     network_token=tokens["network_token"],
     local_token=tokens["local_token"],
-    member_id=member_id
+    member_id=body.member_id
 )
     return{
         "status": "success",
