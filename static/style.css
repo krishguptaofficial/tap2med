@@ -1,65 +1,63 @@
-/* tap2med/static/style.css */
-:root {
-    --primary: #007bff;
-    --success: #28a745;
-    --bg: #f8f9fa;
-    --text: #333;
-}
-
 body {
-    font-family: -apple-system, sans-serif;
-    background-color: var(--bg);
-    color: var(--text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     display: flex;
     justify-content: center;
+    background-color: #f4f4f4;
 }
 
-.container {
+.mobile-container {
     width: 100%;
-    max-width: 500px;
+    max-width: 400px;
+    height: 100vh;
+    background: white;
     padding: 20px;
+    box-sizing: border-box;
     text-align: center;
+    position: relative;
 }
 
-/* UI Components */
-button {
-    width: 100%;
+.logo-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 40px;
+}
+
+/* Inputs & Buttons */
+input {
+    width: 90%;
     padding: 15px;
-    margin: 10px 0;
-    border: none;
+    margin: 20px 0;
+    border: 1px solid #000;
     border-radius: 8px;
-    font-size: 16px;
+    background-color: #e3effb;
+    font-size: 1rem;
+}
+
+button {
+    padding: 12px 40px;
+    border-radius: 8px;
+    border: 1px solid #000;
     font-weight: bold;
     cursor: pointer;
-    background-color: var(--primary);
-    color: white;
 }
 
-input {
-    width: 100%;
-    padding: 12px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box; /* Prevents input from overflowing */
-}
+.btn-submit { background-color: #87ceeb; }
+.btn-checkin { background-color: #ccefff; margin-top: 50px;}
 
-/* Dashboard Specifics */
-.queue-card {
-    background: white;
-    padding: 15px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* Specific Text Colors from your Design */
+.success-text { color: #44bd32; font-weight: bold; font-size: 1.5rem; }
+.token-no { color: #0984e3; font-size: 4rem; margin: 10px 0; }
+.wait-note { color: #f1c40f; font-weight: bold; margin-top: 100px; }
 
-.token-badge {
-    background: #e9ecef;
-    padding: 5px 12px;
-    border-radius: 20px;
+/* Selection List */
+.member-list { border-top: 1px solid #000; margin-top: 20px; }
+.member-item {
+    border-bottom: 1px solid #000;
+    padding: 10px;
+    text-align: left;
     font-weight: bold;
 }

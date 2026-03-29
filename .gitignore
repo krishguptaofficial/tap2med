@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 SYSTEM_DESIGN.md
 qr/qr_assets/
+frontend/assets/logo.png

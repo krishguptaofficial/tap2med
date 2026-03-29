@@ -1,40 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tap2Med | Patient Check-in</title>
     <link rel="stylesheet" href="/static/style.css">
+    <title>Tap2Med - Patient Scan</title>
 </head>
 <body>
-    <main class="container">
-        <section id="screen-phone">
-            <h2>Welcome to <span id="display-clinic-name">'Clinic_name'</span></h2>
+    <div class="mobile-container">
+        <div class="logo-header">
+            <img src="../assets/logo.png" width="30"/> Tap2Med
+        </div>
+
+        <div id="screen-login">
+            <h2>Welcome to &lt;clinic_name&gt;</h2>
+            <p>Powered By Tap2Med</p>
+            <br><br>
             <p>Enter your mobile number to get the token number</p>
-            <input type="tel" id="input-phone" placeholder="99999 99999">
-            <button onclick="submitPhone()">Submit</button>
-            <footer>We do not store your phone number or<br>
-                 any other personal identity marker.</footer>
-        </section>
+            <input type="text" id="phone-input" placeholder="Enter mobile number">
+            <br>
+            <button class="btn-submit" onclick="goToStep2()">Submit</button>
+            <br><br><br>
+            <p style="font-size: 0.8rem;">We do not store your phone number or any other personal identifier in our system.</p>
+        </div>
 
-        <section id="screen-selection" style="display:none;">
+        <div id="screen-family" hidden>
             <h3>Who is visiting today?</h3>
-            <div class="list">
-                <button onclick="setPatient('Self')">Self</button>
-                <button onclick="setPatient('Mother')">Mother</button>
-                <button onclick="setPatient('Father')">Father</button>
+            <div class="member-list">
+                <div class="member-item">Self</div>
+                <div class="member-item">Mother</div>
+                <div class="member-item">Father</div>
+                <div class="member-item">Add +</div>
             </div>
-            <button class="primary" onclick="confirmCheckIn()">Check-in</button>
-        </section>
+            <button class="btn-checkin" onclick="goToStep3()">Check-in</button>
+        </div>
 
-        <section id="screen-success" style="display:none;">
-            <h2 style="color: rgb(2, 251, 2);">VISIT CREATED!</h2>
-            <p>Your Token no. is:</p>
-            <h1 id="display-token-no">#--</h1>
-            <p class="wait-time">Estimated Wait: 15 mins</p>
-            <p>Kindly take a seat and wait for your turn.</p>
-        </section>
-    </main>
-    
+        <div id="screen-token" hidden>
+            <div class="success-text">VISIT<br>CREATED!</div>
+            <p><b>Your Token no. is:</b></p>
+            <div class="token-no">#1</div>
+            <p>Estimated Wait time:</p>
+            <div class="wait-note">Kindly take a seat and wait for your turn</div>
+        </div>
+
+    </div>
+
+    <script>
+        
+    </script>
 </body>
-</html>     
+</html>
