@@ -1,120 +1,103 @@
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    background-color: #f4f4f4;
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background: #fff;
+  color: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.logo-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: bold;
-    font-size: 1.2rem;
-    margin-bottom: 40px;
+.app-container {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
 }
 
-/* Inputs & Buttons */
-input {
-    width: 90%;
-    padding: 15px;
-    margin: 20px 0;
-    border: 1px solid #000;
-    border-radius: 8px;
-    background-color: #e3effb;
-    font-size: 1rem;
-}
-
-button {
-    padding: 12px 40px;
-    border-radius: 8px;
-    border: 1px solid #000;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.btn-submit { background-color: #87ceeb; }
-.btn-checkin { background-color: #ccefff; margin-top: 50px;}
-
-
-.success-text { color: #44bd32; font-weight: bold; font-size: 1.5rem; }
-.token-no { color: #0984e3; font-size: 4rem; margin: 10px 0; }
-.wait-note { color: #f1c40f; font-weight: bold; margin-top: 100px; }
-
-/* Selection List */
-.member-list { border-top: 1px solid #000; margin-top: 20px; }
-.member-item {
-    border-bottom: 1px solid #000;
-    padding: 10px;
-    text-align: left;
-    font-weight: bold;
+.hidden {
+  display: none !important;
 }
 
 
-.mobile-container {
-    width: 100%;
-    max-width: 450px; 
-    min-height: 100vh;
-    background: white;
-    padding: 30px;
-    box-sizing: border-box;
-    text-align: center;
-    margin: 0 auto; 
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-
-/* DESKTOP OPTIMIZATION */
-@media (min-width: 768px) {
-    body {
-        align-items: center; 
-        background-color: #e0e0e0; 
-    }
-    .mobile-container {
-        /*min-height: 80vh;  to not take full height on monitor screen */
-        border-radius: 20px;
-        border: 1px solid #ccc;
-    }
+h2 {
+  font-size: 20px;
+  margin-bottom: 5px;
 }
 
-.selected {
-    background-color: #ccefff; 
-    border-left: 5px solid #0984e3;
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 30px;
 }
 
-.selection-group {
-    border-top: 1px solid #000;
-    margin-bottom: 30px;
+.footer-text {
+  font-size: 12px;
+  color: #666;
+  margin-top: 40px;
 }
 
 
-.selection-item {
-    padding: 15px;
-    text-align: left;
-    font-weight: bold;
-    border-bottom: 1px solid #000;
-    cursor: pointer;
-    transition: background 0.2s; 
+.input-box {
+  width: 100%;
+  padding: 15px;
+  background: #e6f2ff;
+  border: 1px solid #000;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 30px;
+  box-sizing: border-box;
 }
 
-.selection-item:active, .selection-item.selected {
-    background-color: #ccefff;
+.btn-primary {
+  background: #bdf0ff;
+  border: 1px solid #000;
+  border-radius: 8px;
+  padding: 15px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #000;
 }
 
 
-.add-btn {
-    color: #0984e3;
+.member-list {
+  text-align: left;
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+  margin-bottom: 40px;
+}
+.member-row {
+  padding: 15px 10px;
+  border-bottom: 1px solid #000;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-
-.add-input-box {
-    padding: 15px;
-    background: #f9f9f9;
-    border-bottom: 1px solid #000;
+.member-row:last-child {
+  border-bottom: none;
 }
 
-.btn-add-small {
-    padding: 5px 15px;
-    background: #87ceeb;
-    font-size: 0.8rem;
-    margin-top: 5px;
+.member-row.selected {
+  background-color: #e6f2ff;
+} 
+
+.text-green {
+  color: #4caf50;
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.token-number {
+  font-size: 60px;
+  color: #007bff;
+  margin: 20px 0;
+}
+
+.text-yellow {
+  color: #ffb300;
+  font-weight: bold;
+  font-size: 18px;
+  margin-top: 40px;
 }
