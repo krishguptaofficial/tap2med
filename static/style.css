@@ -77,36 +77,35 @@ button {
 }
 
 .selected {
-    background-color: #ccefff; /* Highlight color */
+    background-color: #ccefff; 
     border-left: 5px solid #0984e3;
 }
-/* The container for the list */
+
 .selection-group {
     border-top: 1px solid #000;
     margin-bottom: 30px;
 }
 
-/* Each row in the selection list */
+
 .selection-item {
     padding: 15px;
     text-align: left;
     font-weight: bold;
     border-bottom: 1px solid #000;
     cursor: pointer;
-    transition: background 0.2s; /* Makes the tap feel smooth */
+    transition: background 0.2s; 
 }
 
-/* When a user taps/clicks an item */
 .selection-item:active, .selection-item.selected {
     background-color: #ccefff;
 }
 
-/* Style for the "Add +" text */
+
 .add-btn {
     color: #0984e3;
 }
 
-/* The hidden input area */
+
 .add-input-box {
     padding: 15px;
     background: #f9f9f9;

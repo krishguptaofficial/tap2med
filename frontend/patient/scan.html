@@ -1,77 +1,172 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" href="/static/style.css">
+  <head>
+    <link rel="stylesheet" href="/static/style.css" />
     <title>Tap2Med - Patient Scan</title>
-</head>
-<body>
+  </head>
+  <body>
     <div class="mobile-container">
-        <div class="logo-header">
-            <img src="../assets/logo.png" width="30"/> Tap2Med
+      <div class="logo-header">
+        <img src="../assets/logo.png" width="30" /> Tap2Med
+      </div>
+
+      <div id="screen-login">
+        <h2>Welcome to &lt;clinic_name&gt;</h2>
+        <p>Powered By Tap2Med</p>
+        <br /><br />
+        <p>Enter your mobile number to get the token number</p>
+        <input type="text" id="phone-input" placeholder="Enter mobile number" />
+        <br />
+        <button class="btn-submit" onclick="goToStep2()">Submit</button>
+        <br /><br /><br />
+        <p style="font-size: 0.8rem">
+          We do not store your phone number or any other personal identifier in
+          our system.
+        </p>
+      </div>
+
+      <div id="screen-family" hidden>
+        <h3 style="margin-bottom: 30px">Who is visiting today?</h3>
+
+        <div class="selection-group" id="family-list">
+          <div class="selection-item" onclick="selectMember(this)">Self</div>
+          <div class="selection-item" onclick="selectMember(this)">Mother</div>
+          <div class="selection-item" onclick="selectMember(this)">Father</div>
+
+          <div class="selection-item add-btn" onclick="toggleAddInput()">
+            Add +
+          </div>
+
+          <div id="add-member-container" class="add-input-box" hidden>
+            <input
+              type="text"
+              id="new-member-name"
+              placeholder="Relation (e.g. Sister)"
+            />
+            <button class="btn-add-small" onclick="addNewMember()">
+              Add to List
+            </button>
+          </div>
         </div>
 
-        <div id="screen-login">
-            <h2>Welcome to &lt;clinic_name&gt;</h2>
-            <p>Powered By Tap2Med</p>
-            <br><br>
-            <p>Enter your mobile number to get the token number</p>
-            <input type="text" id="phone-input" placeholder="Enter mobile number">
-            <br>
-            <button class="btn-submit" onclick="goToStep2()">Submit</button>
-            <br><br><br>
-            <p style="font-size: 0.8rem;">We do not store your phone number or any other personal identifier in our system.</p>
-        </div>
+        <button class="btn-checkin" onclick="goTostep3()">Check-in</button>
+      </div>
 
-        <div id="screen-family" hidden>
-    <h3 style="margin-bottom: 30px;">Who is visiting today?</h3>
-    
-    <div class="selection-group" id="family-list">
-        <div class="selection-item" onclick="selectMember(this)">Self</div>
-        <div class="selection-item" onclick="selectMember(this)">Mother</div>
-        <div class="selection-item" onclick="selectMember(this)">Father</div>
-        
-        <div class="selection-item add-btn" onclick="toggleAddInput()">Add +</div>
-        
-        <div id="add-member-container" class="add-input-box" hidden>
-            <input type="text" id="new-member-name" placeholder="Relation (e.g. Sister)">
-            <button class="btn-add-small" onclick="addNewMember()">Add to List</button>
-        </div>
-    </div>
-
-    <button class="btn-checkin" onclick="goTostep3()">Check-in</button>
-</div>
-
-        <div id="screen-token" hidden>
-            <div class="success-text">VISIT<br>CREATED!</div>
-            <p><b>Your Token no. is:</b></p>
-            <div class="token-no">#1</div>
-            <p>Estimated Wait time:</p>
-            <div class="wait-note">Kindly take a seat and wait for your turn</div>
-        </div>
-
+      <div id="screen-token" hidden>
+        <div class="success-text">VISIT<br />CREATED!</div>
+        <p><b>Your Token no. is:</b></p>
+        <div class="token-no">#1</div>
+        <p>Estimated Wait time:</p>
+        <div class="wait-note">Kindly take a seat and wait for your turn</div>
+      </div>
     </div>
 
     <script>
-        async function goToStep2() {
-    
-        const loginScreen = document.getElementById('screen-login');
-        loginScreen.hidden = true;
+      // 1. GLOBAL STATE (The app's memory)
+let selectedMemberId = ""; 
+let currentClinicId = new URLSearchParams(window.location.search).get('cid') || "default_clinic";
 
+
+window.onload = async function() {
+    const hasToken = getCookie("tap2med_token");
+
+    if (hasToken) {
+        
+        await loadFamilyMembers(); 
+        showScreen('screen-family');
+    } else {
       
-        const familyScreen = document.getElementById('screen-family'); 
-        familyScreen.hidden = false;  
+        showScreen('screen-login');
     }
+};
 
-        function goTostep3(){
-            const loginScreen = document.getElementById('screen-login');
-            loginScreen.hidden = true;
 
-            const familyScreen = document.getElementById('screen-family');
-            familyScreen.hidden = true;
+async function goToStep2() {
+    const phoneValue = document.getElementById("phone-input").value.trim();
+    if (phoneValue.length < 10) return alert("Enter 10 digits");
 
-            const tokenScreen = document.getElementById('screen-token');
-            tokenScreen.hidden = false;
+    try {
+        const response = await fetch("/api/events/scan", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phoneValue, clinic_id: currentClinicId })
+        });
+
+        if (response.ok) {
+            await loadFamilyMembers(); 
+            showScreen('screen-family');
         }
+    } catch (e) { alert("Server Error"); }
+}
+
+
+function toggleAddInput() {
+    
+    document.getElementById('add-member-container').hidden = false;
+}
+
+function addNewMember() {
+    const dropdown = document.getElementById('relation-dropdown');
+    const relation = dropdown.value;
+
+    // Create the new row in the UI
+    const list = document.getElementById('family-list');
+    const newRow = document.createElement('div');
+    newRow.className = 'selection-item';
+    newRow.innerText = relation;
+    newRow.onclick = function() { selectMember(this); };
+
+    // Insert before the Add button
+    list.insertBefore(newRow, document.querySelector('.add-btn'));
+
+    // Remove from dropdown so they can't add "Mother" twice
+    dropdown.remove(dropdown.selectedIndex);
+    document.getElementById('add-member-container').hidden = true;
+}
+
+
+function selectMember(element) {
+    document.querySelectorAll('.selection-item').forEach(el => el.classList.remove('selected-row'));
+    element.classList.add('selected-row');
+    selectedMemberId = element.innerText; // In V0, we just use the name/relation
+}
+
+// 6. FINAL STEP: Check In
+async function goTostep3() {
+    if (!selectedMemberId) return alert("Please select who is visiting");
+
+    const response = await fetch("/api/events/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+            member: selectedMemberId,
+            clinic_id: currentClinicId 
+        })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+        document.getElementById("token-display").innerText = "#" + data.token_no;
+        showScreen('screen-token');
+    }
+}
+
+// --- HELPERS ---
+function showScreen(id) {
+    document.querySelectorAll('.mobile-container > div[id^="screen"]').forEach(s => s.hidden = true);
+    document.getElementById(id).hidden = false;
+}
+
+function getCookie(name) {
+    let value = `; ${document.cookie}`;
+    let parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+async function loadFamilyMembers() {
+    
+    console.log("Loading members from backend...");
+}
     </script>
-</body>
+  </body>
 </html>
