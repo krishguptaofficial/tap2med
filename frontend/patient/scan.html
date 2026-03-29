@@ -23,15 +23,23 @@
         </div>
 
         <div id="screen-family" hidden>
-            <h3>Who is visiting today?</h3>
-            <div class="member-list">
-                <div class="member-item">Self</div>
-                <div class="member-item">Mother</div>
-                <div class="member-item">Father</div>
-                <div class="member-item">Add +</div>
-            </div>
-            <button class="btn-checkin" onclick="goToStep3()">Check-in</button>
+    <h3 style="margin-bottom: 30px;">Who is visiting today?</h3>
+    
+    <div class="selection-group" id="family-list">
+        <div class="selection-item" onclick="selectMember(this)">Self</div>
+        <div class="selection-item" onclick="selectMember(this)">Mother</div>
+        <div class="selection-item" onclick="selectMember(this)">Father</div>
+        
+        <div class="selection-item add-btn" onclick="toggleAddInput()">Add +</div>
+        
+        <div id="add-member-container" class="add-input-box" hidden>
+            <input type="text" id="new-member-name" placeholder="Relation (e.g. Sister)">
+            <button class="btn-add-small" onclick="addNewMember()">Add to List</button>
         </div>
+    </div>
+
+    <button class="btn-checkin" onclick="goTostep3()">Check-in</button>
+</div>
 
         <div id="screen-token" hidden>
             <div class="success-text">VISIT<br>CREATED!</div>
@@ -44,7 +52,26 @@
     </div>
 
     <script>
-        
+        async function goToStep2() {
+    
+        const loginScreen = document.getElementById('screen-login');
+        loginScreen.hidden = true;
+
+      
+        const familyScreen = document.getElementById('screen-family'); 
+        familyScreen.hidden = false;  
+    }
+
+        function goTostep3(){
+            const loginScreen = document.getElementById('screen-login');
+            loginScreen.hidden = true;
+
+            const familyScreen = document.getElementById('screen-family');
+            familyScreen.hidden = true;
+
+            const tokenScreen = document.getElementById('screen-token');
+            tokenScreen.hidden = false;
+        }
     </script>
 </body>
 </html>

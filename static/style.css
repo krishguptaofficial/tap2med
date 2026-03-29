@@ -6,17 +6,6 @@ body {
     background-color: #f4f4f4;
 }
 
-.mobile-container {
-    width: 100%;
-    max-width: 400px;
-    height: 100vh;
-    background: white;
-    padding: 20px;
-    box-sizing: border-box;
-    text-align: center;
-    position: relative;
-}
-
 .logo-header {
     display: flex;
     align-items: center;
@@ -48,7 +37,7 @@ button {
 .btn-submit { background-color: #87ceeb; }
 .btn-checkin { background-color: #ccefff; margin-top: 50px;}
 
-/* Specific Text Colors from your Design */
+
 .success-text { color: #44bd32; font-weight: bold; font-size: 1.5rem; }
 .token-no { color: #0984e3; font-size: 4rem; margin: 10px 0; }
 .wait-note { color: #f1c40f; font-weight: bold; margin-top: 100px; }
@@ -60,4 +49,73 @@ button {
     padding: 10px;
     text-align: left;
     font-weight: bold;
+}
+
+
+.mobile-container {
+    width: 100%;
+    max-width: 450px; 
+    min-height: 100vh;
+    background: white;
+    padding: 30px;
+    box-sizing: border-box;
+    text-align: center;
+    margin: 0 auto; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+
+/* DESKTOP OPTIMIZATION */
+@media (min-width: 768px) {
+    body {
+        align-items: center; 
+        background-color: #e0e0e0; 
+    }
+    .mobile-container {
+        /*min-height: 80vh;  to not take full height on monitor screen */
+        border-radius: 20px;
+        border: 1px solid #ccc;
+    }
+}
+
+.selected {
+    background-color: #ccefff; /* Highlight color */
+    border-left: 5px solid #0984e3;
+}
+/* The container for the list */
+.selection-group {
+    border-top: 1px solid #000;
+    margin-bottom: 30px;
+}
+
+/* Each row in the selection list */
+.selection-item {
+    padding: 15px;
+    text-align: left;
+    font-weight: bold;
+    border-bottom: 1px solid #000;
+    cursor: pointer;
+    transition: background 0.2s; /* Makes the tap feel smooth */
+}
+
+/* When a user taps/clicks an item */
+.selection-item:active, .selection-item.selected {
+    background-color: #ccefff;
+}
+
+/* Style for the "Add +" text */
+.add-btn {
+    color: #0984e3;
+}
+
+/* The hidden input area */
+.add-input-box {
+    padding: 15px;
+    background: #f9f9f9;
+    border-bottom: 1px solid #000;
+}
+
+.btn-add-small {
+    padding: 5px 15px;
+    background: #87ceeb;
+    font-size: 0.8rem;
+    margin-top: 5px;
 }
