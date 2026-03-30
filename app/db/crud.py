@@ -44,7 +44,6 @@ def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, net
 
     if recent:
         return recent
-        return recent
 
     db.add(db_event)
     db.commit()
