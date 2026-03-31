@@ -30,6 +30,16 @@
             
             <button class="btn-primary" onclick="submitCheckIn()">Check-in</button> </div>
 
+            <div id="screen-add-member" class="hidden">
+    <h2>Add Family Member</h2>
+    <p class="subtitle">Enter the patient's full name</p>
+    
+    <input type="text" id="new-member-name" class="input-box" placeholder="Patient Name" autocomplete="off">
+    
+    <button class="btn-primary" onclick="saveNewMember()">Save Member</button>
+    <button class="btn-primary" style="background: #e6e6e6;" onclick="showScreen('screen-members')">Cancel</button>
+</div>
+
         <div id="screen-success" class="hidden">
             <h2 class="text-green">VISIT<br>CREATED!</h2>
             <p style="font-weight: bold; margin-top: 30px;">Your Token no. is:</p>
@@ -144,6 +154,7 @@
         }
     }
 </script>
-</body>
+</body> 
+
 </html>
 
