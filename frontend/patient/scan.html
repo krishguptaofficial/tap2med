@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="app-container">
         
         <div style="text-align: left; font-weight: bold; font-size: 20px; margin-bottom: 30px;">
-            <img src ="../assets/logo.png" height =20px width = 30px> Tap2Med 
+            + Tap2Med
         </div>
 
         <div id="screen-phone">
@@ -28,17 +28,18 @@
             <div id="member-list-container" class="member-list">
                 </div>
             
-            <button class="btn-primary" onclick="submitCheckIn()">Check-in</button> </div>
+            <button class="btn-primary" onclick="submitCheckIn()">Check-in</button>
+        </div>
 
-            <div id="screen-add-member" class="hidden">
-    <h2>Add Family Member</h2>
-    <p class="subtitle">Enter the patient's full name</p>
-    
-    <input type="text" id="new-member-name" class="input-box" placeholder="Patient Name" autocomplete="off">
-    
-    <button class="btn-primary" onclick="saveNewMember()">Save Member</button>
-    <button class="btn-primary" style="background: #e6e6e6;" onclick="showScreen('screen-members')">Cancel</button>
-</div>
+        <div id="screen-add-member" class="hidden">
+            <h2>Add Family Member</h2>
+            <p class="subtitle">Enter the patient's full name</p>
+            
+            <input type="text" id="new-member-name" class="input-box" placeholder="Patient Name" autocomplete="off">
+            
+            <button class="btn-primary" onclick="saveNewMember()">Save Member</button>
+            <button class="btn-primary" style="background: #e6e6e6;" onclick="showScreen('screen-members')">Cancel</button>
+        </div>
 
         <div id="screen-success" class="hidden">
             <h2 class="text-green">VISIT<br>CREATED!</h2>
@@ -51,81 +52,127 @@
 
     </div>
 
-    <body><script>
-    // 1. DUMB GLOBAL STATE (Memory for the current session only)
+<script>
+    // --- 1. BOOT UP & STATE ---
+    
+    // Extract clinic ID from the scanned QR URL (e.g., ?clinic=1234)
+    const urlParams = new URLSearchParams(window.location.search);
+    const scannedClinicId = urlParams.get('clinic'); 
+
+    // Volatile Memory (Nuked after check-in)
     let currentSessionPhone = null;
     let selectedMemberId = null;
 
-    // 2. HELPER TO SWAP SCREENS
+    // The Standard Indian Family Roster
+    let defaultMembers = [
+        { id: 0, name: "Self" },
+        { id: 1, name: "Mother" },
+        { id: 2, name: "Father" },
+        { id: 3, name: "Wife" },
+        { id: 4, name: "Son" },
+        { id: 5, name: "Daughter" }
+    ];
+
+    // Load family from the browser's notepad, or use defaults
+    let savedMembers = localStorage.getItem('tap2med_family');
+    let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
+
+    // --- 2. UI HELPERS ---
+
     function showScreen(screenId) {
         document.getElementById('screen-phone').classList.add('hidden');
         document.getElementById('screen-members').classList.add('hidden');
+        document.getElementById('screen-add-member').classList.add('hidden');
         document.getElementById('screen-success').classList.add('hidden');
         
         document.getElementById(screenId).classList.remove('hidden');
     }
 
-    // 3. STEP 1 -> STEP 2 LOGIC
+    // --- 3. THE JOURNEY ---
+
     function goToMemberScreen() {
+        if (!scannedClinicId) {
+            alert("Invalid QR Code. Missing Clinic ID.");
+            return;
+        }
+
         let phoneVal = document.getElementById('phone-input').value;
         if (phoneVal.length !== 10) {
             alert("Please enter a valid 10-digit number.");
             return;
         }
 
-        // Save phone to memory
         currentSessionPhone = phoneVal;
-        
-      
         renderMemberList(); 
-        
         showScreen('screen-members');
-    }
-
-    
-    function selectMember(memberId, rowElement) {
-        selectedMemberId = memberId;
-
-        // Remove highlight from all rows
-        let allRows = document.getElementsByClassName('member-row');
-        for (let i = 0; i < allRows.length; i++) {
-            allRows[i].classList.remove('selected');
-        }
-
-      
-        rowElement.classList.add('selected');
     }
 
     function renderMemberList() {
         let container = document.getElementById('member-list-container');
-        
-       
-        let htmlContent = `
-            <div class="member-row" onclick="selectMember('self_id', this)">Self</div>
-            <div class="member-row" onclick="selectMember('mother_id', this)">Mother</div>
-            <div class="member-row" onclick="selectMember('father_id', this)">Father</div>
-            <div class="member-row" onclick="alert('Add Member UI opens here')">Add +</div>
-        `;
-        container.innerHTML = htmlContent;
+        container.innerHTML = ''; 
+
+        // Draw the saved family members
+        for (let i = 0; i < familyMembers.length; i++) {
+            let member = familyMembers[i];
+            container.innerHTML += `<div class="member-row" onclick="selectMember(${member.id}, this)">${member.name}</div>`;
+        }
+
+        // Draw the Add button at the bottom
+        container.innerHTML += `<div class="member-row" onclick="showAddMemberScreen()" style="color: #007bff; text-align: center;">+ Add New Member</div>`;
     }
 
-  
+    function selectMember(memberId, rowElement) {
+        selectedMemberId = memberId;
+
+        // Remove highlight from all, add to tapped row
+        let allRows = document.getElementsByClassName('member-row');
+        for (let i = 0; i < allRows.length; i++) {
+            allRows[i].classList.remove('selected');
+        }
+        rowElement.classList.add('selected');
+    }
+
+    // --- 4. ADD NEW MEMBER LOGIC ---
+
+    function showAddMemberScreen() {
+        document.getElementById('new-member-name').value = ''; 
+        showScreen('screen-add-member');
+    }
+
+    function saveNewMember() {
+        let nameInput = document.getElementById('new-member-name').value.trim();
+
+        if (nameInput === "") {
+            alert("Please enter a name.");
+            return;
+        }
+
+        // Use timestamp for a guaranteed unique local ID (e.g., 1711813456789)
+        let uniqueId = Date.now(); 
+
+        // Push to memory and save
+        familyMembers.push({ id: uniqueId, name: nameInput });
+        localStorage.setItem('tap2med_family', JSON.stringify(familyMembers));
+
+        renderMemberList();
+        showScreen('screen-members');
+    }
+
+    // --- 5. NETWORK & CHECK-IN ---
+
     async function submitCheckIn() {
-        // Validation guards
-        if (currentSessionPhone === null) return;
-        if (selectedMemberId === null) {
+        if (currentSessionPhone === null || selectedMemberId === null) {
             alert("Please select a member first.");
             return;
         }
 
-        
         let payload = {
             phone: currentSessionPhone,
-            member_id: selectedMemberId
+            member_id: selectedMemberId,
+            clinic_id: scannedClinicId
         };
 
         try {
-            
             let response = await fetch('/api/events/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -135,18 +182,16 @@
             if (!response.ok) throw new Error("Backend failed");
             let data = await response.json();
 
-            // NUKE THE MEMORY IMMEDITATELY
+            // NUKE THE MEMORY
             currentSessionPhone = null;
             selectedMemberId = null;
 
-           
-            document.getElementById('token-display').innerText = "#" + data.queue_number; 
-           
+            // Show Success
+            document.getElementById('token-display').innerText = "#" + data.queue_number;
             showScreen('screen-success');
 
         } catch (error) {
             alert("Network error. Please try again.");
-            
             currentSessionPhone = null;
             selectedMemberId = null;
             document.getElementById('phone-input').value = '';
@@ -154,7 +199,5 @@
         }
     }
 </script>
-</body> 
-
+</body>
 </html>
-
