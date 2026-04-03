@@ -53,9 +53,7 @@
     </div>
 
 <script>
-    // --- 1. BOOT UP & STATE ---
     
-    // Extract clinic ID from the scanned QR URL (e.g., ?clinic=1234)
     const urlParams = new URLSearchParams(window.location.search);
     const scannedClinicId = urlParams.get('clinic'); 
 
@@ -63,7 +61,7 @@
     let currentSessionPhone = null;
     let selectedMemberId = null;
 
-    // The Standard Indian Family Roster
+    
     let defaultMembers = [
         { id: 0, name: "Self" },
         { id: 1, name: "Mother" },
@@ -73,11 +71,11 @@
         { id: 5, name: "Daughter" }
     ];
 
-    // Load family from the browser's notepad, or use defaults
+    
     let savedMembers = localStorage.getItem('tap2med_family');
     let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
 
-    // --- 2. UI HELPERS ---
+    
 
     function showScreen(screenId) {
         document.getElementById('screen-phone').classList.add('hidden');
@@ -88,7 +86,7 @@
         document.getElementById(screenId).classList.remove('hidden');
     }
 
-    // --- 3. THE JOURNEY ---
+   
 
     function goToMemberScreen() {
         if (!scannedClinicId) {
@@ -111,20 +109,18 @@
         let container = document.getElementById('member-list-container');
         container.innerHTML = ''; 
 
-        // Draw the saved family members
         for (let i = 0; i < familyMembers.length; i++) {
             let member = familyMembers[i];
             container.innerHTML += `<div class="member-row" onclick="selectMember(${member.id}, this)">${member.name}</div>`;
         }
 
-        // Draw the Add button at the bottom
+       
         container.innerHTML += `<div class="member-row" onclick="showAddMemberScreen()" style="color: #007bff; text-align: center;">+ Add New Member</div>`;
     }
 
     function selectMember(memberId, rowElement) {
         selectedMemberId = memberId;
 
-        // Remove highlight from all, add to tapped row
         let allRows = document.getElementsByClassName('member-row');
         for (let i = 0; i < allRows.length; i++) {
             allRows[i].classList.remove('selected');
@@ -132,7 +128,6 @@
         rowElement.classList.add('selected');
     }
 
-    // --- 4. ADD NEW MEMBER LOGIC ---
 
     function showAddMemberScreen() {
         document.getElementById('new-member-name').value = ''; 
@@ -147,10 +142,10 @@
             return;
         }
 
-        // Use timestamp for a guaranteed unique local ID (e.g., 1711813456789)
+        
         let uniqueId = Date.now(); 
 
-        // Push to memory and save
+        
         familyMembers.push({ id: uniqueId, name: nameInput });
         localStorage.setItem('tap2med_family', JSON.stringify(familyMembers));
 
@@ -158,7 +153,6 @@
         showScreen('screen-members');
     }
 
-    // --- 5. NETWORK & CHECK-IN ---
 
     async function submitCheckIn() {
         if (currentSessionPhone === null || selectedMemberId === null) {
@@ -182,11 +176,9 @@
             if (!response.ok) throw new Error("Backend failed");
             let data = await response.json();
 
-            // NUKE THE MEMORY
             currentSessionPhone = null;
             selectedMemberId = null;
 
-            // Show Success
             document.getElementById('token-display').innerText = "#" + data.queue_number;
             showScreen('screen-success');
 
