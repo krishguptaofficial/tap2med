@@ -47,3 +47,17 @@ def create_a_patient_checkin(payload: CheckInPayload, db: Session = Depends(get_
         "queue_number": 1, # Hardcoded until the queue counter is built
         "local_token": tokens["local_token"]
     }
+
+
+class StatusUpdatePayload(BaseModel):
+    local_token: str
+
+@router.put("/complete")
+def complete_event(payload: StatusUpdatePayload, db: Session = Depends(get_db)):
+    
+    updated_event = crud.complete_patient_event(db=db, local_token=payload.local_token)
+    
+    if not updated_event:
+        raise HTTPException(status_code=404, detail="Active token not found")
+
+    return {"status": "success", "message": "Patient visit completed and lodged successfully"}
