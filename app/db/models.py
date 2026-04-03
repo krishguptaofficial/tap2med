@@ -29,8 +29,8 @@ class Event(Base):
     local_token = Column(Text, index = True, nullable = False)
     event_type = Column(String, nullable = False )
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-   
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    status = Column(String, default="WAITING")
     clinic= relationship("Clinic", back_populates="events")
     prescriptions = relationship("Prescription", back_populates="events")
 
