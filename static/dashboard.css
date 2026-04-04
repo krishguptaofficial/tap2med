@@ -1,0 +1,216 @@
+/* tap2med/static/dashboard.css */
+
+/* BASE & TYPOGRAPHY */
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #f4f7f6;
+  color: #333;
+  overflow: hidden;
+}
+input {
+  font-family: inherit;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+input:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+}
+
+/* LAYOUT */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* SIDEBAR (Left Column) */
+.sidebar {
+  width: 280px;
+  background: #ffffff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s ease;
+  z-index: 1000;
+}
+.sidebar-box {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding: 20px;
+  background: #fafafa;
+  border-top: 1px solid #ddd;
+}
+.queue-text {
+  font-size: 18px;
+  font-weight: 500;
+}
+.history-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+ul {
+  padding-left: 20px;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* MAIN CONTENT (Right Column) */
+.main-wrapper {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+/* TOP ACTION BAR */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  border-bottom: 1px solid #eee;
+}
+.btn-light {
+  background: #d0e8f2;
+  color: #000;
+  border: none;
+  padding: 10px 20px;
+  font-size: 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.btn-light:hover {
+  background: #bfe0ed;
+}
+
+/* PRESCRIPTION CANVAS */
+.prescription-area {
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+.rx-title {
+  font-size: 28px;
+  color: #2c3e50;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  font-weight: bold;
+}
+
+.rx-row {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+  align-items: center;
+}
+.rx-med {
+  flex: 1.2;
+}
+.rx-freq {
+  flex: 1;
+}
+.btn-add-row {
+  background: none;
+  border: 1px dashed #ccc;
+  padding: 10px;
+  width: 100%;
+  border-radius: 5px;
+  cursor: pointer;
+  color: #666;
+  margin-top: 10px;
+}
+.btn-add-row:hover {
+  background: #f9f9f9;
+  border-color: #999;
+}
+
+/* MOBILE TOGGLES */
+.mobile-header {
+  display: none;
+  padding: 15px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  align-items: center;
+  gap: 15px;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+}
+.backdrop {
+  display: none;
+}
+
+/* RESPONSIVE MEDIA QUERY (< 768px) */
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  .backdrop.open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+  }
+  .action-bar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  .prescription-area {
+    padding: 20px;
+  }
+  .rx-row {
+    flex-direction: column;
+    gap: 5px;
+    margin-bottom: 25px;
+  }
+}
+
+/* PRINT STYLES */
+@media print {
+  .sidebar,
+  .action-bar,
+  .btn-add-row,
+  .mobile-header {
+    display: none !important;
+  }
+  .main-wrapper {
+    overflow: visible;
+  }
+  input {
+    border: none;
+    padding: 0;
+    margin-bottom: 5px;
+  }
+}
