@@ -1,86 +1,159 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Consultation | Tap2Med</title>
-    <link rel="stylesheet" href="/static/dashboard.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="/static/dashboard.css" />
+  </head>
+  <body>
     <div class="app-layout">
-        
-        <div id="sidebar-backdrop" class="backdrop"></div>
+      <div id="sidebar-backdrop" class="backdrop"></div>
 
-        <aside id="app-sidebar" class="sidebar">
-            <div class="sidebar-box">
-                <div class="queue-text">
-                    <ul><li>Today's queue number: <strong id="current-token" style="color: #007bff;">#--</strong></li></ul>
-                </div>
+      <aside id="app-sidebar" class="sidebar">
+        <div class="sidebar-box">
+          <div class="queue-text">
+            <ul>
+              <li>
+                Today's queue number:
+                <strong id="current-token" style="color: #007bff">#--</strong>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="sidebar-box" style="flex-grow: 1; overflow-y: auto">
+          <div class="history-title">Visit History:</div>
+          <div
+            id="history-content"
+            style="
+              padding: 15px;
+              background: #f8f9fa;
+              border-radius: 5px;
+              border: 1px solid #eee;
+              min-height: 200px;
+            "
+          >
+            Date wise history...
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <ul>
+            <li>Doctor name</li>
+            <li>Clinic name</li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="main-wrapper">
+        <div class="mobile-header">
+          <button class="icon-btn" id="mobile-menu-btn">☰</button>
+          <h3 style="margin: 0">Tap2Med OPD</h3>
+        </div>
+
+        <div class="action-bar">
+          <button class="btn-light">Copy Last Prescription</button>
+          <button class="btn-light" id="print-btn">Print/share</button>
+        </div>
+
+        <div class="prescription-area">
+          <div class="rx-title">Draft Prescription</div>
+
+          <div id="rx-container">
+            <div class="rx-row">
+              <input
+                type="text"
+                class="rx-med"
+                value=""
+                placeholder="Medicine & Dose"
+              />
+              <input
+                type="text"
+                class="rx-freq"
+                value=""
+                placeholder="Frequency & Instructions"
+              />
             </div>
-            
-            <div class="sidebar-box" style="flex-grow: 1; overflow-y: auto;">
-                <div class="history-title">Visit History:</div>
-                <div id="history-content" style="padding: 15px; background: #f8f9fa; border-radius: 5px; border: 1px solid #eee; min-height: 200px;">
-                    Date wise history...
-                </div>
+            <div class="rx-row">
+              <input
+                type="text"
+                class="rx-med"
+                value=""
+                placeholder="Medicine & Dose"
+              />
+              <input
+                type="text"
+                class="rx-freq"
+                value=""
+                placeholder="Frequency & Instructions"
+              />
             </div>
-
-            <div class="sidebar-footer">
-                <ul>
-                    <li>Doctor name</li>
-                    <li>Clinic name</li>
-                </ul>
+            <div class="rx-row">
+              <input
+                type="text"
+                class="rx-med"
+                value=""
+                placeholder="Medicine & Dose"
+              />
+              <input
+                type="text"
+                class="rx-freq"
+                value=""
+                placeholder="Frequency & Instructions"
+              />
             </div>
-        </aside>
-
-        <main class="main-wrapper">
-            
-            <div class="mobile-header">
-                <button class="icon-btn" id="mobile-menu-btn">☰</button>
-                <h3 style="margin: 0;">Tap2Med OPD</h3>
+            <div class="rx-row">
+              <input
+                type="text"
+                class="rx-med"
+                value="Dietary and Lifestyle Modific"
+                placeholder="Medicine & Dose"
+              />
+              <input
+                type="text"
+                class="rx-freq"
+                value=""
+                placeholder="Frequency & Instructions"
+              />
             </div>
+          </div>
 
-            <div class="action-bar">
-                <button class="btn-light">Copy Last Prescription</button>
-                <button class="btn-light" id="print-btn">Print/share</button>
-            </div>
-            
-            <div class="prescription-area">
-                <div class="rx-title">Draft Prescription</div>
-                
-                <div id="rx-container">
-                    <div class="rx-row">
-                        <input type="text" class="rx-med" value="Metformin 1000 mg" placeholder="Medicine & Dose">
-                        <input type="text" class="rx-freq" value="twice daily with meals" placeholder="Frequency & Instructions">
-                    </div>
-                    <div class="rx-row">
-                        <input type="text" class="rx-med" value="Empagliflozin 10 mg" placeholder="Medicine & Dose">
-                        <input type="text" class="rx-freq" value="once daily in the morning" placeholder="Frequency & Instructions">
-                    </div>
-                    <div class="rx-row">
-                        <input type="text" class="rx-med" value="Atorvastatin 20 mg" placeholder="Medicine & Dose">
-                        <input type="text" class="rx-freq" value="once daily at bedtime" placeholder="Frequency & Instructions">
-                    </div>
-                    <div class="rx-row">
-                        <input type="text" class="rx-med" value="Dietary and Lifestyle Modific" placeholder="Medicine & Dose">
-                        <input type="text" class="rx-freq" value="Daily" placeholder="Frequency & Instructions">
-                    </div>
-                </div>
-
-                <button class="btn-add-row" id="add-row-btn">+ Add Medicine</button>
-            </div>
-
-        </main>
-
+          <button class="btn-add-row" id="add-row-btn">+ Add Medicine</button>
+        </div>
+      </main>
     </div>
     <script>
+      let currentLocalToken = null;
+      const clinicId = new URLSearchParams(window.location.search).get(
+        "clinic_id",
+      );
 
-        let currentLocalToken = null;
-        const clinicId = new URLSearchParams(window.location.search).get('clinic_id');
+      const currentTokenElement = document.getElementById("current-token");
+      const historyContentElement = document.getElementById("history-content");
+      const rxContainer = document.getElementById("rx-container");
 
-        
-       
+      function toggleSidebar() {
+        document.getElementById("app-sidebar").classList.toggle("open");
+        document.getElementById("sidebar-backdrop").classList.toggle("open");
+      }
+
+     document.getElementById('add-row-btn').addEventListener('click', function() {
+    const row = document.createElement('div');
+    row.className = 'rx-row';
+    row.innerHTML = `
+        <input type="text" class="rx-med" placeholder="Medicine & Dose">
+        <input type="text" class="rx-freq" placeholder="Frequency & Instructions">
+    `;
+    rxContainer.appendChild(row);
+});
+
+async function loadNextPatient() {
+    if (!clinicId) { 
+        currentTokenEl.innerText = "Error: No Clinic ID"; return; 
+    }
+    
+}
     </script>
-</body>
+  </body>
 </html>
