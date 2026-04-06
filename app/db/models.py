@@ -27,10 +27,10 @@ class Event(Base):
     clinic_id = Column(UUID(as_uuid = True), ForeignKey("clinics.clinic_id"),nullable = False )
     network_token = Column(Text, index= True, nullable = False )
     local_token = Column(Text, index = True, nullable = False)
-    event_type = Column(String, nullable = False )
+    event_type = Column(String, default ="clinic_visit", nullable = False )
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    status = Column(String, default="WAITING")
+    status = Column(String, default="waiting", index = True)
     clinic= relationship("Clinic", back_populates="events")
     prescriptions = relationship("Prescription", back_populates="events")
 
