@@ -150,43 +150,44 @@
           rxContainer.appendChild(row);
         });
 
-      // async function loadNextPatient() {
-      //   if (!clinicId) {
-      //     currentTokenEl.innerText = "Error: No Clinic ID";
-      //     return;
-      //   }
-      //   try {
-      //     let response = await fetch(`/api/clinics/queue/${clinicId}`);
-      //     let data = await response.json();
-
-      //     if (data.queue && data.queue.length > 0) {
-      //       let currentPatient = data.queue[0];
-
-      //       if (currentLocalToken !== currentPatient.local_token) {
-      //         currentLocalToken = currentPatient.local_token;
-      //         currentTokenEl.innerText = `#1`;
-      //         loadHistory(currentLocalToken);
-      //       }
-      //     }
-      //   } catch (e) {
-      //     console.error("Network poll failed, retrying silently in 10s...");
-      //   }
-      // }
       async function loadNextPatient() {
-        // --- DEVELOPER UI TEST MODE ---
-        // Bypassing the server to force the UI to load so you can test the buttons
-        console.warn("SERVER BYPASSED: Loading fake data for UI testing.");
-        
-        let fakeLocalToken = "test_token_999";
-        
-        if (currentLocalToken !== fakeLocalToken) {
-            currentLocalToken = fakeLocalToken;
-            document.getElementById('current-token').innerText = `#1`; 
-            
-            // Force the history accordion to draw itself
-            loadHistory(currentLocalToken);
+        if (!clinicId) {
+          currentTokenEl.innerText = "Error: No Clinic ID";
+          return;
         }
-    }
+        try {
+          let response = await fetch(`/api/clinics/queue/${clinicId}`);
+          let data = await response.json();
+
+          if (data.queue && data.queue.length > 0) {
+            let currentPatient = data.queue[0];
+
+            if (currentLocalToken !== currentPatient.local_token) {
+              currentLocalToken = currentPatient.local_token;
+              currentTokenEl.innerText = `#1`;
+              loadHistory(currentLocalToken);
+            }
+          }
+        } catch (e) {
+          console.error("Network poll failed, retrying silently in 10s...");
+        }
+      }
+
+
+    //   async function loadNextPatient() {
+    //     
+    //     console.warn("SERVER BYPASSED: Loading fake data for UI testing.");
+        
+    //     let fakeLocalToken = "test_token_999";
+        
+    //     if (currentLocalToken !== fakeLocalToken) {
+    //         currentLocalToken = fakeLocalToken;
+    //         document.getElementById('current-token').innerText = `#1`; 
+            
+    //         // Force the history accordion to draw itself
+    //         loadHistory(currentLocalToken);
+    //     }
+    // }
 
       async function loadHistory(localToken) {
         const mockPastVisits = [];
