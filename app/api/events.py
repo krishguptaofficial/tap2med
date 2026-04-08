@@ -34,8 +34,8 @@ def create_a_patient_checkin(payload: ScanRequest, db: Session = Depends(get_db)
             clinic_salt=str(clinic.clinic_salt)
         )
 
-        # Zero-Knowledge: Nuke phone immediately
-        del payload.phone
+        
+        payload.phone = "DELETED"
         
         new_event = crud.create_patient_event(
             db=db,
