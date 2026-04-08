@@ -125,10 +125,10 @@
     </div>
     <script>
       let currentLocalToken = null;
-      const clinicId = new URLSearchParams(window.location.search).get(
-        "clinic_id",
-      );
+      
+      const clinicId = new URLSearchParams(window.location.search).get("clinic");
 
+      // FIX 3: Unified the variable name to currentTokenElement
       const currentTokenElement = document.getElementById("current-token");
       const historyContentElement = document.getElementById("history-content");
       const rxContainer = document.getElementById("rx-container");
@@ -152,9 +152,10 @@
 
       async function loadNextPatient() {
         if (!clinicId) {
-          currentTokenEl.innerText = "Error: No Clinic ID";
+          currentTokenElement.innerText = "Error: No Clinic ID";
           return;
         }
+        
         try {
           let response = await fetch(`/api/clinics/queue/${clinicId}`);
           let data = await response.json();
@@ -164,30 +165,18 @@
 
             if (currentLocalToken !== currentPatient.local_token) {
               currentLocalToken = currentPatient.local_token;
-              currentTokenEl.innerText = `#1`;
+              currentTokenElement.innerText = `#1`;
               loadHistory(currentLocalToken);
             }
+          } else {
+            currentTokenElement.innerText = `Empty`;
+            historyContentElement.innerHTML = `<p style="color: #666;">No patients waiting.</p>`;
+            currentLocalToken = null;
           }
         } catch (e) {
-          console.error("Network poll failed, retrying silently in 10s...");
+          console.error("Network poll failed, retrying silently in 5s...");
         }
       }
-
-
-    //   async function loadNextPatient() {
-    //     
-    //     console.warn("SERVER BYPASSED: Loading fake data for UI testing.");
-        
-    //     let fakeLocalToken = "test_token_999";
-        
-    //     if (currentLocalToken !== fakeLocalToken) {
-    //         currentLocalToken = fakeLocalToken;
-    //         document.getElementById('current-token').innerText = `#1`; 
-            
-    //         // Force the history accordion to draw itself
-    //         loadHistory(currentLocalToken);
-    //     }
-    // }
 
       async function loadHistory(localToken) {
         const mockPastVisits = [];
@@ -224,18 +213,21 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ local_token: currentLocalToken }),
             });
+            
             rxContainer.innerHTML = "";
             document.getElementById("add-row-btn").click();
 
             currentLocalToken = null;
-            loadNextPatient();
-
-            loadNextPatient();
-            setInterval(loadNextPatient, 10000);
+        
+            loadNextPatient(); 
           } catch (e) {
             console.error("Failed to mark consultation complete:", e);
           }
         });
+
+      loadNextPatient();
+      setInterval(loadNextPatient, 5000);
+      
     </script>
   </body>
 </html>
