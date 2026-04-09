@@ -36,18 +36,21 @@ class Event(Base):
 
 
 class Prescription(Base):
-
     __tablename__ = "prescriptions"
-    
-    prescription_id =  Column(UUID(as_uuid= True), primary_key= True, default=uuid.uuid4)
+
+    prescription_id = Column(UUID(as_uuid= True), primary_key= True, default=uuid.uuid4)
     event_id = Column(UUID(as_uuid= True), ForeignKey("events.event_id"),nullable = False)
     network_token = Column(Text, index= True, nullable = False )
     local_token = Column(Text, index = True, nullable = False)
+    
+    medicine_name = Column(Text, nullable = False) 
+    instructions = Column(Text, nullable = True)
+    
     drug_category = Column(Text, nullable = True)
     inferred_symptom= Column(Text, nullable = False)
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
 
-    events = relationship("Event", back_populates="prescriptions" ) 
+    events = relationship("Event", back_populates="prescriptions" )
 
 
 # 4. CONSENT_GRANTS (Future Implementation: Tracks purpose-bound data access)
