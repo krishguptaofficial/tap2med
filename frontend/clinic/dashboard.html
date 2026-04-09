@@ -40,8 +40,8 @@
 
         <div class="sidebar-footer">
           <ul>
-            <li>Doctor name</li>
-            <li>Clinic name</li>
+            <li id="doc-name">Loading...</li>
+            <li id="clinic-name">Loading...</li>
           </ul>
         </div>
       </aside>
@@ -107,7 +107,7 @@
               <input
                 type="text"
                 class="rx-med"
-                value="Dietary and Lifestyle Modific"
+                value=""
                 placeholder="Medicine & Dose"
               />
               <input
@@ -125,8 +125,10 @@
     </div>
     <script>
       let currentLocalToken = null;
-      
-      const clinicId = new URLSearchParams(window.location.search).get("clinic");
+
+      const clinicId = new URLSearchParams(window.location.search).get(
+        "clinic",
+      );
 
       // FIX 3: Unified the variable name to currentTokenElement
       const currentTokenElement = document.getElementById("current-token");
@@ -155,17 +157,20 @@
           currentTokenElement.innerText = "Error: No Clinic ID";
           return;
         }
-        
+
         try {
           let response = await fetch(`/api/clinics/queue/${clinicId}`);
           let data = await response.json();
+
+            document.getElementById("doc-name").innerText = data.doctor_name;
+            document.getElementById("clinic-name").innerText = data.clinic_name;
 
           if (data.queue && data.queue.length > 0) {
             let currentPatient = data.queue[0];
 
             if (currentLocalToken !== currentPatient.local_token) {
               currentLocalToken = currentPatient.local_token;
-              currentTokenElement.innerText = `#1`;
+              currentTokenElement.innerText = `#${currentPatient.token_number}`;
               loadHistory(currentLocalToken);
             }
           } else {
@@ -213,13 +218,13 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ local_token: currentLocalToken }),
             });
-            
+
             rxContainer.innerHTML = "";
             document.getElementById("add-row-btn").click();
 
             currentLocalToken = null;
-        
-            loadNextPatient(); 
+
+            loadNextPatient();
           } catch (e) {
             console.error("Failed to mark consultation complete:", e);
           }
@@ -227,7 +232,6 @@
 
       loadNextPatient();
       setInterval(loadNextPatient, 5000);
-      
     </script>
   </body>
 </html>

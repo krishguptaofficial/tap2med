@@ -106,3 +106,14 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         return {"status": "success", "message": "Patient visit completed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/history/{local_token}")
+def get_patient_history( local_token:str, db :Session =Depends(get_db)):
+
+    past_visits = db.query(models.Event).filter(
+        models.Event.local_token == local_token,
+        models.Event.status=="completed"
+    )
+
+    return {"history": past_visits}

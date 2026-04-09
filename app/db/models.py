@@ -47,7 +47,7 @@ class Prescription(Base):
     inferred_symptom= Column(Text, nullable = False)
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
 
-    events = relationship("Event", back_populates="prescriptions" )
+    events = relationship("Event", back_populates="prescriptions" ) 
 
 
 # 4. CONSENT_GRANTS (Future Implementation: Tracks purpose-bound data access)
