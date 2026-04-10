@@ -10,6 +10,7 @@ from sqlalchemy import func
 from app.core import hashing
 from app.db import crud, models
 from app.db.database import get_db
+from typing import List, Optional
 
 router = APIRouter()
 
@@ -18,8 +19,14 @@ class ScanRequest(BaseModel):
     member_id: int = 0
     clinic_id: uuid.UUID
 
+class MedicineItem(BaseModel):
+    name: str
+    instructions: str
+
 class CompleteRequest(BaseModel):
-    local_token: str
+    local_token : str
+    medicines: List[MedicineItem]=[]
+
 
 @router.post("/checkin")
 def create_a_patient_checkin(payload: ScanRequest, db: Session = Depends(get_db)):
@@ -101,6 +108,19 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
             raise HTTPException(status_code=404, detail="Active token not found")
             
         event.status = "completed" # type: ignore
+
+        for med in payload.medicines:
+            if med.name.strip()!="":
+                new_rx = models.Prescription(
+                    event_id = event.event_id,
+                    network_token = event.network_token,
+                    local_token = event.local_token,
+                    medicine_name = med.name,
+                    instructions = med.instructions,
+                    inferred_symptom = "Not available in V0",
+                    drug_category = "Not available in v0"
+                )
+                db.add(new_rx)
         db.commit()
         
         return {"status": "success", "message": "Patient visit completed"}
@@ -117,3 +137,5 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
     )
 
     return {"history": past_visits}
+
+
