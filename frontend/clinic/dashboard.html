@@ -162,8 +162,8 @@
           let response = await fetch(`/api/clinics/queue/${clinicId}`);
           let data = await response.json();
 
-            document.getElementById("doc-name").innerText = data.doctor_name;
-            document.getElementById("clinic-name").innerText = data.clinic_name;
+          document.getElementById("doc-name").innerText = data.doctor_name;
+          document.getElementById("clinic-name").innerText = data.clinic_name;
 
           if (data.queue && data.queue.length > 0) {
             let currentPatient = data.queue[0];
@@ -205,10 +205,30 @@
         historyContentElement.innerHTML = historyHtml;
       }
 
-      document
+      
+       document
         .getElementById("print-btn")
         .addEventListener("click", async function () {
           if (!currentLocalToken) return;
+
+          // 1. Scrape the DOM (The Screen) for the ink
+          const medicinesPayload = [];
+          document.querySelectorAll(".rx-row").forEach(row => {
+            const medName = row.querySelector(".rx-med").value;
+            const medFreq = row.querySelector(".rx-freq").value;
+
+            // Only grab rows where the doctor actually typed something
+            if (medName.trim() !== "") {
+              medicinesPayload.push({ name: medName, instructions: medFreq });
+            }
+          });
+
+          // BLANK 1: Should we block the doctor from completing the visit if they haven't typed ANY medicines, or do we allow "empty" prescriptions (e.g., the doctor just gave verbal advice)?
+          if (medicinesPayload.length === 0 && !confirm("No medicines entered. Mark visit as complete anyway?")) {
+              alert("Please enter at least one medicine or note.");
+              return;
+          }
+
 
           window.print();
 
@@ -216,17 +236,21 @@
             await fetch("/api/events/complete", {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ local_token: currentLocalToken }),
+              body: JSON.stringify({
+                local_token: currentLocalToken,
+                medicines: medicinesPayload
+              }),
             });
-
+            
             rxContainer.innerHTML = "";
             document.getElementById("add-row-btn").click();
 
             currentLocalToken = null;
-
-            loadNextPatient();
+            loadNextPatient(); 
+            
           } catch (e) {
-            console.error("Failed to mark consultation complete:", e);
+            console.error("Failed to save prescription:", e);
+            alert("Network Error: The paper printed, but the history did not save. Please check your Wi-Fi and click Print again.");
           }
         });
 
