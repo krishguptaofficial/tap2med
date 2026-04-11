@@ -170,7 +170,7 @@
 
             if (currentLocalToken !== currentPatient.local_token) {
               currentLocalToken = currentPatient.local_token;
-              currentTokenElement.innerText = `#${currentPatient.token_number}`;
+              currentTokenElement.innerText = `#${currentPatient.daily_token_number}`;
               loadHistory(currentLocalToken);
             }
           } else {

@@ -40,8 +40,15 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             models.Event.status == "waiting"
         ).order_by(models.Event.timestamp.asc()).all()
 
-        
-        formatted_queue = [{"local_token": event.local_token, "status": event.status} for event in queue]
+        formatted_queue = [
+            {
+                "event_id": str(event.event_id), 
+                "local_token": event.local_token,
+                "daily_token_number": event.daily_token_number, 
+                "status": event.status
+            } 
+            for event in queue
+        ]
         
         return {
             "status": "success",
