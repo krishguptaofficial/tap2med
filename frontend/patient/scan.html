@@ -74,7 +74,14 @@
     let savedMembers = localStorage.getItem('tap2med_family');
     let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
 
-    
+    window.onload = function() {
+        let savedToken = localStorage.getItem("tap2med_queue_number");
+        if (savedToken) {
+            document.getElementById('token-display').innerText = "#" + savedToken;
+            showScreen('screen-success');
+        }
+    };
+
 
     function showScreen(screenId) {
         document.getElementById('screen-phone').classList.add('hidden');
@@ -174,6 +181,9 @@
 
             if (!response.ok) throw new Error("Backend failed");
             let data = await response.json();
+            
+            localStorage.setItem("tap2med_daily_token_number", data.daily_token_number);
+            localStorage.setItem("tap2med_local_token", data.local_token);
 
             currentSessionPhone = null;
             selectedMemberId = null;
