@@ -50,9 +50,17 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             for event in queue
         ]
         
+        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+
+        safe_clinic_name = clinic.clinic_name if clinic and hasattr(clinic, 'name') else "City Hospital OPD"
+        safe_doctor_name = clinic.doctor_name if clinic and hasattr(clinic, 'doctor_name') else "Dr. Sharma"
+
         return {
             "status": "success",
-            "queue": formatted_queue
+            "queue": formatted_queue,
+            "clinic_name": safe_clinic_name,
+            "doctor_name": safe_doctor_name
         }
+    
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
