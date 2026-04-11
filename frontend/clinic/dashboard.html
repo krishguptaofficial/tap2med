@@ -211,19 +211,17 @@
         .addEventListener("click", async function () {
           if (!currentLocalToken) return;
 
-          // 1. Scrape the DOM (The Screen) for the ink
           const medicinesPayload = [];
           document.querySelectorAll(".rx-row").forEach(row => {
             const medName = row.querySelector(".rx-med").value;
             const medFreq = row.querySelector(".rx-freq").value;
 
-            // Only grab rows where the doctor actually typed something
             if (medName.trim() !== "") {
               medicinesPayload.push({ name: medName, instructions: medFreq });
             }
           });
 
-          // BLANK 1: Should we block the doctor from completing the visit if they haven't typed ANY medicines, or do we allow "empty" prescriptions (e.g., the doctor just gave verbal advice)?
+         
           if (medicinesPayload.length === 0 && !confirm("No medicines entered. Mark visit as complete anyway?")) {
               alert("Please enter at least one medicine or note.");
               return;

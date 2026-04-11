@@ -25,7 +25,7 @@ def get_clinic(db: Session, clinic_id: uuid.UUID):
     return db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
 
 
-def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, network_token:str, member_id: int=0):
+def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, network_token:str, daily_token_number :int, member_id: int=0):
 
     #getting the clinic to access its private salt
     clinic= db.query(models.Clinic).filter(models.Clinic.clinic_id==clinic_id).first()
@@ -39,7 +39,8 @@ def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, net
         clinic_id= clinic_id,
         network_token = network_token,
         local_token = local_token,
-        event_type = "visit"
+        event_type = "visit",
+        daily_token_number = daily_token_number
     )
 
     recent = db.query(models.Event).filter(
@@ -64,7 +65,7 @@ def get_waiting_patients(db: Session, clinic_id = uuid.UUID):
 
     queue = db.query(models.Event).filter(
         models.Event.clinic_id == clinic_id,
-        models.Event.status =="WAITING",
+        models.Event.status =="waiting",
         models.Event.timestamp>= midnight_ist,
     ).order_by(models.Event.timestamp.asc()).all()
 

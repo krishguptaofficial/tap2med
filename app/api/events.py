@@ -43,19 +43,31 @@ def create_a_patient_checkin(payload: ScanRequest, db: Session = Depends(get_db)
 
         
         payload.phone = "DELETED"
+
+        today = date.today()
+        today_event_count = db.query(models.Event).filter(
+            models.Event.clinic_id == payload.clinic_id,
+            func.date(models.Event.timestamp) == today
+        ).count()
+
+        assigned_token_number = today_event_count + 1
         
         new_event = crud.create_patient_event(
             db=db,
             clinic_id=payload.clinic_id,
             local_token=tokens["local_token"],              
             network_token=tokens["network_token"],
+            daily_token_number = assigned_token_number
         )
         
+        if not new_event:
+            raise HTTPException(status_code=500, detail="Failed to create patient event")
+        
         return {
-            "status": "success",
-            "queue_number": 1, # Frontend handles display logic for V0
-            "local_token": tokens["local_token"],
-            "network_token": tokens["network_token"]
+            "status": "waiting",
+            "queue_number": new_event.daily_token_number,
+            "local_token": tokens["local_token"]
+            
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
