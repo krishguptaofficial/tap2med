@@ -130,7 +130,6 @@
         "clinic",
       );
 
-      // FIX 3: Unified the variable name to currentTokenElement
       const currentTokenElement = document.getElementById("current-token");
       const historyContentElement = document.getElementById("history-content");
       const rxContainer = document.getElementById("rx-container");
@@ -202,14 +201,13 @@
                 let dateObj = new Date(visit.timestamp);
                 let displayDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
                 
-                // If it's the very first card (most recent visit), we open it by default. 
-                // Otherwise, it stays closed to save space.
+              
                 let isOpen = index === 0 ? "open" : "";
 
                 historyHtml += `
                 <details ${isOpen} style="margin-bottom: 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <summary style="padding: 12px 15px; font-weight: bold; color: #333; background: #f8f9fa; cursor: pointer; outline: none; border-bottom: 1px solid #e0e0e0;">
-                        📅 ${displayDate}
+                         ${displayDate}
                     </summary>
                     <div style="padding: 15px;">
                 `;
@@ -219,7 +217,7 @@
                 } else {
                     historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
                     visit.prescriptions.forEach(rx => {
-                        historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
+                        historyHtml += `<li><b>${rx.medicine_name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
                     });
                     historyHtml += `</ul>`;
                 }
