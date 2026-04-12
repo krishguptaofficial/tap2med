@@ -184,35 +184,63 @@
       }
 
       async function loadHistory(localToken) {
-        const mockPastVisits = [];
-        let historyHtml = `<p>ID: ${localToken}</p>`;
+        let historyContainer = document.getElementById("history-content");
+        historyContainer.innerHTML = `<p style="color: #888;">Loading history...</p>`;
 
-        mockPastVisits.forEach((visit) => {
-          let medList = visit.medicines
-            .map(
-              (med) =>
-                `<li><strong>${med.name}</strong><br><span>${med.instructions}</span></li>`,
-            )
-            .join("");
+        try {
+            let response = await fetch(`/api/events/history/${localToken}`);
+            let data = await response.json();
 
-          historyHtml += `
-            <details>
-                <summary>📅 ${visit.date}</summary>
-                <div><ul>${medList}</ul></div>
-            </details>
-        `;
-        });
-        historyContentElement.innerHTML = historyHtml;
-      }
+            if (!data.history || data.history.length === 0) {
+                historyContainer.innerHTML = `<p style="color: #666; font-style: italic;">First-time visit. No prior history.</p>`;
+                return;
+            }
 
-      
-       document
+            let historyHtml = "";
+            
+            data.history.forEach((visit, index) => {
+                let dateObj = new Date(visit.timestamp);
+                let displayDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                
+                // If it's the very first card (most recent visit), we open it by default. 
+                // Otherwise, it stays closed to save space.
+                let isOpen = index === 0 ? "open" : "";
+
+                historyHtml += `
+                <details ${isOpen} style="margin-bottom: 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <summary style="padding: 12px 15px; font-weight: bold; color: #333; background: #f8f9fa; cursor: pointer; outline: none; border-bottom: 1px solid #e0e0e0;">
+                        📅 ${displayDate}
+                    </summary>
+                    <div style="padding: 15px;">
+                `;
+                
+                if (!visit.prescriptions || visit.prescriptions.length === 0) {
+                    historyHtml += `<div style="color: #888; font-size: 0.9em; font-style: italic;">No medicines recorded (Verbal advice).</div>`;
+                } else {
+                    historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
+                    visit.prescriptions.forEach(rx => {
+                        historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
+                    });
+                    historyHtml += `</ul>`;
+                }
+                historyHtml += `</div></details>`;
+            });
+
+            historyContainer.innerHTML = historyHtml;
+            
+        } catch (e) {
+            console.error("Failed to load history:", e);
+            historyContainer.innerHTML = `<p style="color: red;">Offline: Could not load past visits.</p>`;
+        }
+    }
+
+      document
         .getElementById("print-btn")
         .addEventListener("click", async function () {
           if (!currentLocalToken) return;
 
           const medicinesPayload = [];
-          document.querySelectorAll(".rx-row").forEach(row => {
+          document.querySelectorAll(".rx-row").forEach((row) => {
             const medName = row.querySelector(".rx-med").value;
             const medFreq = row.querySelector(".rx-freq").value;
 
@@ -221,12 +249,13 @@
             }
           });
 
-         
-          if (medicinesPayload.length === 0 && !confirm("No medicines entered. Mark visit as complete anyway?")) {
-              alert("Please enter at least one medicine or note.");
-              return;
+          if (
+            medicinesPayload.length === 0 &&
+            !confirm("No medicines entered. Mark visit as complete anyway?")
+          ) {
+            alert("Please enter at least one medicine or note.");
+            return;
           }
-
 
           window.print();
 
@@ -236,19 +265,20 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 local_token: currentLocalToken,
-                medicines: medicinesPayload
+                medicines: medicinesPayload,
               }),
             });
-            
+
             rxContainer.innerHTML = "";
             document.getElementById("add-row-btn").click();
 
             currentLocalToken = null;
-            loadNextPatient(); 
-            
+            loadNextPatient();
           } catch (e) {
             console.error("Failed to save prescription:", e);
-            alert("Network Error: The paper printed, but the history did not save. Please check your Wi-Fi and click Print again.");
+            alert(
+              "Network Error: The paper printed, but the history did not save. Please check your Wi-Fi and click Print again.",
+            );
           }
         });
 
