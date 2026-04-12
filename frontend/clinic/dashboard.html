@@ -217,7 +217,7 @@
                 } else {
                     historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
                     visit.prescriptions.forEach(rx => {
-                        historyHtml += `<li><b>${rx.medicine_name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
+                        historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
                     });
                     historyHtml += `</ul>`;
                 }

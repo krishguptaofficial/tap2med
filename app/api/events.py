@@ -87,7 +87,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
         if not current_visit:
             return {"status": "Completed or Not Found", "people_ahead": 0}
 
-        # Count how many people arrived BEFORE them who are still waiting
+        
         ahead = db.query(models.Event).filter(
             models.Event.clinic_id == current_visit.clinic_id,
             func.date(models.Event.timestamp) == today,
@@ -109,7 +109,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
     try:
         today = date.today()
         
-        # We query the DB directly here so we can guarantee we are marking TODAY'S event as complete
+        
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
             func.date(models.Event.timestamp) == today,
@@ -142,32 +142,40 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
 
 @router.get("/history/{local_token}")
 def get_patient_history( local_token:str, db :Session =Depends(get_db)):
+    
     try:
         past_visits = db.query(models.Event).filter(
             models.Event.local_token == local_token,
-            models.Event.status=="completed"
+            models.Event.status == "completed" 
         ).order_by(models.Event.timestamp.desc()).all()
+
+        all_rx = db.query(models.Prescription).filter(
+            models.Prescription.local_token == local_token
+        ).all()
 
         formatted_history = []
 
         for visit in past_visits:
-            medicines = db.query(models.Prescription).filter(
-                models.Prescription.event_id == visit.event_id
-            ).all()
-
-            rx_list = [
-                {"name": rx.medicine_name, "instructions": rx.instructions}
-                for rx in medicines
+            
+            visit_id_str = str(visit.event_id)
+            
+            matched_rx = [
+                {
+                    "name": rx.medicine_name, 
+                    "instructions": rx.instructions
+                }
+                for rx in all_rx 
+                if str(rx.event_id) == visit_id_str 
             ]
 
             formatted_history.append({
-                "event_id": str(visit.event_id),
+                "event_id": visit_id_str,
                 "timestamp": visit.timestamp.isoformat(),
-                "prescription": rx_list
-
+                "prescriptions": matched_rx
             })
+
         return {"history": formatted_history}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
