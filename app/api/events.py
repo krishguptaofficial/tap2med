@@ -87,7 +87,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
         if not current_visit:
             return {"status": "Completed or Not Found", "people_ahead": 0}
 
-        
+
         ahead = db.query(models.Event).filter(
             models.Event.clinic_id == current_visit.clinic_id,
             func.date(models.Event.timestamp) == today,
