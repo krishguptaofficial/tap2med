@@ -158,7 +158,7 @@
         }
 
         try {
-          let response = await fetch(`/api/clinics/queue/${clinicId}`);
+          let response = await fetch(`/api/clinics/queue/${clinicId}`); 
           let data = await response.json();
 
           document.getElementById("doc-name").innerText = data.doctor_name;
@@ -187,50 +187,52 @@
         historyContainer.innerHTML = `<p style="color: #888;">Loading history...</p>`;
 
         try {
-            let response = await fetch(`/api/events/history/${localToken}`);
-            let data = await response.json();
+          let response = await fetch(`/api/events/history/${localToken}`);
+          let data = await response.json();
 
-            if (!data.history || data.history.length === 0) {
-                historyContainer.innerHTML = `<p style="color: #666; font-style: italic;">First-time visit. No prior history.</p>`;
-                return;
-            }
+          if (!data.history || data.history.length === 0) {
+            historyContainer.innerHTML = `<p style="color: #666; font-style: italic;">First-time visit. No prior history.</p>`;
+            return;
+          }
 
-            let historyHtml = "";
-            
-            data.history.forEach((visit, index) => {
-                let dateObj = new Date(visit.timestamp);
-                let displayDate = dateObj.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                
-              
-                let isOpen = index === 0 ? "open" : "";
+          let historyHtml = "";
 
-                historyHtml += `
+          data.history.forEach((visit, index) => {
+            let dateObj = new Date(visit.timestamp);
+            let displayDate = dateObj.toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            });
+
+            let isOpen = index === 0 ? "open" : "";
+
+            historyHtml += `
                 <details ${isOpen} style="margin-bottom: 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <summary style="padding: 12px 15px; font-weight: bold; color: #333; background: #f8f9fa; cursor: pointer; outline: none; border-bottom: 1px solid #e0e0e0;">
                          ${displayDate}
                     </summary>
                     <div style="padding: 15px;">
                 `;
-                
-                if (!visit.prescriptions || visit.prescriptions.length === 0) {
-                    historyHtml += `<div style="color: #888; font-size: 0.9em; font-style: italic;">No medicines recorded (Verbal advice).</div>`;
-                } else {
-                    historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
-                    visit.prescriptions.forEach(rx => {
-                        historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
-                    });
-                    historyHtml += `</ul>`;
-                }
-                historyHtml += `</div></details>`;
-            });
 
-            historyContainer.innerHTML = historyHtml;
-            
+            if (!visit.prescriptions || visit.prescriptions.length === 0) {
+              historyHtml += `<div style="color: #888; font-size: 0.9em; font-style: italic;">No medicines recorded (Verbal advice).</div>`;
+            } else {
+              historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
+              visit.prescriptions.forEach((rx) => {
+                historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
+              });
+              historyHtml += `</ul>`;
+            }
+            historyHtml += `</div></details>`;
+          });
+
+          historyContainer.innerHTML = historyHtml;
         } catch (e) {
-            console.error("Failed to load history:", e);
-            historyContainer.innerHTML = `<p style="color: red;">Offline: Could not load past visits.</p>`;
+          console.error("Failed to load history:", e);
+          historyContainer.innerHTML = `<p style="color: red;">Offline: Could not load past visits.</p>`;
         }
-    }
+      }
 
       document
         .getElementById("print-btn")
