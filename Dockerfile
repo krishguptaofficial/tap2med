@@ -16,4 +16,4 @@ COPY ./alembic ./alembic
 COPY ./alembic.ini ./alembic.ini
 
 
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 10000"]
+CMD alembic stamp head && uvicorn app.main:app --host 0.0.0.0 --port 10000
