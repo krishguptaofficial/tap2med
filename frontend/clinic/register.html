@@ -104,7 +104,174 @@
             Register Another
         </button>
     </div>
-    
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Registration | Tap2Med</title>
+    <!-- Boring, proven QR library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* Base Styling - Boring & Functional */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover { background-color: #1d4ed8; }
+        .error { color: #dc2626; margin-top: 10px; display: none; }
+
+        /* The Print Magic */
+        @media print {
+            body { background-color: white; }
+            body * { visibility: hidden; } /* Hide everything by default */
+            
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                text-align: center;
+                margin-top: 100px;
+            }
+            #qrCodeContainer img, #qrCodeContainer canvas {
+                /* Force the QR code to be large on the A4 sheet */
+                width: 400px !important;
+                height: 400px !important;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="formContainer">
+        <h2>Register Clinic</h2>
+        <p>Enter details to generate your wall QR.</p>
+        
+        <form id="registerForm">
+            <input type="text" id="docName" placeholder="Doctor's Full Name" required>
+            <input type="text" id="clinicName" placeholder="Clinic Name" required>
+            <button type="submit" id="submitBtn">Register & Get QR</button>
+        </form>
+        <p id="errorMsg" class="error">Registration failed. Please try again.</p>
+    </div>
+
+    <!-- Hidden until successful registration -->
+    <div class="container" id="printArea" style="display: none;">
+        <h2>Scan to Check-In</h2>
+        <div id="qrCodeContainer" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+        <h3 id="displayClinicName"></h3>
+        <p>Powered by Tap2Med</p>
+        
+        <!-- This button will be hidden during actual printing due to @media print -->
+        <button onclick="window.print()" style="background-color: #16a34a;">
+            🖨️ Print for Wall
+        </button>
+        <button onclick="window.location.reload()" style="background-color: #6b7280; margin-top: 10px;">
+            Register Another
+        </button>
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById("submitBtn");
+            const errorMsg = document.getElementById("errorMsg");
+            
+            const docName = document.getElementById("docName").value;
+            const clinicName = document.getElementById("clinicName").value;
+
+            if(!docName || !clinicname){
+                errorMsg.textContent = "Please fill in all fields.";
+                errorMsg.style.display = "block";
+                return;
+            }
+
+            btn.innerText = "Registering...";
+            btn.disabled = true;
+            errorMsg.style.display = "none";
+
+            try {
+                
+                const response = await fetch("/api/clinics/", { 
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ doctor_name: docName, clinic_name: clinicName })
+                });
+                
+                const data = await response.json();
+                
+                if(data.status === "success" || response.ok) {
+                   
+                    document.getElementById("formContainer").style.display = "none";
+                    document.getElementById("printArea").style.display = "block";
+                    document.getElementById("displayClinicName").innerText = clinicName;
+                    
+                    
+                    const targetUrl = "https://tap2med.onrender.com/scan?clinic=" + data.clinic_id;
+                    
+                    new QRCode(document.getElementById("qrCodeContainer"), {
+                        text: targetUrl, 
+                        width: 256, 
+                        height: 256, 
+                        correctLevel: QRCode.CorrectLevel.H   // error correction for physical wear and tear
+                    });
+                } else {
+                    throw new Error(data.detail || "Registration failed");
+                }
+            } catch (err) {
+                console.error(err);
+                errorMsg.innerText = err.message || "Network error. Is the backend running?";
+                errorMsg.style.display = "block";
+                btn.innerText = "Register & Get QR";
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
 
 </body>
 </html>
+
+ 
