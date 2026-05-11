@@ -148,14 +148,14 @@
                         text: targetUrl, 
                         width: 256, 
                         height: 256, 
-                        correctLevel: QRCode.CorrectLevel.H   // error correction for physical wear and tear
+                        correctLevel: QRCode.CorrectLevel.H   // error correction for physical damage to the qr
                     });
                 } else {
                     throw new Error(data.detail || "Registration failed");
                 }
             } catch (err) {
                 console.error(err);
-                errorMsg.innerText = err.message || "Network error. Is the backend running?";
+                errorMsg.innerText = err.message || "Network error. Check if the backend is running?";
                 errorMsg.s0tyle.display = "block";
                 btn.innerText = "Register & Get QR";
                 btn.disabled = false;
