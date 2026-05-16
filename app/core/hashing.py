@@ -40,7 +40,7 @@ def generate_network_token(phone: str, member_id: int) -> str:
 
 def generate_local_token(phone: str, member_id: int, clinic_salt: str) -> str:
     """
-    Identifies a specific family member ONLY within one specific clinic.
+    Identifies a specific family member ONLY within the specific clinic.
     The clinic_salt ensures this hash is useless to any other clinic.
     """
     phone = normalize_phone(phone)
@@ -58,7 +58,7 @@ def generate_local_token(phone: str, member_id: int, clinic_salt: str) -> str:
 def generate_identity_tokens(phone: str, member_id: int, clinic_salt: str) -> dict:
     """
     Convenience wrapper for the API. 
-    Returns the 'Ghosts' that will be stored in PostgreSQL.
+    Returns the tokens that will be stored in database.
     """
     phone = normalize_phone(phone)
     return {
