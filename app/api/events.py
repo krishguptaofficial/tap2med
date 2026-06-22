@@ -99,7 +99,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
             "status": "In Queue",
             "your_position": ahead + 1,
             "people_ahead": ahead,
-            "estimated_wait": f"{ahead * 10} mins" 
+            "estimated_wait": f"{ahead * 10} mins"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -112,7 +112,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
-            func.date(models.Event.timestamp) == today,
+            func.date(models.Event.timestamp) == today, 
             models.Event.status == "waiting"
         ).first()
         
@@ -133,6 +133,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
                     drug_category = "Not available in v0"
                 )
                 db.add(new_rx)
+    
         db.commit()
         
         return {"status": "success", "message": "Patient visit completed"}
@@ -147,21 +148,22 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
         past_visits = db.query(models.Event).filter(
             models.Event.local_token == local_token,
             models.Event.status == "completed" 
-        ).order_by(models.Event.timestamp.desc()).all()
-
+        ).order_by(models.Event.timestamp.desc()).all()    
+         
         all_rx = db.query(models.Prescription).filter(
             models.Prescription.local_token == local_token
         ).all()
 
         formatted_history = []
-
+        
         for visit in past_visits:
             
             visit_id_str = str(visit.event_id)
-            
+
+
             matched_rx = [
                 {
-                    "name": rx.medicine_name, 
+                    "name": rx.medicine_name,     
                     "instructions": rx.instructions
                 }
                 for rx in all_rx 
@@ -169,13 +171,12 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
             ]
 
             formatted_history.append({
-                "event_id": visit_id_str,
+                "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
                 "prescriptions": matched_rx
             })
 
         return {"history": formatted_history}
 
-    except Exception as e:
+    except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
-

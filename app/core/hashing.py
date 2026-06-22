@@ -21,7 +21,6 @@ def normalize_phone(phone:str):
     return phone
     
 
-
 def generate_network_token(phone: str, member_id: int) -> str:
     """
     Identifies a specific family member across the entire Tap2Med network.
@@ -43,7 +42,7 @@ def generate_local_token(phone: str, member_id: int, clinic_salt: str) -> str:
     Identifies a specific family member ONLY within the specific clinic.
     The clinic_salt ensures this hash is useless to any other clinic.
     """
-    phone = normalize_phone(phone)
+    phone = normalize_phone(phone) 
    
     combined_key = f"{settings.SECRET_KEY}:{clinic_salt}"
    
