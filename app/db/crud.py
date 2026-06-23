@@ -75,14 +75,13 @@ def get_waiting_patients(db: Session, clinic_id = uuid.UUID):
 def complete_patient_event(db:Session, local_token:str ):
     event = db.query(models.Event).filter(
         models.Event.local_token==local_token,
-        models.Event.status =="WAITING"
+        models.Event.status =="waiting"
     ).first()
 
     if event:
-        status ="COMPLETED"
+        event.status ="completed"
         db.commit()
         db.refresh(event)
-        db.close()
 
     return event
 

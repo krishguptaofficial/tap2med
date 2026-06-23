@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from sqlalchemy import text
 from app.api import events, clinics
 from app.db.database import engine
 from app.db import models
@@ -10,6 +11,22 @@ from app.db import models
 
 
 app = FastAPI(title="Tap2Med OPD")
+
+@app.on_event("startup")
+def startup_check():
+
+    logger.info("Running startup checks...")
+
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+
+        logger.info("Database connection successful.")
+
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+
+        raise
 
 logging.basicConfig(
     level=logging.INFO,
