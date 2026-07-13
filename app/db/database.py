@@ -12,8 +12,8 @@ if not DATABASE_URL:
 
 engine = create_engine(
     DATABASE_URL,
-    pool_size=10,          
-    max_overflow=20,       
+    pool_size=10,
+    max_overflow=20,
     pool_pre_ping=True     
 )
 
@@ -24,7 +24,7 @@ SessionLocal = sessionmaker(
 )
 
 
-# Inheriting from the actual Class, not a function
+
 class Base(DeclarativeBase):
     """
     Every model (Clinic, Event) will inherit from this.
@@ -32,10 +32,11 @@ class Base(DeclarativeBase):
     """
     pass
 
-# The 'Janitor': Opens the door for a request, closes it after
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
-        db.close()
+        db.close() 
+
+
