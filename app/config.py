@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str= Field(default= ...)
     
     # SQLAlchemy connection string for the PostgreSQL database
-    #DATABASE_URL: str= Field(default= ...)
+    DATABASE_URL: str= Field(default= ...)
 
     # Pydantic configuration class to link the class to the physical .env file
     model_config = SettingsConfigDict(
