@@ -1,98 +1,47 @@
 # Tap2Med
 
-> India-first healthcare infrastructure for OPD clinics.
+Tap2Med is an outpatient clinic workflow platform built for Indian healthcare.
 
-Tap2Med is a privacy-first healthcare infrastructure platform designed to reduce operational friction inside Indian outpatient clinics.
+The current focus is reducing operational friction inside independent clinics by providing a simple digital workflow for patient registration, prescriptions, and longitudinal visit history.
 
-Instead of replacing existing clinical workflows, Tap2Med simplifies them through a lightweight QR-based patient intake system, digital prescriptions, longitudinal patient history, and a backend designed for future interoperability.
-
-The long-term vision is to become the infrastructure layer connecting clinics, laboratories, pharmacies, insurers, and national healthcare systems.
+The long-term goal is to build infrastructure that connects clinics with the broader healthcare ecosystem without disrupting existing clinical workflows.
 
 ---
 
-# Mission
+## Current Features
 
-Build the digital infrastructure layer powering India's fragmented outpatient healthcare ecosystem.
-
----
-
-# Core Principles
-
-- Workflow before software
-- Speed before features
-- Privacy by design
-- Infrastructure over dashboards
-- Mobile-first
-- Clinic-first
-- India-first
+- QR-based patient registration
+- Digital patient queue
+- Digital prescriptions
+- Patient visit history
+- Production-ready REST API
+- HTTPS-enabled deployment
 
 ---
 
-# Current Workflow
+## Technology Stack
 
-Patient scans clinic QR
-
-↓
-
-Patient joins queue
-
-↓
-
-Doctor writes digital prescription
-
-↓
-
-Prescription stored securely
-
-↓
-
-Patient receives digital prescription
-
-↓
-
-Visit history maintained
-
----
-
-# Technology Stack
-
-| Layer | Technology |
-|--------|------------|
+| Component | Technology |
+|----------|------------|
 | Backend | FastAPI |
 | Database | PostgreSQL 16 |
 | ORM | SQLAlchemy |
-| Migrations | Alembic |
-| Web Server | Nginx |
+| Database Migrations | Alembic |
 | Application Server | Gunicorn |
+| Reverse Proxy | Nginx |
 | Operating System | Ubuntu 24.04 LTS |
 | SSL | Let's Encrypt |
-| Deployment | VPS |
-| Language | Python 3.12 |
 
 ---
 
-# Features
-
-- QR-based patient intake
-- Digital prescriptions
-- Visit timeline
-- Longitudinal patient history
-- Privacy-first identity architecture
-- REST API
-- HTTPS enabled
-- Production deployment
-
----
-
-# Project Structure
+## Repository Structure
 
 ```
 tap2med/
-│
 ├── app/
 ├── alembic/
-├── tests/
 ├── docs/
+├── tests/
 ├── requirements.txt
 ├── README.md
 └── .env.example
@@ -100,79 +49,113 @@ tap2med/
 
 ---
 
-# Local Development
+## Local Development
+
+Clone the repository.
 
 ```bash
-git clone <repository>
-
+git clone <repository-url>
 cd tap2med
+```
 
+Create a virtual environment.
+
+```bash
 python -m venv venv
+```
 
+Activate it.
+
+Linux/macOS
+
+```bash
 source venv/bin/activate
+```
 
+Windows
+
+```powershell
+venv\Scripts\activate
+```
+
+Install dependencies.
+
+```bash
 pip install -r requirements.txt
+```
 
+Create an environment file.
+
+```bash
 cp .env.example .env
+```
 
+Update the values in `.env`.
+
+Run the application.
+
+```bash
 uvicorn app.main:app --reload
 ```
 
----
-
-# Production Stack
+Swagger UI:
 
 ```
-Internet
-
-↓
-
-Nginx
-
-↓
-
-Gunicorn
-
-↓
-
-FastAPI
-
-↓
-
-PostgreSQL
+http://127.0.0.1:8000/docs
 ```
 
 ---
 
-# Documentation
+## Production
 
-Detailed documentation is available inside the `docs/` directory.
+Production deployment uses:
 
-- Architecture
-- Deployment
-- Operations
-- Security
-- Database
-- API
-- Runbook
-- Troubleshooting
+- Ubuntu VPS
+- Nginx
+- Gunicorn
+- PostgreSQL
+- systemd
+- HTTPS (Let's Encrypt)
+
+Deployment documentation is available in:
+
+```
+docs/DEPLOYMENT.md
+```
 
 ---
 
-# Status
+## Documentation
 
-Current Stage:
+| Document | Description |
+|----------|-------------|
+| ARCHITECTURE.md | System architecture |
+| DEPLOYMENT.md | Production deployment |
+| OPERATIONS.md | Operational procedures |
+| DATABASE.md | Database administration |
+| RUNBOOK.md | Incident response |
+| SECURITY.md | Security posture |
+| ADR.md | Architecture decision records |
+| ROADMAP.md | Engineering roadmap |
+
+---
+
+## Project Status
+
+Current stage:
 
 Production deployment completed.
 
-Current Focus:
+Current priority:
 
-- Clinic onboarding
-- Workflow optimization
-- Product adoption
+Clinic onboarding and workflow validation.
 
 ---
 
-# License
+## License
 
-Private project.
+Copyright (c) 2026 Tap2Med.
+
+All Rights Reserved.
+
+The source code, name, logo, and branding are proprietary unless explicitly stated otherwise.
