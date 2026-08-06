@@ -17,7 +17,6 @@ The long-term goal is to build infrastructure that connects clinics with the bro
 - Production-ready REST API
 - HTTPS-enabled deployment
 
----
 
 ## Technology Stack
 
