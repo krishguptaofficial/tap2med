@@ -25,7 +25,7 @@ class Event(Base):
 
     event_id = Column(UUID(as_uuid= True), primary_key=True, default=uuid.uuid4)
     clinic_id = Column(UUID(as_uuid = True), ForeignKey("clinics.clinic_id"),nullable = False )
-    network_token = Column(Text, index= True, nullable = False )
+    network_token = Column(Text, index= True, nullable = False)
     local_token = Column(Text, index = True, nullable = False)
 
     daily_token_number = Column(Integer, nullable= False)
@@ -58,3 +58,5 @@ class Prescription(Base):
 
 # 4. CONSENT_GRANTS (Future Implementation: Tracks purpose-bound data access)
 # 5. PHARMACY_EVENTS (Future Implementation: Compliance and fulfillment logging)
+ 
+  

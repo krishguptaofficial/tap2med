@@ -1,33 +1,178 @@
-# Tap2Med: Healthcare Infrastructure Wedge (v0)
+# Tap2Med
 
-Tap2Med is a resilient, privacy-first infrastructure layer for Indian OPD clinics. 
-It replaces messy paper queues with an anonymized digital flow.
+> India-first healthcare infrastructure for OPD clinics.
 
-## The Core Philosophy
-* **Zero PII Storage:** Phone numbers are shredded (HMAC) before hitting the DB.
-* **Clinic Silos:** Strict data isolation using clinic-specific salts.
-* **The Ghost Token:** Two-token event system (Local for Clinic, Network for Journey).
-* **Boring Tech:** FastAPI, PostgreSQL, and Vanilla JS for 99.9% uptime on weak 3G.
+Tap2Med is a privacy-first healthcare infrastructure platform designed to reduce operational friction inside Indian outpatient clinics.
 
-## Technical Structure
-- `app/api`: Role-based endpoints (Reception, Doctor, Patient).
-- `app/core`: The "Shredder" (Hashing) and Security logic.
-- `app/db`: PostgreSQL schemas with zero "Phone" columns.
-- `frontend/`: Lightweight, responsive Vanilla HTML/JS (PC & Mobile support).
+Instead of replacing existing clinical workflows, Tap2Med simplifies them through a lightweight QR-based patient intake system, digital prescriptions, longitudinal patient history, and a backend designed for future interoperability.
 
-## The Shredder Flow
-1. Patient Scans QR → Enters Phone.
-2. Backend generates `local_token` = HMAC(Phone, Secret + Clinic_Salt).
-3. Phone is discarded from memory.
-4. `local_token` is the only identifier visible to clinic staff.
+The long-term vision is to become the infrastructure layer connecting clinics, laboratories, pharmacies, insurers, and national healthcare systems.
 
-## Quick Start
-1. `pip install -r requirements.txt`
-2. `docker-compose up -d` (PostgreSQL)
-3. `uvicorn app.main:app --reload`
+---
 
-## V0 Launch Checklist
-- [x] 2-Minute Buffer for duplicate scans.
-- [x] Multi-member support (Shared Phone logic).
-- [x] Responsive Dashboard (MacBook & Android support).
-- [ ] SSL/HTTPS Setup (Mandatory for Production).
+# Mission
+
+Build the digital infrastructure layer powering India's fragmented outpatient healthcare ecosystem.
+
+---
+
+# Core Principles
+
+- Workflow before software
+- Speed before features
+- Privacy by design
+- Infrastructure over dashboards
+- Mobile-first
+- Clinic-first
+- India-first
+
+---
+
+# Current Workflow
+
+Patient scans clinic QR
+
+↓
+
+Patient joins queue
+
+↓
+
+Doctor writes digital prescription
+
+↓
+
+Prescription stored securely
+
+↓
+
+Patient receives digital prescription
+
+↓
+
+Visit history maintained
+
+---
+
+# Technology Stack
+
+| Layer | Technology |
+|--------|------------|
+| Backend | FastAPI |
+| Database | PostgreSQL 16 |
+| ORM | SQLAlchemy |
+| Migrations | Alembic |
+| Web Server | Nginx |
+| Application Server | Gunicorn |
+| Operating System | Ubuntu 24.04 LTS |
+| SSL | Let's Encrypt |
+| Deployment | VPS |
+| Language | Python 3.12 |
+
+---
+
+# Features
+
+- QR-based patient intake
+- Digital prescriptions
+- Visit timeline
+- Longitudinal patient history
+- Privacy-first identity architecture
+- REST API
+- HTTPS enabled
+- Production deployment
+
+---
+
+# Project Structure
+
+```
+tap2med/
+│
+├── app/
+├── alembic/
+├── tests/
+├── docs/
+├── requirements.txt
+├── README.md
+└── .env.example
+```
+
+---
+
+# Local Development
+
+```bash
+git clone <repository>
+
+cd tap2med
+
+python -m venv venv
+
+source venv/bin/activate
+
+pip install -r requirements.txt
+
+cp .env.example .env
+
+uvicorn app.main:app --reload
+```
+
+---
+
+# Production Stack
+
+```
+Internet
+
+↓
+
+Nginx
+
+↓
+
+Gunicorn
+
+↓
+
+FastAPI
+
+↓
+
+PostgreSQL
+```
+
+---
+
+# Documentation
+
+Detailed documentation is available inside the `docs/` directory.
+
+- Architecture
+- Deployment
+- Operations
+- Security
+- Database
+- API
+- Runbook
+- Troubleshooting
+
+---
+
+# Status
+
+Current Stage:
+
+Production deployment completed.
+
+Current Focus:
+
+- Clinic onboarding
+- Workflow optimization
+- Product adoption
+
+---
+
+# License
+
+Private project.
