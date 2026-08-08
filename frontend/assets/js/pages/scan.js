@@ -14,6 +14,7 @@ const defaultMembers = [
 ];
 
 const savedMembers = localStorage.getItem("tap2med_family");
+
 let familyMembers = savedMembers
     ? JSON.parse(savedMembers)
     : defaultMembers;
@@ -27,8 +28,10 @@ const screens = [
 
 const phoneInput = document.getElementById("phone-input");
 const newMemberInput = document.getElementById("new-member-name");
-const memberListContainer = document.getElementById("member-list-container");
-const tokenDisplay = document.getElementById("token-display");
+const memberListContainer =
+    document.getElementById("member-list-container");
+const tokenDisplay =
+    document.getElementById("token-display");
 
 function showScreen(screenId) {
     screens.forEach((id) => {
@@ -44,14 +47,15 @@ function goToMemberScreen() {
         return;
     }
 
-    const phoneValue = phoneInput.value.trim();
+    const phone = phoneInput.value.trim();
 
-    if (phoneValue.length !== 10) {
+    if (!/^\d{10}$/.test(phone)) {
         alert("Please enter a valid 10-digit number.");
         return;
     }
 
-    currentSessionPhone = phoneValue;
+    currentSessionPhone = phone;
+
     renderMemberList();
     showScreen("screen-members");
 }
@@ -73,25 +77,28 @@ function renderMemberList() {
         memberListContainer.appendChild(row);
     });
 
-    const addMemberRow = document.createElement("button");
+    const addMember = document.createElement("button");
 
-    addMemberRow.type = "button";
-    addMemberRow.className = "member-row add-member";
-    addMemberRow.textContent = "+ Add New Member";
+    addMember.type = "button";
+    addMember.className = "member-row add-member";
+    addMember.textContent = "+ Add New Member";
 
-    addMemberRow.addEventListener("click", showAddMemberScreen);
+    addMember.addEventListener(
+        "click",
+        showAddMemberScreen
+    );
 
-    memberListContainer.appendChild(addMemberRow);
+    memberListContainer.appendChild(addMember);
 }
 
 function selectMember(memberId, rowElement) {
     selectedMemberId = memberId;
 
-    const rows = memberListContainer.querySelectorAll(".member-row");
-
-    rows.forEach((row) => {
-        row.classList.remove("selected");
-    });
+    memberListContainer
+        .querySelectorAll(".member-row")
+        .forEach((row) => {
+            row.classList.remove("selected");
+        });
 
     rowElement.classList.add("selected");
 }
@@ -99,6 +106,7 @@ function selectMember(memberId, rowElement) {
 function showAddMemberScreen() {
     newMemberInput.value = "";
     showScreen("screen-add-member");
+    newMemberInput.focus();
 }
 
 function saveNewMember() {
@@ -109,10 +117,8 @@ function saveNewMember() {
         return;
     }
 
-    const uniqueId = Date.now();
-
     familyMembers.push({
-        id: uniqueId,
+        id: Date.now(),
         name
     });
 
@@ -140,17 +146,25 @@ async function submitCheckIn() {
         clinic_id: scannedClinicId
     };
 
+    const button = document.getElementById("check-in-btn");
+
+    button.disabled = true;
+    button.textContent = "Checking in...";
+
     try {
-        const response = await fetch("/api/events/checkin", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+        const response = await fetch(
+            "/api/events/checkin",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            }
+        );
 
         if (!response.ok) {
-            throw new Error("Backend failed");
+            throw new Error("Check-in failed");
         }
 
         const data = await response.json();
@@ -165,48 +179,69 @@ async function submitCheckIn() {
             data.local_token
         );
 
+        tokenDisplay.textContent =
+            `#${data.queue_number}`;
+
         currentSessionPhone = null;
         selectedMemberId = null;
 
-        tokenDisplay.textContent = `#${data.queue_number}`;
-
         showScreen("screen-success");
     } catch (error) {
-        alert("Network error. Please try again.");
+        console.error(error);
+
+        alert(
+            "Network error. Please try again."
+        );
 
         currentSessionPhone = null;
         selectedMemberId = null;
         phoneInput.value = "";
 
         showScreen("screen-phone");
+    } finally {
+        button.disabled = false;
+        button.textContent = "Check-in";
     }
 }
 
 document
     .getElementById("submit-phone-btn")
-    .addEventListener("click", goToMemberScreen);
+    .addEventListener(
+        "click",
+        goToMemberScreen
+    );
 
 document
     .getElementById("check-in-btn")
-    .addEventListener("click", submitCheckIn);
+    .addEventListener(
+        "click",
+        submitCheckIn
+    );
 
 document
     .getElementById("save-member-btn")
-    .addEventListener("click", saveNewMember);
+    .addEventListener(
+        "click",
+        saveNewMember
+    );
 
 document
     .getElementById("cancel-member-btn")
-    .addEventListener("click", () => {
-        showScreen("screen-members");
-    });
-
-window.addEventListener("load", () => {
-    const savedToken = localStorage.getItem(
-        "tap2med_queue_number"
+    .addEventListener(
+        "click",
+        () => showScreen("screen-members")
     );
 
+window.addEventListener("load", () => {
+    const savedToken =
+        localStorage.getItem(
+            "tap2med_daily_token_number"
+        );
+
     if (savedToken) {
-        tokenDisplay.textContent = `#${savedToken}`;
+        tokenDisplay.textContent =
+            `#${savedToken}`;
+
         showScreen("screen-success");
     }
 });

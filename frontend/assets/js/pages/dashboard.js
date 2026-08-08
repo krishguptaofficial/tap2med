@@ -1,73 +1,146 @@
-const params = new URLSearchParams(window.location.search);
+const params = new URLSearchParams(
+    window.location.search
+);
+
 const clinicId = params.get("clinic");
 
 let currentLocalToken = null;
+let isSaving = false;
 
-const currentToken = document.getElementById("current-token");
-const historyContent = document.getElementById("history-content");
-const doctorName = document.getElementById("doc-name");
-const clinicName = document.getElementById("clinic-name");
-const prescriptionList = document.getElementById("rx-container");
-const prescriptionStatus = document.getElementById("prescription-status");
-const sidebar = document.getElementById("app-sidebar");
-const sidebarBackdrop = document.getElementById("sidebar-backdrop");
-const mobileMenuButton = document.getElementById("mobile-menu-btn");
+const currentToken =
+    document.getElementById("current-token");
+
+const historyContent =
+    document.getElementById("history-content");
+
+const doctorName =
+    document.getElementById("doc-name");
+
+const clinicName =
+    document.getElementById("clinic-name");
+
+const prescriptionList =
+    document.getElementById("rx-container");
+
+const prescriptionStatus =
+    document.getElementById("prescription-status");
+
+const sidebar =
+    document.getElementById("app-sidebar");
+
+const sidebarBackdrop =
+    document.getElementById("sidebar-backdrop");
+
+const mobileMenuButton =
+    document.getElementById("mobile-menu-btn");
 
 function openSidebar() {
     sidebar.classList.add("open");
     sidebarBackdrop.classList.add("open");
-    mobileMenuButton.setAttribute("aria-expanded", "true");
+
+    mobileMenuButton.setAttribute(
+        "aria-expanded",
+        "true"
+    );
 }
 
 function closeSidebar() {
     sidebar.classList.remove("open");
     sidebarBackdrop.classList.remove("open");
-    mobileMenuButton.setAttribute("aria-expanded", "false");
+
+    mobileMenuButton.setAttribute(
+        "aria-expanded",
+        "false"
+    );
 }
 
 function addPrescriptionRow() {
-    const rowNumber =
-        prescriptionList.querySelectorAll(".prescription-row").length + 1;
+    const number =
+        prescriptionList
+            .querySelectorAll(".prescription-row")
+            .length + 1;
 
-    const row = document.createElement("div");
+    const row =
+        document.createElement("div");
+
     row.className = "prescription-row";
 
-    const medicineField = document.createElement("div");
+    const medicineField =
+        document.createElement("div");
+
     medicineField.className = "field";
 
-    const medicineLabel = document.createElement("label");
-    medicineLabel.htmlFor = `medicine-${rowNumber}`;
-    medicineLabel.textContent = "Medicine";
+    const medicineLabel =
+        document.createElement("label");
 
-    const medicineInput = document.createElement("input");
-    medicineInput.id = `medicine-${rowNumber}`;
-    medicineInput.className = "input rx-med";
+    medicineLabel.htmlFor =
+        `medicine-${number}`;
+
+    medicineLabel.textContent =
+        "Medicine";
+
+    const medicineInput =
+        document.createElement("input");
+
+    medicineInput.id =
+        `medicine-${number}`;
+
+    medicineInput.className =
+        "input rx-med";
+
     medicineInput.type = "text";
-    medicineInput.placeholder = "Medicine & dose";
-    medicineInput.autocomplete = "off";
+    medicineInput.placeholder =
+        "Medicine & dose";
+    medicineInput.autocomplete =
+        "off";
 
-    medicineField.append(medicineLabel, medicineInput);
+    medicineField.append(
+        medicineLabel,
+        medicineInput
+    );
 
-    const instructionField = document.createElement("div");
-    instructionField.className = "field";
+    const instructionField =
+        document.createElement("div");
 
-    const instructionLabel = document.createElement("label");
-    instructionLabel.htmlFor = `instruction-${rowNumber}`;
-    instructionLabel.textContent = "Instructions";
+    instructionField.className =
+        "field";
 
-    const instructionInput = document.createElement("input");
-    instructionInput.id = `instruction-${rowNumber}`;
-    instructionInput.className = "input rx-freq";
+    const instructionLabel =
+        document.createElement("label");
+
+    instructionLabel.htmlFor =
+        `instruction-${number}`;
+
+    instructionLabel.textContent =
+        "Instructions";
+
+    const instructionInput =
+        document.createElement("input");
+
+    instructionInput.id =
+        `instruction-${number}`;
+
+    instructionInput.className =
+        "input rx-freq";
+
     instructionInput.type = "text";
-    instructionInput.placeholder = "Frequency & instructions";
-    instructionInput.autocomplete = "off";
+    instructionInput.placeholder =
+        "Frequency & instructions";
 
-    instructionField.append(instructionLabel, instructionInput);
+    instructionInput.autocomplete =
+        "off";
 
-    row.append(medicineField, instructionField);
+    instructionField.append(
+        instructionLabel,
+        instructionInput
+    );
+
+    row.append(
+        medicineField,
+        instructionField
+    );
+
     prescriptionList.appendChild(row);
-
-    medicineInput.focus();
 }
 
 function clearPrescription() {
@@ -78,26 +151,39 @@ function clearPrescription() {
 async function loadQueue() {
     if (!clinicId) {
         currentToken.textContent = "#--";
+
         historyContent.innerHTML =
             '<p class="text-danger">Clinic ID is missing.</p>';
+
         return;
     }
 
     try {
         const response = await fetch(
-            `/api/clinics/queue/${encodeURIComponent(clinicId)}`
+            `/api/clinics/queue/${encodeURIComponent(
+                clinicId
+            )}`
         );
 
         if (!response.ok) {
-            throw new Error("Queue request failed");
+            throw new Error(
+                "Queue request failed"
+            );
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        doctorName.textContent = data.doctor_name || "Doctor";
-        clinicName.textContent = data.clinic_name || "Clinic";
+        doctorName.textContent =
+            data.doctor_name || "Doctor";
 
-        if (!data.queue || data.queue.length === 0) {
+        clinicName.textContent =
+            data.clinic_name || "Clinic";
+
+        if (
+            !data.queue ||
+            data.queue.length === 0
+        ) {
             currentToken.textContent = "—";
             currentLocalToken = null;
 
@@ -107,19 +193,36 @@ async function loadQueue() {
             return;
         }
 
-        const patient = data.queue[0];
+        const patient =
+            data.queue[0];
+
+        const nextLocalToken =
+            patient.local_token;
 
         currentToken.textContent =
             `#${patient.daily_token_number}`;
 
-        if (currentLocalToken !== patient.local_token) {
-            currentLocalToken = patient.local_token;
-            prescriptionStatus.textContent = "Draft";
+        if (
+            currentLocalToken !==
+            nextLocalToken
+        ) {
+            currentLocalToken =
+                nextLocalToken;
+
+            prescriptionStatus.textContent =
+                "Draft";
+
             clearPrescription();
-            await loadHistory(patient.local_token);
+
+            await loadHistory(
+                currentLocalToken
+            );
         }
     } catch (error) {
-        console.error(error);
+        console.error(
+            "Queue error:",
+            error
+        );
 
         historyContent.innerHTML =
             '<p class="text-danger">Unable to load queue.</p>';
@@ -132,73 +235,143 @@ async function loadHistory(localToken) {
 
     try {
         const response = await fetch(
-            `/api/events/history/${encodeURIComponent(localToken)}`
+            `/api/events/history/${encodeURIComponent(
+                localToken
+            )}`
         );
 
         if (!response.ok) {
-            throw new Error("History request failed");
+            throw new Error(
+                "History request failed"
+            );
         }
 
-        const data = await response.json();
+        const data =
+            await response.json();
 
-        if (!data.history || data.history.length === 0) {
+        if (
+            !data.history ||
+            data.history.length === 0
+        ) {
             historyContent.innerHTML =
                 '<p class="text-muted">No previous visits.</p>';
+
             return;
         }
 
         historyContent.innerHTML = "";
 
-        data.history.forEach((visit, index) => {
-            const details = document.createElement("details");
+        data.history.forEach(
+            (visit, index) => {
+                const details =
+                    document.createElement(
+                        "details"
+                    );
 
-            if (index === 0) {
-                details.open = true;
-            }
+                if (index === 0) {
+                    details.open = true;
+                }
 
-            const summary = document.createElement("summary");
-            const date = new Date(visit.timestamp);
+                const summary =
+                    document.createElement(
+                        "summary"
+                    );
 
-            summary.textContent = date.toLocaleDateString("en-IN", {
-                day: "numeric",
-                month: "short",
-                year: "numeric"
-            });
+                const date =
+                    new Date(
+                        visit.timestamp
+                    );
 
-            const content = document.createElement("div");
+                summary.textContent =
+                    date.toLocaleDateString(
+                        "en-IN",
+                        {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric"
+                        }
+                    );
 
-            if (!visit.prescriptions?.length) {
-                const message = document.createElement("p");
-                message.className = "text-muted";
-                message.textContent =
-                    "No medicines recorded.";
-                content.appendChild(message);
-            } else {
-                const list = document.createElement("ul");
+                const content =
+                    document.createElement(
+                        "div"
+                    );
 
-                visit.prescriptions.forEach((prescription) => {
-                    const item = document.createElement("li");
-
-                    const name = document.createElement("strong");
-                    name.textContent = prescription.name;
-
-                    const instructions =
-                        document.createTextNode(
-                            ` — ${prescription.instructions || ""}`
+                if (
+                    !visit.prescriptions ||
+                    visit.prescriptions.length === 0
+                ) {
+                    const message =
+                        document.createElement(
+                            "p"
                         );
 
-                    item.append(name, instructions);
-                    list.appendChild(item);
-                });
+                    message.className =
+                        "text-muted";
 
-                content.appendChild(list);
+                    message.textContent =
+                        "No medicines recorded.";
+
+                    content.appendChild(
+                        message
+                    );
+                } else {
+                    const list =
+                        document.createElement(
+                            "ul"
+                        );
+
+                    visit.prescriptions.forEach(
+                        (prescription) => {
+                            const item =
+                                document.createElement(
+                                    "li"
+                                );
+
+                            const name =
+                                document.createElement(
+                                    "strong"
+                                );
+
+                            name.textContent =
+                                prescription.name;
+
+                            const instructions =
+                                document.createTextNode(
+                                    ` — ${prescription.instructions || ""}`
+                                );
+
+                            item.append(
+                                name,
+                                instructions
+                            );
+
+                            list.appendChild(
+                                item
+                            );
+                        }
+                    );
+
+                    content.appendChild(
+                        list
+                    );
+                }
+
+                details.append(
+                    summary,
+                    content
+                );
+
+                historyContent.appendChild(
+                    details
+                );
             }
-
-            details.append(summary, content);
-            historyContent.appendChild(details);
-        });
+        );
     } catch (error) {
-        console.error(error);
+        console.error(
+            "History error:",
+            error
+        );
 
         historyContent.innerHTML =
             '<p class="text-danger">Unable to load visit history.</p>';
@@ -206,19 +379,35 @@ async function loadHistory(localToken) {
 }
 
 async function completeVisit() {
-    if (!currentLocalToken) {
-        alert("There is no active patient.");
+    if (
+        !currentLocalToken ||
+        isSaving
+    ) {
         return;
     }
 
     const medicines = [];
 
     prescriptionList
-        .querySelectorAll(".prescription-row")
+        .querySelectorAll(
+            ".prescription-row"
+        )
         .forEach((row) => {
-            const name = row.querySelector(".rx-med").value.trim();
+            const name =
+                row
+                    .querySelector(
+                        ".rx-med"
+                    )
+                    .value
+                    .trim();
+
             const instructions =
-                row.querySelector(".rx-freq").value.trim();
+                row
+                    .querySelector(
+                        ".rx-freq"
+                    )
+                    .value
+                    .trim();
 
             if (name) {
                 medicines.push({
@@ -229,76 +418,123 @@ async function completeVisit() {
         });
 
     if (!medicines.length) {
-        const proceed = confirm(
-            "No medicines have been entered. Complete this visit?"
-        );
+        const proceed =
+            confirm(
+                "No medicines have been entered. Complete this visit?"
+            );
 
         if (!proceed) {
             return;
         }
     }
 
-    try {
-        prescriptionStatus.textContent = "Saving...";
+    isSaving = true;
 
-        const response = await fetch("/api/events/complete", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                local_token: currentLocalToken,
-                medicines
-            })
-        });
+    prescriptionStatus.textContent =
+        "Saving...";
+
+    try {
+        const response =
+            await fetch(
+                "/api/events/complete",
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body:
+                        JSON.stringify({
+                            local_token:
+                                currentLocalToken,
+                            medicines
+                        })
+                }
+            );
 
         if (!response.ok) {
-            throw new Error("Prescription save failed");
+            throw new Error(
+                "Prescription save failed"
+            );
         }
 
-        prescriptionStatus.textContent = "Saved";
+        prescriptionStatus.textContent =
+            "Saved";
 
         window.print();
 
         currentLocalToken = null;
+
         clearPrescription();
 
         await loadQueue();
     } catch (error) {
-        console.error(error);
+        console.error(
+            "Complete visit error:",
+            error
+        );
 
-        prescriptionStatus.textContent = "Save failed";
+        prescriptionStatus.textContent =
+            "Save failed";
 
         alert(
             "The prescription could not be saved. Please check the connection and try again."
         );
+    } finally {
+        isSaving = false;
     }
 }
 
 document
     .getElementById("add-row-btn")
-    .addEventListener("click", addPrescriptionRow);
+    .addEventListener(
+        "click",
+        addPrescriptionRow
+    );
 
 document
     .getElementById("print-btn")
-    .addEventListener("click", completeVisit);
+    .addEventListener(
+        "click",
+        completeVisit
+    );
 
 document
     .getElementById("copy-prescription-btn")
-    .addEventListener("click", () => {
-        alert("Copy Last Prescription will be connected once the existing history data supports prescription copying.");
-    });
+    .addEventListener(
+        "click",
+        () => {
+            alert(
+                "Copy Last Prescription is not connected yet."
+            );
+        }
+    );
 
-mobileMenuButton.addEventListener("click", () => {
-    if (sidebar.classList.contains("open")) {
-        closeSidebar();
-    } else {
-        openSidebar();
-    }
-});
+mobileMenuButton
+    .addEventListener(
+        "click",
+        () => {
+            if (
+                sidebar.classList.contains(
+                    "open"
+                )
+            ) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+    );
 
-sidebarBackdrop.addEventListener("click", closeSidebar);
+sidebarBackdrop
+    .addEventListener(
+        "click",
+        closeSidebar
+    );
 
 loadQueue();
 
-setInterval(loadQueue, 5000);
+setInterval(
+    loadQueue,
+    5000
+);
