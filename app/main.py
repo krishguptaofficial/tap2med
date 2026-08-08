@@ -12,6 +12,12 @@ from app.db import models
 
 app = FastAPI(title="Tap2Med OPD")
 
+app.mount(
+    "/assets",
+    StaticFiles(directory="frontend/assets"),
+    name="assets"
+)
+
 @app.on_event("startup")
 def startup_check():
 

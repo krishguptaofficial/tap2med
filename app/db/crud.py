@@ -60,14 +60,22 @@ def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, net
 
 def get_waiting_patients(db: Session, clinic_id = uuid.UUID):
 
-    ist_tz= ZoneInfo("Asia/Delhi")
-    midnight_ist = datetime.now(ist_tz).replace(hour= 0, minute = 0, second=0, microsecond=0)
+    ist_tz = ZoneInfo("Asia/Kolkata")
+
+    midnight_ist = datetime.now(ist_tz).replace(
+    hour=0,
+    minute=0,
+    second=0,
+    microsecond=0
+)
 
     queue = db.query(models.Event).filter(
-        models.Event.clinic_id == clinic_id,
-        models.Event.status =="waiting",
-        models.Event.timestamp>= midnight_ist,
-    ).order_by(models.Event.timestamp.asc()).all()
+    models.Event.clinic_id == clinic_id,
+    models.Event.status == "waiting",
+    models.Event.timestamp >= midnight_ist,
+).order_by(
+    models.Event.timestamp.asc()
+).all()
 
     return queue
 
@@ -79,7 +87,7 @@ def complete_patient_event(db:Session, local_token:str ):
     ).first()
 
     if event:
-        event.status ="completed"
+        event.status ="completed" #type:ignore
         db.commit()
         db.refresh(event)
 

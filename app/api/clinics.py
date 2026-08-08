@@ -4,13 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
-from datetime import date
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from sqlalchemy import func
 
 from app.db import crud, models
 from app.db.database import get_db
 
 router = APIRouter()
+
+IST = ZoneInfo("Asia/Kolkata")
 
 # Schema for onboarding a new clinic
 class ClinicCreate(BaseModel):
@@ -32,7 +35,7 @@ def onboard_clinic(payload: ClinicCreate, db: Session = Depends(get_db)):
 @router.get("/queue/{clinic_id}")
 def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
-        today = date.today()
+        today = datetime.now(IST).date()
         
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
@@ -52,7 +55,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
         
         clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
 
-        safe_clinic_name = clinic.clinic_name if clinic and hasattr(clinic, 'name') else "City Hospital OPD"
+        safe_clinic_name = clinic.clinic_name if clinic else "Clinic"
         safe_doctor_name = clinic.doctor_name if clinic and hasattr(clinic, 'doctor_name') else "Dr. Sharma"
 
         return {
