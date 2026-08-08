@@ -2,33 +2,29 @@
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(255, 255, 255, 0.96);
+    background: rgba(245, 245, 240, 0.96);
     border-bottom: 1px solid var(--color-border);
     backdrop-filter: blur(10px);
 }
 
 .header-inner {
+    position: relative;
     min-height: 72px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 28px;
 }
 
 .site-brand {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    color: var(--color-primary);
-    font-size: 18px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.brand-symbol {
-    font-size: 22px;
-    line-height: 1;
+.site-logo {
+    width: 132px;
+    height: auto;
+    object-fit: contain;
 }
 
 .site-nav {
@@ -40,9 +36,9 @@
 
 .site-nav a {
     color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    font-weight: 500;
-    transition: var(--transition);
+    font-size: var(--text-sm, 14px);
+    font-weight: var(--font-medium, 500);
+    transition: var(--transition, 150ms ease);
 }
 
 .site-nav a:hover {
@@ -59,19 +55,21 @@
     display: none;
     width: 42px;
     height: 42px;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
+    flex-direction: column;
     gap: 5px;
+    padding: 0;
     background: transparent;
+    border: 0;
     cursor: pointer;
 }
 
 .mobile-menu-button span {
     width: 20px;
     height: 2px;
-    background: var(--color-primary);
     border-radius: 2px;
+    background: var(--color-primary);
 }
 
 .hero {
@@ -81,20 +79,20 @@
 
 .hero-grid {
     display: grid;
-    grid-template-columns: minmax(0, 1.05fr) minmax(380px, 0.95fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
     align-items: center;
-    gap: 72px;
+    gap: 80px;
 }
 
 .hero-content {
-    max-width: 650px;
+    max-width: 680px;
 }
 
 .eyebrow {
     margin-bottom: 16px;
     color: var(--color-primary);
-    font-size: var(--text-xs);
-    font-weight: 700;
+    font-size: var(--text-xs, 12px);
+    font-weight: var(--font-bold, 700);
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
@@ -102,10 +100,10 @@
 .hero h1 {
     max-width: 680px;
     color: var(--color-primary);
-    font-size: clamp(44px, 5vw, 72px);
-    line-height: 1.02;
+    font-size: clamp(46px, 5.3vw, 74px);
+    line-height: 1.01;
     letter-spacing: -0.055em;
-    font-weight: 700;
+    font-weight: var(--font-bold, 700);
 }
 
 .hero-description {
@@ -124,9 +122,10 @@
     margin-top: 34px;
 }
 
-.btn-large {
-    min-height: 52px;
-    padding: 0 22px;
+.hero-note {
+    margin-top: 16px;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs, 12px);
 }
 
 .text-link {
@@ -134,8 +133,8 @@
     align-items: center;
     gap: 8px;
     color: var(--color-primary);
-    font-size: var(--text-sm);
-    font-weight: 600;
+    font-size: var(--text-sm, 14px);
+    font-weight: var(--font-semibold, 600);
 }
 
 .text-link span {
@@ -146,132 +145,338 @@
     transform: translateX(3px);
 }
 
-.hero-note {
-    margin-top: 16px;
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
-}
-
 .hero-visual {
     display: flex;
     justify-content: center;
 }
 
-.clinic-card {
-    width: min(100%, 460px);
-    overflow: hidden;
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 18px;
-    box-shadow: var(--shadow-md);
+.workflow-animation {
+    width: min(100%, 390px);
 }
 
-.clinic-card-header {
+.workflow-device {
+    position: relative;
+    width: 100%;
+    padding: 9px;
+    overflow: hidden;
+    border: 7px solid #071d2d;
+    border-radius: 32px;
+    background: #071d2d;
+    box-shadow:
+        0 28px 70px rgba(9, 41, 66, 0.18),
+        0 8px 20px rgba(9, 41, 66, 0.08);
+}
+
+.workflow-device-top {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    z-index: 4;
+    width: calc(100% - 18px);
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 9px;
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.workflow-device-brand {
+    letter-spacing: 0.04em;
+}
+
+.workflow-screen {
+    position: relative;
+    min-height: 510px;
+    overflow: hidden;
+    border-radius: 24px;
+    background: var(--color-surface);
+}
+
+.workflow-step-screen {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 22px 22px 18px;
-    border-bottom: 1px solid var(--color-border);
+    flex-direction: column;
+    padding: 72px 24px 28px;
+    opacity: 0;
+    transform: translateX(32px);
+    pointer-events: none;
+    transition: opacity 500ms ease, transform 500ms ease;
 }
 
-.card-label {
+.workflow-step-screen.is-active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+.workflow-screen-label {
+    margin-bottom: 10px;
+    color: var(--color-text-muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+}
+
+.workflow-step-screen h3 {
+    color: var(--color-primary);
+    font-size: 24px;
+    line-height: 1.15;
+    letter-spacing: -0.035em;
+    text-align: center;
+}
+
+.workflow-step-screen > p {
+    max-width: 260px;
+    margin-top: 10px;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.workflow-qr {
+    position: relative;
+    width: 170px;
+    height: 170px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+    margin-top: 30px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: #fff;
+}
+
+.workflow-qr span {
     display: block;
-    margin-bottom: 4px;
+    background: var(--color-primary);
+}
+
+.workflow-qr span:nth-child(2),
+.workflow-qr span:nth-child(4),
+.workflow-qr span:nth-child(8) {
+    background: transparent;
+}
+
+.workflow-qr span:nth-child(5) {
+    background: var(--color-primary);
+}
+
+.workflow-scan-line {
+    position: absolute;
+    top: 205px;
+    width: 170px;
+    height: 2px;
+    background: var(--color-accent, #1a7a5e);
+    box-shadow: 0 0 12px rgba(26, 122, 94, 0.45);
+    animation: workflowScan 1.8s ease-in-out infinite;
+}
+
+@keyframes workflowScan {
+    0%, 100% {
+        transform: translateY(-48px);
+        opacity: 0.3;
+    }
+
+    50% {
+        transform: translateY(48px);
+        opacity: 1;
+    }
+}
+
+.workflow-hint {
+    margin-top: 18px;
     color: var(--color-text-muted);
     font-size: 10px;
+}
+
+.workflow-token {
+    width: 100%;
+    max-width: 245px;
+    margin-top: 30px;
+    padding: 26px 20px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    background: var(--color-bg);
+    text-align: center;
+}
+
+.workflow-token span {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
 }
 
-.clinic-card-header strong {
+.workflow-token strong {
+    display: block;
+    margin-top: 7px;
     color: var(--color-primary);
-    font-size: 16px;
+    font-size: 58px;
+    line-height: 1;
+    letter-spacing: -0.05em;
 }
 
-.live-indicator {
+.workflow-token small {
+    display: block;
+    margin-top: 10px;
+    color: var(--color-text-secondary);
+    font-size: 10px;
+}
+
+.workflow-status {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    color: var(--color-success);
-    font-size: var(--text-xs);
-    font-weight: 600;
+    gap: 7px;
+    margin-top: 20px;
+    color: var(--color-text-secondary);
+    font-size: 10px;
 }
 
-.live-indicator span {
+.workflow-status > span {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--color-success);
+    background: var(--color-accent, #1a7a5e);
 }
 
-.queue-item {
+.workflow-status.complete {
+    color: var(--color-success);
+}
+
+.workflow-queue {
+    width: 100%;
+    max-width: 270px;
+    margin-top: 26px;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+}
+
+.workflow-queue-row {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) auto;
+    grid-template-columns: 42px 1fr auto;
     align-items: center;
-    gap: 14px;
-    padding: 18px 22px;
+    gap: 8px;
+    min-height: 52px;
+    padding: 0 14px;
     border-bottom: 1px solid var(--color-border);
 }
 
-.queue-item.active {
-    background: rgba(9, 41, 66, 0.035);
+.workflow-queue-row:last-child {
+    border-bottom: 0;
 }
 
-.token {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 10px;
-    background: var(--color-primary);
-    color: #fff;
-    font-size: 16px;
-    font-weight: 700;
-}
-
-.queue-item:not(.active) .token {
-    background: var(--color-bg);
+.workflow-queue-row strong {
     color: var(--color-primary);
+    font-size: 13px;
 }
 
-.patient-info {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
+.workflow-queue-row span {
+    color: var(--color-text-secondary);
+    font-size: 10px;
 }
 
-.patient-info strong {
-    overflow: hidden;
-    color: var(--color-text);
-    font-size: var(--text-sm);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.patient-info span {
+.workflow-queue-row small {
     color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    font-size: 9px;
 }
 
-.queue-state {
-    color: var(--color-text-muted);
-    font-size: var(--text-xs);
+.workflow-queue-row.current {
+    background: rgba(9, 41, 66, 0.045);
 }
 
-.queue-item.active .queue-state {
-    color: var(--color-success);
-    font-weight: 600;
+.workflow-queue-row.current strong {
+    color: var(--color-accent, #1a7a5e);
 }
 
-.clinic-card-footer {
+.workflow-prescription {
+    width: 100%;
+    max-width: 275px;
+    margin-top: 25px;
+    padding: 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md, 12px);
+    background: var(--color-bg);
+}
+
+.workflow-prescription-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 16px 22px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--color-border);
     color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+}
+
+.workflow-prescription-header span:last-child {
+    color: var(--color-success);
+    font-size: 13px;
+}
+
+.workflow-medicine {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.workflow-medicine:last-child {
+    border-bottom: 0;
+}
+
+.workflow-medicine strong {
+    color: var(--color-text);
+    font-size: 11px;
+}
+
+.workflow-medicine span {
+    color: var(--color-text-muted);
+    font-size: 9px;
+}
+
+.workflow-animation-caption {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.workflow-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.workflow-progress span {
+    width: 22px;
+    height: 3px;
+    border-radius: 999px;
+    background: var(--color-border);
+    transition: width 300ms ease, background 300ms ease;
+}
+
+.workflow-progress span.active {
+    width: 34px;
+    background: var(--color-primary);
+}
+
+.workflow-caption-text {
+    color: var(--color-text-muted);
+    font-size: 10px;
+    text-align: center;
 }
 
 .trust-strip {
@@ -290,8 +495,8 @@
 
 .trust-inner > p {
     color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    font-weight: 500;
+    font-size: var(--text-sm, 14px);
+    font-weight: var(--font-medium, 500);
 }
 
 .trust-points {
@@ -302,7 +507,7 @@
 
 .trust-points span {
     color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    font-size: var(--text-xs, 12px);
 }
 
 .problem-section {
@@ -320,13 +525,13 @@
 .privacy-card h2,
 .cta-card h2 {
     color: var(--color-primary);
-    font-size: clamp(32px, 4vw, 48px);
-    line-height: 1.1;
-    letter-spacing: -0.04em;
+    font-size: clamp(34px, 4vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.045em;
 }
 
 .section-description {
-    max-width: 650px;
+    max-width: 680px;
     margin-top: 24px;
     color: var(--color-text-secondary);
     font-size: 18px;
@@ -350,7 +555,7 @@
     overflow: hidden;
     background: var(--color-border);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-md, 12px);
 }
 
 .workflow-step {
@@ -363,7 +568,7 @@
     display: block;
     margin-bottom: 48px;
     color: var(--color-text-muted);
-    font-size: var(--text-xs);
+    font-size: var(--text-xs, 12px);
     font-weight: 700;
 }
 
@@ -375,7 +580,7 @@
 
 .workflow-step p {
     color: var(--color-text-secondary);
-    font-size: var(--text-sm);
+    font-size: var(--text-sm, 14px);
     line-height: 1.65;
 }
 
@@ -400,9 +605,9 @@
 }
 
 .feature-list {
-    margin-top: 30px;
     display: grid;
     gap: 14px;
+    margin-top: 30px;
 }
 
 .feature-list li {
@@ -410,7 +615,7 @@
     align-items: center;
     gap: 10px;
     color: var(--color-text);
-    font-size: var(--text-sm);
+    font-size: var(--text-sm, 14px);
 }
 
 .feature-list li span {
@@ -422,7 +627,7 @@
     overflow: hidden;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
+    border-radius: var(--radius-md, 12px);
     box-shadow: var(--shadow-sm);
 }
 
@@ -432,7 +637,7 @@
     padding: 20px;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text-secondary);
-    font-size: var(--text-xs);
+    font-size: var(--text-xs, 12px);
     font-weight: 600;
 }
 
@@ -460,7 +665,7 @@
     padding: 14px 0;
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text-secondary);
-    font-size: var(--text-sm);
+    font-size: var(--text-sm, 14px);
 }
 
 .prescription-line:last-child {
@@ -480,12 +685,12 @@
     padding: 54px;
     background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-lg, 18px);
 }
 
 .privacy-card > p {
     color: var(--color-text-secondary);
-    font-size: var(--text-md);
+    font-size: var(--text-md, 16px);
     line-height: 1.7;
 }
 
@@ -506,7 +711,7 @@
     gap: 40px;
     padding: 58px;
     background: var(--color-primary);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-lg, 18px);
 }
 
 .cta-card .eyebrow {
@@ -536,15 +741,15 @@
     gap: 50px;
 }
 
-.footer-brand .site-brand {
-    color: #fff;
+.footer-brand .site-logo {
+    filter: brightness(0) invert(1);
 }
 
 .footer-brand p {
     max-width: 250px;
     margin-top: 18px;
     color: rgba(255, 255, 255, 0.62);
-    font-size: var(--text-sm);
+    font-size: var(--text-sm, 14px);
     line-height: 1.6;
 }
 
@@ -558,13 +763,13 @@
 .footer-column h3 {
     margin-bottom: 6px;
     color: #fff;
-    font-size: var(--text-sm);
+    font-size: var(--text-sm, 14px);
 }
 
 .footer-column a {
     color: rgba(255, 255, 255, 0.62);
-    font-size: var(--text-sm);
-    transition: var(--transition);
+    font-size: var(--text-sm, 14px);
+    transition: var(--transition, 150ms ease);
 }
 
 .footer-column a:hover {
@@ -579,7 +784,7 @@
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
     color: rgba(255, 255, 255, 0.45);
-    font-size: var(--text-xs);
+    font-size: var(--text-xs, 12px);
 }
 
 @media (max-width: 1000px) {
@@ -626,10 +831,45 @@
 
     .mobile-menu-button {
         display: flex;
+        margin-left: auto;
     }
 
     .header-inner {
         min-height: 64px;
+    }
+
+    .site-nav.mobile-open {
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 8px 20px 16px;
+        background: var(--color-surface);
+        border-bottom: 1px solid var(--color-border);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .site-nav.mobile-open a {
+        padding: 13px 0;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .site-nav.mobile-open a:last-child {
+        border-bottom: 0;
+    }
+
+    .header-actions.mobile-open {
+        position: absolute;
+        top: 258px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        padding: 12px 0 20px;
+        background: var(--color-surface);
     }
 
     .hero {
@@ -637,7 +877,7 @@
     }
 
     .hero h1 {
-        font-size: clamp(40px, 12vw, 58px);
+        font-size: clamp(42px, 12vw, 60px);
     }
 
     .hero-description {
@@ -702,6 +942,10 @@
 }
 
 @media (max-width: 480px) {
+    .site-logo {
+        width: 118px;
+    }
+
     .hero-actions {
         align-items: stretch;
         flex-direction: column;
@@ -715,19 +959,26 @@
         justify-content: center;
     }
 
-    .clinic-card-header,
-    .queue-item,
-    .clinic-card-footer {
-        padding-left: 16px;
-        padding-right: 16px;
+    .workflow-animation {
+        width: min(100%, 330px);
     }
 
-    .queue-item {
-        grid-template-columns: 44px minmax(0, 1fr);
+    .workflow-screen {
+        min-height: 470px;
     }
 
-    .queue-state {
-        display: none;
+    .workflow-step-screen {
+        padding-top: 66px;
+    }
+
+    .workflow-qr {
+        width: 150px;
+        height: 150px;
+    }
+
+    .workflow-scan-line {
+        top: 194px;
+        width: 150px;
     }
 
     .footer-grid {
@@ -735,38 +986,10 @@
     }
 }
 
-@media (max-width: 760px) {
-    .site-nav.mobile-open {
-        position: absolute;
-        top: 64px;
-        left: 0;
-        right: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0;
-        padding: 8px 20px 16px;
-        background: var(--color-surface);
-        border-bottom: 1px solid var(--color-border);
-        box-shadow: var(--shadow-sm);
-    }
-
-    .site-nav.mobile-open a {
-        padding: 13px 0;
-        border-bottom: 1px solid var(--color-border);
-    }
-
-    .site-nav.mobile-open a:last-child {
-        border-bottom: 0;
-    }
-
-    .header-actions.mobile-open {
-        position: absolute;
-        top: 258px;
-        left: 20px;
-        right: 20px;
-        display: flex;
-        padding: 12px 0 20px;
-        background: var(--color-surface);
+@media (prefers-reduced-motion: reduce) {
+    .workflow-step-screen,
+    .workflow-scan-line {
+        transition: none;
+        animation: none;
     }
 }
