@@ -1,204 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="stylesheet" href="/static/scan.css">
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+    <meta name="theme-color" content="#ffffff">
+
+    <title>Tap2Med</title>
+
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/buttons.css">
+    <link rel="stylesheet" href="../assets/css/forms.css">
+    <link rel="stylesheet" href="../assets/css/tables.css">
+    <link rel="stylesheet" href="../assets/css/utilities.css">
+    <link rel="stylesheet" href="../assets/css/pages/scan.css">
 </head>
+
 <body>
-    <div class="app-container">
-        
-        <div style="text-align: left; font-weight: bold; font-size: 20px; margin-bottom: 30px;">
-            &lt;TAP2MED&gt;
+    <main class="page">
+        <div class="container">
+            <div class="scan-app">
+                <header class="scan-header">
+                    <div class="brand">
+                        <span>&lt;TAP2MED&gt;</span>
+                    </div>
+                </header>
+
+                <section id="screen-phone" class="scan-screen">
+                    <h1>Welcome to &lt;CLINIC NAME&gt;</h1>
+
+                    <p class="subtitle">Powered By Tap2Med</p>
+
+                    <p>
+                        Enter your mobile number to<br>
+                        get your token number
+                    </p>
+
+                    <div class="input-group">
+                        <label class="label" for="phone-input">
+                            Mobile number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="phone-input"
+                            class="input"
+                            placeholder="Enter mobile number"
+                            autocomplete="off"
+                            inputmode="numeric"
+                            maxlength="10"
+                        >
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-block"
+                        id="submit-phone-btn"
+                    >
+                        Submit
+                    </button>
+
+                    <p class="footer-text">
+                        We do not store your phone number or any other<br>
+                        personal identifiers in our system.
+                    </p>
+                </section>
+
+                <section id="screen-members" class="scan-screen hidden">
+                    <h1>Who is visiting today?</h1>
+
+                    <div
+                        id="member-list-container"
+                        class="member-list"
+                    ></div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-block"
+                        id="check-in-btn"
+                    >
+                        Check-in
+                    </button>
+                </section>
+
+                <section id="screen-add-member" class="scan-screen hidden">
+                    <h1>Add Family Member</h1>
+
+                    <p class="subtitle">
+                        Enter the patient's full name
+                    </p>
+
+                    <div class="input-group">
+                        <label class="label" for="new-member-name">
+                            Patient Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="new-member-name"
+                            class="input"
+                            placeholder="Patient Name"
+                            autocomplete="off"
+                        >
+                    </div>
+
+                    <button
+                        type="button"
+                        class="btn btn-primary btn-block"
+                        id="save-member-btn"
+                    >
+                        Save Member
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-secondary btn-block"
+                        id="cancel-member-btn"
+                    >
+                        Cancel
+                    </button>
+                </section>
+
+                <section id="screen-success" class="scan-screen hidden">
+                    <h1 class="text-green">
+                        VISIT<br>
+                        CREATED!
+                    </h1>
+
+                    <p class="token-label">
+                        Your Token no. is:
+                    </p>
+
+                    <div
+                        id="token-display"
+                        class="token-number"
+                    >
+                        #--
+                    </div>
+
+                    <p>Estimated Wait time:</p>
+
+                    <p class="text-yellow">
+                        Kindly take a seat and<br>
+                        wait for your turn patiently
+                    </p>
+                </section>
+            </div>
         </div>
+    </main>
 
-        <div id="screen-phone">
-            <h2>Welcome to &lt;CLINIC NAME&gt;</h2>
-            <p class="subtitle">Powered By Tap2Med</p>
-            <p>Enter your mobile number to<br>get your token number</p>
-            
-            <input type="tel" id="phone-input" class="input-box" placeholder="Enter mobile number" autocomplete="off">
-            <button class="btn-primary" onclick="goToMemberScreen()">Submit</button>
-            
-            <p class="footer-text">We do not store your phone number or any other<br>personal identifiers in our system.</p>
-        </div>
-
-        <div id="screen-members" class="hidden">
-            <h2>Who is visiting today?</h2>
-            
-            <div id="member-list-container" class="member-list">
-                </div>
-            
-            <button class="btn-primary" onclick="submitCheckIn()">Check-in</button>
-        </div>
-
-        <div id="screen-add-member" class="hidden">
-            <h2>Add Family Member</h2>
-            <p class="subtitle">Enter the patient's full name</p>
-            
-            <input type="text" id="new-member-name" class="input-box" placeholder="Patient Name" autocomplete="off">
-            
-            <button class="btn-primary" onclick="saveNewMember()">Save Member</button>
-            <button class="btn-primary" style="background: #e6e6e6;" onclick="showScreen('screen-members')">Cancel</button>
-        </div>
-
-        <div id="screen-success" class="hidden">
-            <h2 class="text-green">VISIT<br>CREATED!</h2>
-            <p style="font-weight: bold; margin-top: 30px;">Your Token no. is:</p>
-            <div id="token-display" class="token-number">#--</div>
-            
-            <p>Estimated Wait time:</p>
-            <p class="text-yellow">Kindly take a seat and<br>wait for your turn patiently</p>
-        </div>
-
-    </div>
-
-<script>
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const scannedClinicId = urlParams.get('clinic'); 
-
-    let currentSessionPhone = null;
-    let selectedMemberId = null;
-
-    
-    let defaultMembers = [
-        { id: 0, name: "Self" },
-        { id: 1, name: "Mother" },
-        { id: 2, name: "Father" },
-        { id: 3, name: "Wife" },
-        { id: 4, name: "Son" },
-        { id: 5, name: "Daughter" }
-    ];
-
-    
-    let savedMembers = localStorage.getItem('tap2med_family');
-    let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
-
-    window.onload = function() {
-        let savedToken = localStorage.getItem("tap2med_queue_number");
-        if (savedToken) {
-            document.getElementById('token-display').innerText = "#" + savedToken;
-            showScreen('screen-success');
-        }
-    };
-
-
-    function showScreen(screenId) {
-        document.getElementById('screen-phone').classList.add('hidden');
-        document.getElementById('screen-members').classList.add('hidden');
-        document.getElementById('screen-add-member').classList.add('hidden');
-        document.getElementById('screen-success').classList.add('hidden');
-        
-        document.getElementById(screenId).classList.remove('hidden');
-    }
-
-   
-
-    function goToMemberScreen() {
-        if (!scannedClinicId) {
-            alert("Invalid QR Code. Missing Clinic ID.");
-            return;
-        }
-
-        let phoneVal = document.getElementById('phone-input').value;
-        if (phoneVal.length !== 10) {
-            alert("Please enter a valid 10-digit number.");
-            return;
-        }
-
-        currentSessionPhone = phoneVal;
-        renderMemberList(); 
-        showScreen('screen-members');
-    }
-
-    function renderMemberList() {
-        let container = document.getElementById('member-list-container');
-        container.innerHTML = ''; 
-
-        for (let i = 0; i < familyMembers.length; i++) {
-            let member = familyMembers[i];
-            container.innerHTML += `<div class="member-row" onclick="selectMember(${member.id}, this)">${member.name}</div>`;
-        }
-
-       
-        container.innerHTML += `<div class="member-row" onclick="showAddMemberScreen()" style="color: #007bff; text-align: center;">+ Add New Member</div>`;
-    }
-
-    function selectMember(memberId, rowElement) {
-        selectedMemberId = memberId;
-
-        let allRows = document.getElementsByClassName('member-row');
-        for (let i = 0; i < allRows.length; i++) {
-            allRows[i].classList.remove('selected');
-        }
-        rowElement.classList.add('selected');
-    }
-
-
-    function showAddMemberScreen() {
-        document.getElementById('new-member-name').value = ''; 
-        showScreen('screen-add-member');
-    }
-
-    function saveNewMember() {
-        let nameInput = document.getElementById('new-member-name').value.trim();
-
-        if (nameInput === "") {
-            alert("Please enter a name.");
-            return;
-        }
-
-        
-        let uniqueId = Date.now(); 
-
-        
-        familyMembers.push({ id: uniqueId, name: nameInput });
-        localStorage.setItem('tap2med_family', JSON.stringify(familyMembers));
-
-        renderMemberList();
-        showScreen('screen-members');
-    }
-
-
-    async function submitCheckIn() {
-        if (currentSessionPhone === null || selectedMemberId === null) {
-            alert("Please select a member first.");
-            return;
-        }
-
-        let payload = {
-            phone: currentSessionPhone,
-            member_id: selectedMemberId,
-            clinic_id: scannedClinicId
-        };
-
-        try {
-            let response = await fetch('/api/events/checkin', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) throw new Error("Backend failed");
-            let data = await response.json();
-            
-            localStorage.setItem("tap2med_daily_token_number", data.daily_token_number);
-            localStorage.setItem("tap2med_local_token",     data.local_token);
-
-            currentSessionPhone = null;
-            selectedMemberId = null;
-
-            document.getElementById('token-display').innerText = "#" + data.queue_number;
-            showScreen('screen-success');
-
-        } catch (error) {
-            alert("Network error. Please try again.");
-            currentSessionPhone = null;
-            selectedMemberId = null;
-            document.getElementById('phone-input').value = '';
-            showScreen('screen-phone');
-        }
-    }
-</script>
+    <script type="module" src="../assets/js/pages/scan.js"></script>
 </body>
 </html>

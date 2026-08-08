@@ -1,288 +1,230 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Consultation | Tap2Med</title>
-    <link rel="stylesheet" href="/static/dashboard.css" />
-  </head>
-  <body>
-    <div class="app-layout">
-      <div id="sidebar-backdrop" class="backdrop"></div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-      <aside id="app-sidebar" class="sidebar">
-        <div class="sidebar-box">
-          <div class="queue-text">
-            <ul>
-              <li>
-                Today's queue number:
-                <strong id="current-token" style="color: #007bff">#--</strong>
-              </li>
-            </ul>
-          </div>
-        </div>
+    <title>Clinic Dashboard | Tap2Med</title>
 
-        <div class="sidebar-box" style="flex-grow: 1; overflow-y: auto">
-          <div class="history-title">Visit History:</div>
-          <div
-            id="history-content"
-            style="
-              padding: 15px;
-              background: #f8f9fa;
-              border-radius: 5px;
-              border: 1px solid #eee;
-              min-height: 200px;
-            "
-          >
-            Date wise history...
-          </div>
-        </div>
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/buttons.css">
+    <link rel="stylesheet" href="../assets/css/forms.css">
+    <link rel="stylesheet" href="../assets/css/tables.css">
+    <link rel="stylesheet" href="../assets/css/utilities.css">
+    <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
+</head>
 
-        <div class="sidebar-footer">
-          <ul>
-            <li id="doc-name">Loading...</li>
-            <li id="clinic-name">Loading...</li>
-          </ul>
-        </div>
-      </aside>
+<body>
+    <div class="clinic-app">
 
-      <main class="main-wrapper">
-        <div class="mobile-header">
-          <button class="icon-btn" id="mobile-menu-btn">☰</button>
-          <h3 style="margin: 0">Tap2Med OPD</h3>
-        </div>
+        <aside id="app-sidebar" class="sidebar">
+            <div class="sidebar-content">
 
-        <div class="action-bar">
-          <button class="btn-light">Copy Last Prescription</button>
-          <button class="btn-light" id="print-btn">Print/share</button>
-        </div>
+                <div class="brand">
+                    <span class="brand-mark">&lt;</span>
+                    <span class="brand-name">TAP2MED</span>
+                </div>
 
-        <div class="prescription-area">
-          <div class="rx-title">Draft Prescription</div>
+                <section class="queue-panel">
+                    <span class="queue-label">Current queue</span>
+                    <strong id="current-token" class="queue-token">#--</strong>
+                </section>
 
-          <div id="rx-container">
-            <div class="rx-row">
-              <input
-                type="text"
-                class="rx-med"
-                value=""
-                placeholder="Medicine & Dose"
-              />
-              <input
-                type="text"
-                class="rx-freq"
-                value=""
-                placeholder="Frequency & Instructions"
-              />
+                <section class="history-panel">
+                    <div class="panel-heading">
+                        <h2>Visit History</h2>
+                    </div>
+
+                    <div
+                        id="history-content"
+                        class="history-content"
+                        aria-live="polite"
+                    >
+                        <p class="text-muted">Loading history...</p>
+                    </div>
+                </section>
             </div>
-            <div class="rx-row">
-              <input
-                type="text"
-                class="rx-med"
-                value=""
-                placeholder="Medicine & Dose"
-              />
-              <input
-                type="text"
-                class="rx-freq"
-                value=""
-                placeholder="Frequency & Instructions"
-              />
-            </div>
-            <div class="rx-row">
-              <input
-                type="text"
-                class="rx-med"
-                value=""
-                placeholder="Medicine & Dose"
-              />
-              <input
-                type="text"
-                class="rx-freq"
-                value=""
-                placeholder="Frequency & Instructions"
-              />
-            </div>
-            <div class="rx-row">
-              <input
-                type="text"
-                class="rx-med"
-                value=""
-                placeholder="Medicine & Dose"
-              />
-              <input
-                type="text"
-                class="rx-freq"
-                value=""
-                placeholder="Frequency & Instructions"
-              />
-            </div>
-          </div>
 
-          <button class="btn-add-row" id="add-row-btn">+ Add Medicine</button>
-        </div>
-      </main>
+            <footer class="sidebar-footer">
+                <strong id="doc-name">Loading...</strong>
+                <span id="clinic-name">Loading...</span>
+            </footer>
+        </aside>
+
+        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
+        <main class="clinic-main">
+
+            <header class="clinic-header">
+                <div class="mobile-header">
+                    <button
+                        id="mobile-menu-btn"
+                        class="icon-btn"
+                        type="button"
+                        aria-label="Open menu"
+                        aria-controls="app-sidebar"
+                        aria-expanded="false"
+                    >
+                        ☰
+                    </button>
+
+                    <span class="mobile-brand">TAP2MED</span>
+                </div>
+
+                <div class="header-content">
+                    <div>
+                        <span class="header-eyebrow">Consultation</span>
+                        <h1>Draft Prescription</h1>
+                    </div>
+
+                    <div class="header-actions">
+                        <button
+                            id="copy-prescription-btn"
+                            class="btn btn-secondary"
+                            type="button"
+                        >
+                            Copy Last Prescription
+                        </button>
+
+                        <button
+                            id="print-btn"
+                            class="btn btn-primary"
+                            type="button"
+                        >
+                            Print / Share
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <section class="prescription-section">
+
+                <div class="prescription-status">
+                    <span id="prescription-status" class="status-badge">
+                        Draft
+                    </span>
+                </div>
+
+                <div
+                    id="rx-container"
+                    class="prescription-list"
+                >
+                    <div class="prescription-row">
+                        <div class="field">
+                            <label for="medicine-1">Medicine</label>
+                            <input
+                                id="medicine-1"
+                                class="input rx-med"
+                                type="text"
+                                placeholder="Medicine & dose"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="instruction-1">Instructions</label>
+                            <input
+                                id="instruction-1"
+                                class="input rx-freq"
+                                type="text"
+                                placeholder="Frequency & instructions"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="prescription-row">
+                        <div class="field">
+                            <label for="medicine-2">Medicine</label>
+                            <input
+                                id="medicine-2"
+                                class="input rx-med"
+                                type="text"
+                                placeholder="Medicine & dose"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="instruction-2">Instructions</label>
+                            <input
+                                id="instruction-2"
+                                class="input rx-freq"
+                                type="text"
+                                placeholder="Frequency & instructions"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="prescription-row">
+                        <div class="field">
+                            <label for="medicine-3">Medicine</label>
+                            <input
+                                id="medicine-3"
+                                class="input rx-med"
+                                type="text"
+                                placeholder="Medicine & dose"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="instruction-3">Instructions</label>
+                            <input
+                                id="instruction-3"
+                                class="input rx-freq"
+                                type="text"
+                                placeholder="Frequency & instructions"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="prescription-row">
+                        <div class="field">
+                            <label for="medicine-4">Medicine</label>
+                            <input
+                                id="medicine-4"
+                                class="input rx-med"
+                                type="text"
+                                placeholder="Medicine & dose"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="field">
+                            <label for="instruction-4">Instructions</label>
+                            <input
+                                id="instruction-4"
+                                class="input rx-freq"
+                                type="text"
+                                placeholder="Frequency & instructions"
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    id="add-row-btn"
+                    class="add-medicine"
+                    type="button"
+                >
+                    <span>+</span>
+                    Add Medicine
+                </button>
+
+            </section>
+        </main>
     </div>
-    <script>
-      let currentLocalToken = null;
 
-      const clinicId = new URLSearchParams(window.location.search).get(
-        "clinic",
-      );
-
-      const currentTokenElement = document.getElementById("current-token");
-      const historyContentElement = document.getElementById("history-content");
-      const rxContainer = document.getElementById("rx-container");
-
-      function toggleSidebar() {
-        document.getElementById("app-sidebar").classList.toggle("open");
-        document.getElementById("sidebar-backdrop").classList.toggle("open");
-      }
-
-      document
-        .getElementById("add-row-btn")
-        .addEventListener("click", function () {
-          const row = document.createElement("div");
-          row.className = "rx-row";
-          row.innerHTML = `
-              <input type="text" class="rx-med" placeholder="Medicine & Dose">
-              <input type="text" class="rx-freq" placeholder="Frequency & Instructions">
-          `;
-          rxContainer.appendChild(row);
-        });
-
-      async function loadNextPatient() {
-        if (!clinicId) {
-          currentTokenElement.innerText = "Error: No Clinic ID";
-          return;
-        }
-
-        try {
-          let response = await fetch(`/api/clinics/queue/${clinicId}`); 
-          let data = await response.json();
-
-          document.getElementById("doc-name").innerText = data.doctor_name;
-          document.getElementById("clinic-name").innerText = data.clinic_name;
-
-          if (data.queue && data.queue.length > 0) {
-            let currentPatient = data.queue[0];
-
-            if (currentLocalToken !== currentPatient.local_token) {
-              currentLocalToken = currentPatient.local_token;
-              currentTokenElement.innerText = `#${currentPatient.daily_token_number}`;
-              loadHistory(currentLocalToken);
-            }
-          } else {
-            currentTokenElement.innerText = `Empty`;
-            historyContentElement.innerHTML = `<p style="color: #666;">No patients waiting.</p>`;
-            currentLocalToken = null;
-          }
-        } catch (e) {
-          console.error("Network poll failed, retrying silently in 5s...");
-        }
-      }
-
-      async function loadHistory(localToken) {
-        let historyContainer = document.getElementById("history-content");
-        historyContainer.innerHTML = `<p style="color: #888;">Loading history...</p>`;
-
-        try {
-          let response = await fetch(`/api/events/history/${localToken}`);
-          let data = await response.json();
-
-          if (!data.history || data.history.length === 0) {
-            historyContainer.innerHTML = `<p style="color: #666; font-style: italic;">First-time visit. No prior history.</p>`;
-            return;
-          }
-
-          let historyHtml = "";
-
-          data.history.forEach((visit, index) => {
-            let dateObj = new Date(visit.timestamp);
-            let displayDate = dateObj.toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            });
-
-            let isOpen = index === 0 ? "open" : "";
-
-            historyHtml += `
-                <details ${isOpen} style="margin-bottom: 10px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <summary style="padding: 12px 15px; font-weight: bold; color: #333; background: #f8f9fa; cursor: pointer; outline: none; border-bottom: 1px solid #e0e0e0;">
-                         ${displayDate}
-                    </summary>
-                    <div style="padding: 15px;">
-                `;
-
-            if (!visit.prescriptions || visit.prescriptions.length === 0) {
-              historyHtml += `<div style="color: #888; font-size: 0.9em; font-style: italic;">No medicines recorded (Verbal advice).</div>`;
-            } else {
-              historyHtml += `<ul style="margin: 0; padding-left: 20px; font-size: 0.95em; color: #444; line-height: 1.6;">`;
-              visit.prescriptions.forEach((rx) => {
-                historyHtml += `<li><b>${rx.name}</b> - <span style="color: #666;">${rx.instructions}</span></li>`;
-              });
-              historyHtml += `</ul>`;
-            }
-            historyHtml += `</div></details>`;
-          });
-
-          historyContainer.innerHTML = historyHtml;
-        } catch (e) {
-          console.error("Failed to load history:", e);
-          historyContainer.innerHTML = `<p style="color: red;">Offline: Could not load past visits.</p>`;
-        }
-      }
-
-      document.getElementById("print-btn")  
-        .addEventListener("click", async function () {
-          if (!currentLocalToken) return;
-
-          const medicinesPayload = [];
-          document.querySelectorAll(".rx-row").forEach((row) => {
-            const medName = row.querySelector(".rx-med").value;
-            const medFreq = row.querySelector(".rx-freq").value;
-
-            if (medName.trim() !== "") {
-              medicinesPayload.push({ name: medName, instructions: medFreq });
-            }
-          });
-
-          if (
-            medicinesPayload.length === 0 &&
-            !confirm("No medicines entered. Mark visit as complete anyway?")
-          ) {
-            alert("Please enter at least one medicine or note.");
-            return;
-          }
-
-          window.print();
-
-          try {
-            await fetch("/api/events/complete", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                local_token: currentLocalToken,
-                medicines: medicinesPayload,
-              }),
-            });
-
-            rxContainer.innerHTML = "";
-            document.getElementById("add-row-btn").click();
-
-            currentLocalToken = null;
-            loadNextPatient();
-          } catch (e) {
-            console.error("Failed to save prescription:", e);
-            alert(
-              "Network Error: The paper printed, but the history did not save. Please check your Wi-Fi and click Print again.",
-            );
-          }
-        });
-
-      loadNextPatient();
-      setInterval(loadNextPatient, 5000);
-    </script>
-  </body>
+    <script
+        type="module"
+        src="../assets/js/pages/dashboard.js"
+    ></script>
+</body>
 </html>

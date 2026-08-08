@@ -1,0 +1,120 @@
+.scan-app {
+    width: min(100%, 480px);
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.scan-header {
+    margin-bottom: 48px;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.scan-screen {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.scan-screen h1 {
+    font-size: 28px;
+    line-height: 1.25;
+    font-weight: 700;
+}
+
+.subtitle {
+    margin-top: -12px;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+}
+
+.footer-text {
+    margin-top: 12px;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+    text-align: center;
+}
+
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.member-row {
+    width: 100%;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-size: var(--text-md);
+    font-weight: var(--font-medium);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.member-row:hover {
+    background: var(--color-surface-hover);
+}
+
+.member-row.selected {
+    border-color: var(--color-primary);
+    background: rgba(9, 41, 66, 0.06);
+    color: var(--color-primary);
+}
+
+.member-row.add-member {
+    justify-content: center;
+    color: var(--color-primary);
+}
+
+.text-green {
+    color: var(--color-success);
+}
+
+.text-yellow {
+    color: var(--color-warning);
+}
+
+.token-label {
+    margin-top: 8px;
+    font-weight: var(--font-semibold);
+}
+
+.token-number {
+    font-size: 64px;
+    line-height: 1;
+    font-weight: var(--font-bold);
+    color: var(--color-primary);
+    letter-spacing: -0.04em;
+}
+
+@media (max-width: 600px) {
+    .scan-app {
+        padding: 20px 0;
+    }
+
+    .scan-header {
+        margin-bottom: 40px;
+    }
+
+    .scan-screen h1 {
+        font-size: 24px;
+    }
+
+    .token-number {
+        font-size: 56px;
+    }
+}

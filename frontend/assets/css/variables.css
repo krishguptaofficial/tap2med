@@ -1,41 +1,32 @@
 :root {
-    /* Brand */
-    --color-primary: #2563eb;
-    --color-primary-hover: #1d4ed8;
+    --color-primary: #092942;
+    --color-primary-hover: #061f32;
 
-    /* Status */
-    --color-success: #16a34a;
-    --color-warning: #ea580c;
-    --color-danger: #dc2626;
-    --color-info: #0284c7;
+    --color-success: #15803d;
+    --color-warning: #b45309;
+    --color-danger: #b91c1c;
+    --color-info: #0369a1;
 
-    /* Backgrounds */
-    --color-bg: #f8fafc;
+    --color-bg: #f5f5f0;
     --color-surface: #ffffff;
-    --color-surface-hover: #f1f5f9;
+    --color-surface-hover: #f1f3f2;
 
-    /* Text */
-    --color-text: #111827;
-    --color-text-secondary: #6b7280;
-    --color-text-muted: #9ca3af;
+    --color-text: #0b1f2a;
+    --color-text-secondary: #5f6f78;
+    --color-text-muted: #8a969d;
 
-    /* Borders */
-    --color-border: #e5e7eb;
-    --color-border-focus: #2563eb;
+    --color-border: #dfe5e7;
+    --color-border-focus: #092942;
 
-    /* Radius */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 1px 3px rgba(9, 41, 66, 0.08);
+    --shadow-md: 0 8px 24px rgba(9, 41, 66, 0.08);
 
-    /* Font */
     --font-family: "Inter", sans-serif;
 
-    /* Font Sizes */
     --text-xs: 12px;
     --text-sm: 14px;
     --text-md: 16px;
@@ -43,13 +34,11 @@
     --text-xl: 24px;
     --text-2xl: 32px;
 
-    /* Font Weight */
     --font-regular: 400;
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
 
-    /* Spacing */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -60,12 +49,8 @@
     --space-10: 40px;
     --space-12: 48px;
 
-    /* Sidebar */
     --sidebar-width: 260px;
-
-    /* Header */
     --header-height: 64px;
 
-    /* Transition */
     --transition: 150ms ease;
 }
