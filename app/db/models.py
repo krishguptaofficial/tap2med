@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, ForeignKey, Column,String, Text, Integer
+from sqlalchemy import DateTime, ForeignKey, Column,String, Text, Integer, Boolean
 from sqlalchemy.orm import DeclarativeMeta
 from app.db.database import Base
 from sqlalchemy.sql import func
@@ -12,12 +12,68 @@ class Clinic(Base):
 
     clinic_id = Column(UUID(as_uuid= True), primary_key=True, default=uuid.uuid4)
     doctor_name = Column(Text, nullable = False)
+
+    doctor_email = Column(Text, nullable=True, index=True)
+    email_verified = Column(Boolean, nullable=False, default=False)
+    password_hash = Column(Text, nullable=True)
+
     clinic_name = Column(Text, nullable= False)
     clinic_salt = Column(Text, nullable = False, unique= True)
     #qr_code = Column(Text, nullable = True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     events = relationship("Event", back_populates="clinic")
+
+    email_verifications = relationship(
+    "EmailVerification",
+    back_populates="clinic",
+    cascade="all, delete-orphan"
+)
+    
+class EmailVerification(Base):
+
+    __tablename__ = "email_verifications"
+
+    verification_id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+
+    clinic_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("clinics.clinic_id"),
+        nullable=False,
+        index=True
+    )
+
+    otp_hash = Column(Text, nullable=False)
+
+    expires_at = Column(
+        DateTime(timezone=True),
+        nullable=False
+    )
+
+    attempts = Column(
+        Integer,
+        nullable=False,
+        default=0
+    )
+
+    verified_at = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+
+    clinic = relationship(
+        "Clinic",
+        back_populates="email_verifications"
+    )
 
     
 class Event(Base):

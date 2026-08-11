@@ -1,16 +1,26 @@
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from sqlalchemy import text
-from app.api import events, clinics
+from app.api import events, clinics, auth
 from app.db.database import engine
 from app.db import models
 
 
 
 app = FastAPI(title="Tap2Med OPD")
+
+# Enable CORS for local development and simple deployments. Restrict in production.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.mount(
     "/assets",
@@ -44,6 +54,7 @@ logger = logging.getLogger(__name__)
 
 app.include_router(events.router, prefix="/api/events") 
 app.include_router(clinics.router, prefix="/api/clinics")
+app.include_router(auth.router, prefix="/api/auth")
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -57,6 +68,24 @@ def serve_doctor_dashboard():
 def serve_patient_scan():
     logger.info("Scan Page Opened")
     return FileResponse("frontend/patient/scan.html")
+
+
+@app.get("/login")
+def serve_login():
+    logger.info("Clinic login opened")
+    return FileResponse("frontend/clinic/login.html")
+
+
+@app.get("/website/{page_name}")
+def serve_website_page(page_name: str):
+    # serve files from frontend/website (e.g., index.html, about.html)
+    path = f"frontend/website/{page_name}.html"
+    return FileResponse(path)
+
+
+@app.get("/website/")
+def serve_website_index():
+    return FileResponse("frontend/website/index.html")
 
 @app.get("/")
 def read_root(): 

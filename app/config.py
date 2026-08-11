@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     # SQLAlchemy connection string for the PostgreSQL database
     DATABASE_URL: str= Field(default= ...)
 
+    BREVO_API_KEY: str = Field(default=...)
+    BREVO_SENDER_EMAIL: str = Field(default="verify@tap2med.com")
+    BREVO_SENDER_NAME: str = Field(default="Tap2Med")
+
     # Pydantic configuration class to link the class to the physical .env file
     model_config = SettingsConfigDict(
         env_file = ".env",

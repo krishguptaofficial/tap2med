@@ -93,3 +93,68 @@ def complete_patient_event(db:Session, local_token:str ):
 
     return event
 
+
+def create_email_otp(db: Session, clinic_id: uuid.UUID, otp_hash: str, expires_at: datetime):
+    db_ver = models.EmailVerification(
+        clinic_id=clinic_id,
+        otp_hash=otp_hash,
+        expires_at=expires_at,
+        attempts=0
+    )
+    db.add(db_ver)
+    db.commit()
+    db.refresh(db_ver)
+    return db_ver
+
+
+def get_active_verification(db: Session, clinic_id: uuid.UUID):
+    now = datetime.now(timezone.utc)
+    return db.query(models.EmailVerification).filter(
+        models.EmailVerification.clinic_id == clinic_id,
+        models.EmailVerification.expires_at >= now,
+        models.EmailVerification.verified_at == None
+    ).order_by(models.EmailVerification.created_at.desc()).first()
+
+
+def mark_verification_verified(db: Session, verification: models.EmailVerification):
+    # set the verified_at timestamp dynamically to avoid static type issues
+    setattr(verification, "verified_at", datetime.now(timezone.utc))
+    # also mark clinic as email_verified
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == verification.clinic_id).first()
+    if clinic:
+        setattr(clinic, "email_verified", True)
+    db.commit()
+    db.refresh(verification)
+    return verification
+
+
+def increment_verification_attempts(db: Session, verification: models.EmailVerification):
+    current = getattr(verification, "attempts", 0) or 0
+    setattr(verification, "attempts", current + 1)
+    db.commit()
+    db.refresh(verification)
+    return verification
+
+
+def set_clinic_password(db: Session, clinic_id: uuid.UUID, password_hash: str):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if clinic:
+        setattr(clinic, "password_hash", password_hash)
+        db.commit()
+        db.refresh(clinic)
+    return clinic
+
+
+def get_clinic_by_email(db: Session, email: str):
+    return db.query(models.Clinic).filter(models.Clinic.doctor_email == email).first()
+
+
+def authenticate_clinic(db: Session, email: str, verify_password_fn):
+    clinic = get_clinic_by_email(db, email)
+    if clinic is None or not getattr(clinic, "password_hash", None):
+        return None
+    stored = getattr(clinic, "password_hash")
+    if verify_password_fn(stored):
+        return clinic
+    return None
+
