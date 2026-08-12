@@ -75,6 +75,10 @@ def serve_login():
     logger.info("Clinic login opened")
     return FileResponse("frontend/clinic/login.html")
 
+@app.get("/register")
+def serve_register():
+    logger.info("Clinic register opened")
+    return FileResponse("frontend/clinic/register.html")
 
 @app.get("/website/{page_name}")
 def serve_website_page(page_name: str):
