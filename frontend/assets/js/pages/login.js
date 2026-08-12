@@ -35,7 +35,8 @@ btnPasswordLogin.addEventListener("click", async () => {
     }
     showMessage("Login successful");
     // redirect to dashboard with clinic id
-    window.location = `/dashboard?clinic=${encodeURIComponent(data.clinic_id)}`;
+    localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+    window.location = "/dashboard";
   } catch (e) {
     showMessage("Network error", true);
   }

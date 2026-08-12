@@ -6,7 +6,6 @@
     <title>Clinic Registration | Tap2Med</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-   
         body {
             font-family: system-ui, -apple-system, sans-serif;
             background-color: #f4f4f9;
@@ -38,7 +37,7 @@
         button {
             width: 100%;
             padding: 12px;
-            background-color: #2563eb;
+            background-color: #092942;
             color: white;
             border: none;
             border-radius: 4px;
@@ -46,123 +45,169 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        button:hover { background-color: #1d4ed8; }
-        .error { color: #dc2626; margin-top: 10px; display: none; }
-
-        @media print {
-            body { background-color: white; }
-            body * { visibility: hidden; } 
-            
-            #printArea, #printArea * {
-                visibility: visible;
-            }
-            #printArea {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                text-align: center;
-                margin-top: 100px;
-            }
-            #qrCodeContainer img, #qrCodeContainer canvas {
-                /* Force the QR code to be large on the A4 sheet */
-                width: 400px !important;
-                height: 400px !important;
-                margin: 0 auto;
-            }
-        }
+        button:hover { background-color: #061f32; }
+        .error { color: #dc2626; margin-top: 10px; display: none; font-size: 14px; }
+        .step { display: none; }
+        .step.active { display: block; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="formContainer">
-        <h2>Register Clinic</h2>
-        <p>Enter details to generate your wall QR.</p>
+    <div class="container">
         
-        <form id="registerForm">
-            <input type="text" id="docName" placeholder="Doctor's Full Name" required>
-            <input type="text" id="clinicName" placeholder="Clinic Name" required>
-            <button type="submit" id="submitBtn">Register & Get QR</button>
-        </form>
-        <p id="errorMsg" class="error">Registration failed. Please try again.</p>
-    </div>
+        <!-- STEP 1: Basic Info & Email -->
+        <div id="step1" class="step active">
+            <h2>Register Clinic</h2>
+            <p>Enter details to start onboarding.</p>
+            <form id="formStep1">
+                <input type="text" id="docName" placeholder="Doctor's Full Name" required>
+                <input type="text" id="clinicName" placeholder="Clinic Name" required>
+                <input type="email" id="docEmail" placeholder="Email Address" required>
+                <button type="submit" id="btnStep1">Send OTP</button>
+            </form>
+            <p id="error1" class="error"></p>
+        </div>
 
-    
-    <div class="container" id="printArea" style="display: none;">
-        <h2>Scan to Check-In</h2>
-        <div id="qrCodeContainer" style="display: flex; justify-content: center; margin: 20px 0;"></div>
-        <h3 id="displayClinicName"></h3>
-        <p>Powered by Tap2Med</p>
-        
-        
-        <button onclick="window.print()" style="background-color: #16a34a;">
-             Print for Wall
-        </button>
-        <button onclick="window.location.reload()" style="background-color: #6b7280; margin-top: 10px;">
-            Register Another
-        </button>
+        <!-- STEP 2: Verify OTP -->
+        <div id="step2" class="step">
+            <h2>Verify Email</h2>
+            <p>Enter the 6-digit code sent to your email.</p>
+            <form id="formStep2">
+                <input type="text" id="otpCode" placeholder="Enter OTP" maxlength="6" required>
+                <button type="submit" id="btnStep2">Verify OTP</button>
+            </form>
+            <p id="error2" class="error"></p>
+        </div>
+
+        <!-- STEP 3: Set Password -->
+        <div id="step3" class="step">
+            <h2>Secure Your Account</h2>
+            <p>Set a password for your daily morning logins.</p>
+            <form id="formStep3">
+                <input type="password" id="password" placeholder="Create Password" required>
+                <button type="submit" id="btnStep3">Complete Setup</button>
+            </form>
+            <p id="error3" class="error"></p>
+        </div>
+
+        <!-- STEP 4: QR Code Success -->
+        <div id="step4" class="step">
+            <h2>Scan to Check-In</h2>
+            <div id="qrCodeContainer" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+            <h3 id="displayClinicName"></h3>
+            <p>Powered by Tap2Med</p>
+            <button onclick="window.print()" style="background-color: #16a34a;">Print for Wall</button>
+            <button onclick="window.location.href='/login'" style="background-color: #6b7280; margin-top: 10px;">Go to Login</button>
+        </div>
+
     </div>
 
     <script>
-        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+        let currentClinicId = null;
+
+        // Step 1: Create Clinic & Send OTP
+        document.getElementById("formStep1").addEventListener("submit", async (e) => {
             e.preventDefault();
-            
-            const btn = document.getElementById("submitBtn");
-            const errorMsg = document.getElementById("errorMsg");
-            
+            const btn = document.getElementById("btnStep1");
+            const err = document.getElementById("error1");
             const docName = document.getElementById("docName").value;
-
-            
             const clinicName = document.getElementById("clinicName").value;
+            const email = document.getElementById("docEmail").value;
 
-            if(!docName || !clinicName){
-                errorMsg.textContent = "Please fill in all fields.";
-                errorMsg.style.display = "block";
-                return;
-            }
-
-            btn.innerText = "Registering...";
-            btn.disabled = true;
-            errorMsg.style.display = "none";
+            btn.disabled = true; btn.innerText = "Sending..."; err.style.display = "none";
 
             try {
-                
-                const response = await fetch("/api/clinics/", { 
+                // 1A. Create Clinic record
+                const clinicRes = await fetch("/api/clinics/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ doctor_name: docName, clinic_name: clinicName })
                 });
+                const clinicData = await clinicRes.json();
+                if (!clinicRes.ok) throw new Error(clinicData.detail || "Failed to create clinic");
                 
-                const data = await response.json();
-                
-                if(data.status === "success" || response.ok) {
-                   
-                    document.getElementById("formContainer").style.display = "none";
-                    document.getElementById("printArea").style.display = "block";
-                    document.getElementById("displayClinicName").innerText = clinicName;
-                    
-                    
-                    const targetUrl = "https://tap2med.onrender.com/scan?clinic=" + data.clinic_id;
-                    
-                    new QRCode(document.getElementById("qrCodeContainer"), {
-                        text: targetUrl, 
-                        width: 256, 
-                        height: 256, 
-                        correctLevel: QRCode.CorrectLevel.H   // error correction for physical damage 
-                    });
-                } else {
-                    throw new Error(data.detail || "Registration failed");
-                }
-            } catch (err) {
-                console.error(err);
-                errorMsg.innerText = err.message || "Network error. Check if the backend is running?";
-                errorMsg.style.display = "block";
-                btn.innerText = "Register & Get QR";
-                btn.disabled = false;
+                currentClinicId = clinicData.clinic_id;
+                document.getElementById("displayClinicName").innerText = clinicName;
+
+                // 1B. Send OTP to email
+                const otpRes = await fetch("/api/auth/send-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clinic_id: currentClinicId, email: email })
+                });
+                const otpData = await otpRes.json();
+                if (!otpRes.ok) throw new Error(otpData.detail || "Failed to send OTP");
+
+                // Move to Step 2
+                document.getElementById("step1").classList.remove("active");
+                document.getElementById("step2").classList.add("active");
+            } catch (error) {
+                err.innerText = error.message; err.style.display = "block";
+            } finally {
+                btn.disabled = false; btn.innerText = "Send OTP";
+            }
+        });
+
+        // Step 2: Verify OTP
+        document.getElementById("formStep2").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnStep2");
+            const err = document.getElementById("error2");
+            const otp = document.getElementById("otpCode").value;
+
+            btn.disabled = true; btn.innerText = "Verifying..."; err.style.display = "none";
+
+            try {
+                const res = await fetch("/api/auth/verify-otp", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clinic_id: currentClinicId, otp: otp })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Invalid OTP");
+
+                // Move to Step 3
+                document.getElementById("step2").classList.remove("active");
+                document.getElementById("step3").classList.add("active");
+            } catch (error) {
+                err.innerText = error.message; err.style.display = "block";
+            } finally {
+                btn.disabled = false; btn.innerText = "Verify OTP";
+            }
+        });
+
+        // Step 3: Set Password & Generate QR
+        document.getElementById("formStep3").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById("btnStep3");
+            const err = document.getElementById("error3");
+            const password = document.getElementById("password").value;
+
+            btn.disabled = true; btn.innerText = "Saving..."; err.style.display = "none";
+
+            try {
+                const res = await fetch("/api/auth/set-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clinic_id: currentClinicId, password: password })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Failed to set password");
+
+                // Generate QR Code & Move to Step 4
+                const targetUrl = window.location.origin + "/scan?clinic=" + currentClinicId;
+                new QRCode(document.getElementById("qrCodeContainer"), {
+                    text: targetUrl, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H
+                });
+
+                document.getElementById("step3").classList.remove("active");
+                document.getElementById("step4").classList.add("active");
+            } catch (error) {
+                err.innerText = error.message; err.style.display = "block";
+            } finally {
+                btn.disabled = false; btn.innerText = "Complete Setup";
             }
         });
     </script>
 </body>
 </html>
-
- 

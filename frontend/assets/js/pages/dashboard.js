@@ -1,6 +1,9 @@
-const params = new URLSearchParams(
-    window.location.search
-);
+const clinicId = localStorage.getItem("tap2med_clinic_id");
+
+// If they haven't logged in this morning, force them to the login page
+if (!clinicId) {
+    window.location = "/login";
+}
 
 const clinicId = params.get("clinic");
 
