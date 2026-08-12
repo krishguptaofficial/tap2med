@@ -8,8 +8,7 @@ from app.db.database import get_db
 from app.db import crud, models
 from app.core import security, email as emailer
 
-router = APIRouter(prefix="/auth")
-
+router = APIRouter()
 
 class SendOtpPayload(BaseModel):
     clinic_id: uuid.UUID
