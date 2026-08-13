@@ -1,41 +1,26 @@
+// 1. Safely grab the clinic ID from storage
 const clinicId = localStorage.getItem("tap2med_clinic_id");
 
-// If they haven't logged in this morning, force them to the login page
-if (!clinicId) {
-    window.location = "/login";
+// 2. Boot unauthenticated users or broken sessions back to login
+if (!clinicId || clinicId === "undefined" || clinicId === "null") {
+    window.location.href = "/login";
 }
 
-const clinicId = params.get("clinic");
-
+// 3. Initialize state variables
 let currentLocalToken = null;
 let isSaving = false;
 
-const currentToken =
-    document.getElementById("current-token");
+// 4. Hook up HTML elements
+const currentToken = document.getElementById("current-token");
+const historyContent = document.getElementById("history-content");
+const doctorName = document.getElementById("doc-name");
+const clinicName = document.getElementById("clinic-name");
+const prescriptionList = document.getElementById("rx-container");
+const prescriptionStatus = document.getElementById("prescription-status");
+const sidebar = document.getElementById("app-sidebar");
+const sidebarBackdrop = document.getElementById("sidebar-backdrop");
+const mobileMenuButton = document.getElementById("mobile-menu-btn");
 
-const historyContent =
-    document.getElementById("history-content");
-
-const doctorName =
-    document.getElementById("doc-name");
-
-const clinicName =
-    document.getElementById("clinic-name");
-
-const prescriptionList =
-    document.getElementById("rx-container");
-
-const prescriptionStatus =
-    document.getElementById("prescription-status");
-
-const sidebar =
-    document.getElementById("app-sidebar");
-
-const sidebarBackdrop =
-    document.getElementById("sidebar-backdrop");
-
-const mobileMenuButton =
-    document.getElementById("mobile-menu-btn");
 
 function openSidebar() {
     sidebar.classList.add("open");
