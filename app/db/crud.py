@@ -25,28 +25,19 @@ def get_clinic(db: Session, clinic_id: uuid.UUID):
     return db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
 
 
-def create_patient_event(db:Session, clinic_id : uuid.UUID, local_token:str, network_token:str, daily_token_number :int, member_id: int=0):
-
-    #getting the clinic to access its private salt
-    clinic= db.query(models.Clinic).filter(models.Clinic.clinic_id==clinic_id).first()
-    
-
-    if clinic is None:
-        return None
-
-
+def create_patient_event(db: Session, clinic_id: uuid.UUID, local_token: str, network_token: str, daily_token_number: int, member_id: int = 0):
     db_event = models.Event(
-        clinic_id= clinic_id,
-        network_token = network_token,
-        local_token = local_token,
-        event_type = "visit",
-        daily_token_number = daily_token_number
+        clinic_id=clinic_id,
+        network_token=network_token,
+        local_token=local_token,
+        event_type="visit",
+        daily_token_number=daily_token_number
     )
 
     recent = db.query(models.Event).filter(
         models.Event.clinic_id == clinic_id,
-        models.Event.local_token ==local_token,
-        models.Event.timestamp>= datetime.now(timezone.utc) - timedelta(minutes =2)
+        models.Event.local_token == local_token,
+        models.Event.timestamp >= datetime.now(timezone.utc) - timedelta(minutes=2)
     ).first()
 
     if recent:
@@ -158,3 +149,23 @@ def authenticate_clinic(db: Session, email: str, verify_password_fn):
         return clinic
     return None
 
+
+def create_patient(db: Session, patient_id: str, lookup_hash: str, user_salt:str, network_token:str):
+    db_patient = models.Patient(
+        patient_id=patient_id,
+        lookup_hash=lookup_hash,
+        user_salt=user_salt,
+        network_token=network_token
+    )
+    db.add(db_patient)
+    db.commit()
+    db.refresh(db_patient)
+    return db_patient
+
+def get_patient_by_id(db: Session, patient_id: str):
+    """Retrieves a patient for a standard return visit."""
+    return db.query(models.Patient).filter(models.Patient.patient_id == patient_id).first()
+
+def get_patient_by_lookup(db: Session, lookup_hash: str):
+    """Retrieves a patient for lost-device recovery."""
+    return db.query(models.Patient).filter(models.Patient.lookup_hash == lookup_hash).first()

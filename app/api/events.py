@@ -13,6 +13,9 @@ from app.db import crud, models
 from app.db.database import get_db
 from typing import List, Optional
 
+from fastapi import Header
+import secrets
+
 IST = ZoneInfo("Asia/Kolkata")
 
 router = APIRouter()
@@ -31,47 +34,116 @@ class CompleteRequest(BaseModel):
     medicines: List[MedicineItem]=[]
 
 
-@router.post("/checkin")
-def create_a_patient_checkin(payload: ScanRequest, db: Session = Depends(get_db)):
+class StartVisitRequest(BaseModel):
+    phone: str
+    member_id: int = 0
+    clinic_id: uuid.UUID
+
+@router.post("/visit/start")
+def start_visit(
+    payload: StartVisitRequest, 
+    db: Session = Depends(get_db),
+    x_patient_id: Optional[str] = Header(None)
+):
     clinic = crud.get_clinic(db=db, clinic_id=payload.clinic_id)
     if not clinic:
         raise HTTPException(status_code=404, detail="Clinic not found")
     
     try:
-        tokens = hashing.generate_identity_tokens(
-            phone=payload.phone,
-            member_id=payload.member_id,
-            clinic_salt=str(clinic.clinic_salt)
-        )
-
+        phone = payload.phone
+        member_id = payload.member_id
+        clinic_salt = str(clinic.clinic_salt)
         
-        payload.phone = "DELETED"
+        patient_id_to_return: str | None = None
+        user_salt: str | None = None
+        network_token: str | None = None
+        
+        # FLOW 1: RETURN VISIT, SAME DEVICE
+        if x_patient_id:
+            patient = crud.get_patient_by_id(db, x_patient_id)
+            if patient:
+                user_salt = str(patient.user_salt)
+                network_token = hashing.generate_network_token(phone, member_id, user_salt)
+        
+        # If no valid patient found via header, check lookup hash
+        if not user_salt:
+            lookup_hash = hashing.generate_lookup_hash(phone, member_id)
+            patient = crud.get_patient_by_lookup(db, lookup_hash)
+            
+            # FLOW 2: RETURN VISIT, LOST DEVICE
+            if patient:
+                user_salt = str(patient.user_salt)
+                patient_id_to_return = str(patient.patient_id) 
+                network_token = hashing.generate_network_token(phone, member_id, user_salt)
+            
+            # FLOW 3: NEW PATIENT
+            else:
+                user_salt = hashing.generate_user_salt()
+                patient_id_to_return = secrets.token_hex(16)
+                network_token = hashing.generate_network_token(phone, member_id, user_salt)
+                
+                # Save new patient to DB
+                crud.create_patient(
+                    db=db, 
+                    patient_id=patient_id_to_return, 
+                    lookup_hash=lookup_hash, 
+                    user_salt=user_salt, 
+                    network_token=network_token
+                )
 
+        if not network_token:
+            raise HTTPException(status_code=500, detail="Failed to generate network token")
+
+        # Generate local token for this specific clinic
+        local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
+
+        # Generate local token for this specific clinic
+        local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
+
+        # OVERWRITE PHONE IN MEMORY IMMEDIATELY
+        payload.phone = "DELETED"
+        phone = "DELETED"
+
+        # Calculate Queue Number
         today = datetime.now(IST).date()
         today_event_count = db.query(models.Event).filter(
             models.Event.clinic_id == payload.clinic_id,
             func.date(models.Event.timestamp) == today
         ).count()
-
         assigned_token_number = today_event_count + 1
         
+        # Create Event
         new_event = crud.create_patient_event(
             db=db,
             clinic_id=payload.clinic_id,
-            local_token=tokens["local_token"],              
-            network_token=tokens["network_token"],
-            daily_token_number = assigned_token_number
+            local_token=local_token,              
+            network_token=network_token,
+            daily_token_number=assigned_token_number
         )
         
         if not new_event:
             raise HTTPException(status_code=500, detail="Failed to create patient event")
         
-        return {
-            "status": "waiting",
+        # Calculate queue position
+        ahead = db.query(models.Event).filter(
+            models.Event.clinic_id == payload.clinic_id,
+            func.date(models.Event.timestamp) == today,
+            models.Event.status == "waiting",
+            models.Event.timestamp < new_event.timestamp 
+        ).count()
+        
+        response_data = {
             "queue_number": new_event.daily_token_number,
-            "local_token": tokens["local_token"]
-            
+            "queue_position": ahead + 1,
+            "local_token": local_token
         }
+        
+        # Only return patient_id if it's a new patient or a lost device recovery
+        if patient_id_to_return:
+            response_data["patient_id"] = patient_id_to_return
+            
+        return response_data
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
