@@ -1,8 +1,10 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedClinicId = urlParams.get("clinic");
 
+// Volatile session state (wiped aggressively)
 let currentSessionPhone = null;
 let selectedMemberId = null;
+let inactivityTimer = null;
 
 const defaultMembers = [
     { id: 0, name: "Self" },
@@ -13,11 +15,9 @@ const defaultMembers = [
     { id: 5, name: "Daughter" }
 ];
 
+// Load saved family members or fallback to defaults
 const savedMembers = localStorage.getItem("tap2med_family");
-
-let familyMembers = savedMembers
-    ? JSON.parse(savedMembers)
-    : defaultMembers;
+let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
 
 const screens = [
     "screen-phone",
@@ -26,18 +26,17 @@ const screens = [
     "screen-success"
 ];
 
+// DOM Elements
 const phoneInput = document.getElementById("phone-input");
 const newMemberInput = document.getElementById("new-member-name");
-const memberListContainer =
-    document.getElementById("member-list-container");
-const tokenDisplay =
-    document.getElementById("token-display");
+const memberListContainer = document.getElementById("member-list-container");
+const tokenDisplay = document.getElementById("token-display");
 
+// Router-lite for UI screens
 function showScreen(screenId) {
     screens.forEach((id) => {
         document.getElementById(id).classList.add("hidden");
     });
-
     document.getElementById(screenId).classList.remove("hidden");
 }
 
@@ -48,12 +47,12 @@ function goToMemberScreen() {
     }
 
     const phone = phoneInput.value.trim();
-
     if (!/^\d{10}$/.test(phone)) {
         alert("Please enter a valid 10-digit number.");
         return;
     }
 
+    // Temporarily hold phone in memory for the API call
     currentSessionPhone = phone;
 
     renderMemberList();
@@ -65,7 +64,6 @@ function renderMemberList() {
 
     familyMembers.forEach((member) => {
         const row = document.createElement("button");
-
         row.type = "button";
         row.className = "member-row";
         row.textContent = member.name;
@@ -78,15 +76,10 @@ function renderMemberList() {
     });
 
     const addMember = document.createElement("button");
-
     addMember.type = "button";
     addMember.className = "member-row add-member";
     addMember.textContent = "+ Add New Member";
-
-    addMember.addEventListener(
-        "click",
-        showAddMemberScreen
-    );
+    addMember.addEventListener("click", showAddMemberScreen);
 
     memberListContainer.appendChild(addMember);
 }
@@ -94,12 +87,9 @@ function renderMemberList() {
 function selectMember(memberId, rowElement) {
     selectedMemberId = memberId;
 
-    memberListContainer
-        .querySelectorAll(".member-row")
-        .forEach((row) => {
-            row.classList.remove("selected");
-        });
-
+    memberListContainer.querySelectorAll(".member-row").forEach((row) => {
+        row.classList.remove("selected");
+    });
     rowElement.classList.add("selected");
 }
 
@@ -111,7 +101,6 @@ function showAddMemberScreen() {
 
 function saveNewMember() {
     const name = newMemberInput.value.trim();
-
     if (!name) {
         alert("Please enter a name.");
         return;
@@ -122,21 +111,45 @@ function saveNewMember() {
         name
     });
 
-    localStorage.setItem(
-        "tap2med_family",
-        JSON.stringify(familyMembers)
-    );
+    localStorage.setItem("tap2med_family", JSON.stringify(familyMembers));
 
     renderMemberList();
     showScreen("screen-members");
 }
 
+// --- PII Memory Management ---
+function wipeVolatileMemory() {
+    // Flush sensitive data from JS memory
+    currentSessionPhone = null;
+    selectedMemberId = null;
+    
+    // Note: Leaving localStorage.getItem("tap2med_patient_id") intact for return visits
+    console.log("Volatile memory wiped.");
+}
+
+function resetSessionTimeout() {
+    clearTimeout(inactivityTimer);
+    inactivityTimer = setTimeout(wipeVolatileMemory, 60000); // 60s idle timeout
+}
+
+// Bind memory wipe to inactivity and visibility changes
+['touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => 
+    window.addEventListener(evt, resetSessionTimeout, { passive: true })
+);
+
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        wipeVolatileMemory();
+    }
+});
+
+window.addEventListener('beforeunload', wipeVolatileMemory);
+
+// --- Core Check-in Flow ---
 async function submitCheckIn() {
-    if (
-        currentSessionPhone === null ||
-        selectedMemberId === null
-    ) {
-        alert("Please select a member first.");
+    if (currentSessionPhone === null || selectedMemberId === null) {
+        alert("Session timed out. Please enter your details again.");
+        showScreen("screen-phone");
         return;
     }
 
@@ -146,22 +159,26 @@ async function submitCheckIn() {
         clinic_id: scannedClinicId
     };
 
-    const button = document.getElementById("check-in-btn");
+    const headers = {
+        "Content-Type": "application/json"
+    };
 
+    // Attach existing patient ID if this is a return visit
+    const savedPatientId = localStorage.getItem("tap2med_patient_id");
+    if (savedPatientId) {
+        headers["X-Patient-ID"] = savedPatientId;
+    }
+
+    const button = document.getElementById("check-in-btn");
     button.disabled = true;
     button.textContent = "Checking in...";
 
     try {
-        const response = await fetch(
-            "/api/events/checkin",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }
-        );
+        const response = await fetch("/api/events/visit/start", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(payload)
+        });
 
         if (!response.ok) {
             throw new Error("Check-in failed");
@@ -169,34 +186,26 @@ async function submitCheckIn() {
 
         const data = await response.json();
 
-        localStorage.setItem(
-            "tap2med_daily_token_number",
-            data.daily_token_number
-        );
+        localStorage.setItem("tap2med_local_token", data.local_token);
+        
+        // Save new identity if server issued one (new patient or lost-device recovery)
+        if (data.patient_id) {
+            localStorage.setItem("tap2med_patient_id", data.patient_id);
+        }
 
-        localStorage.setItem(
-            "tap2med_local_token",
-            data.local_token
-        );
+        tokenDisplay.textContent = `#${data.queue_number}`;
 
-        tokenDisplay.textContent =
-            `#${data.queue_number}`;
-
-        currentSessionPhone = null;
-        selectedMemberId = null;
+        // Start countdown to wipe phone number, giving WhatsApp time to trigger if needed
+        resetSessionTimeout(); 
 
         showScreen("screen-success");
+        
+        // startQueuePolling(data.local_token); // TODO: implement polling
+
     } catch (error) {
         console.error(error);
-
-        alert(
-            "Network error. Please try again."
-        );
-
-        currentSessionPhone = null;
-        selectedMemberId = null;
-        phoneInput.value = "";
-
+        alert("Network error. Please try again.");
+        wipeVolatileMemory();
         showScreen("screen-phone");
     } finally {
         button.disabled = false;
@@ -204,44 +213,18 @@ async function submitCheckIn() {
     }
 }
 
-document
-    .getElementById("submit-phone-btn")
-    .addEventListener(
-        "click",
-        goToMemberScreen
-    );
-
-document
-    .getElementById("check-in-btn")
-    .addEventListener(
-        "click",
-        submitCheckIn
-    );
-
-document
-    .getElementById("save-member-btn")
-    .addEventListener(
-        "click",
-        saveNewMember
-    );
-
-document
-    .getElementById("cancel-member-btn")
-    .addEventListener(
-        "click",
-        () => showScreen("screen-members")
-    );
+// --- Event Listeners ---
+document.getElementById("submit-phone-btn").addEventListener("click", goToMemberScreen);
+document.getElementById("check-in-btn").addEventListener("click", submitCheckIn);
+document.getElementById("save-member-btn").addEventListener("click", saveNewMember);
+document.getElementById("cancel-member-btn").addEventListener("click", () => showScreen("screen-members"));
 
 window.addEventListener("load", () => {
-    const savedToken =
-        localStorage.getItem(
-            "tap2med_daily_token_number"
-        );
-
+    // If they refresh the page, see if they already have a token for today
+    const savedToken = localStorage.getItem("tap2med_daily_token_number");
     if (savedToken) {
-        tokenDisplay.textContent =
-            `#${savedToken}`;
-
+        tokenDisplay.textContent = `#${savedToken}`;
         showScreen("screen-success");
+        // TODO: resume polling here if needed
     }
 });
