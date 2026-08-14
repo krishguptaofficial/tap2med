@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     """
     # Master key for HMAC;a high-entropy string in production
     SECRET_KEY: str= Field(default= ...)
+
+    # Secret specifically isolated for lost-device recovery lookup hashes
+    LOOKUP_SECRET: str = Field(default=...)
     
     # SQLAlchemy connection string for the PostgreSQL database
     DATABASE_URL: str= Field(default= ...)
