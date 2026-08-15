@@ -1,10 +1,12 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedClinicId = urlParams.get("clinic");
 
-// Volatile session state (wiped aggressively)
+
+// Volatile session state (wiped quickly)
 let currentSessionPhone = null;
 let selectedMemberId = null;
 let inactivityTimer = null;
+let lastActivityTimestamp = Date.now();
 
 const defaultMembers = [
     { id: 0, name: "Self" },
@@ -127,12 +129,14 @@ function wipeVolatileMemory() {
     console.log("Volatile memory wiped.");
 }
 
+
 function resetSessionTimeout() {
     clearTimeout(inactivityTimer);
+    lastActivityTimestamp = Date.now(); // <-- ADD THIS LINE
     inactivityTimer = setTimeout(wipeVolatileMemory, 60000); // 60s idle timeout
 }
 
-// Bind memory wipe to inactivity and visibility changes
+// Bind memory wipe to inactivity and visibility changes (Keep this exactly as is)
 ['touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => 
     window.addEventListener(evt, resetSessionTimeout, { passive: true })
 );
@@ -140,6 +144,12 @@ function resetSessionTimeout() {
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         wipeVolatileMemory();
+    } else if (document.visibilityState === 'visible') {
+       
+        // Check if 60 seconds passed while frozen in the background
+        if (Date.now() - lastActivityTimestamp > 60000) {
+            wipeVolatileMemory();
+        }
     }
 });
 
