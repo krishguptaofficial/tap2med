@@ -119,7 +119,9 @@ class Patient(Base):
     lookup_version = Column(Integer, nullable=False, default=1)
     user_salt = Column(String, nullable=False)
     network_token = Column(String, nullable=False)
+    abha_token = Column(String, nullable=True, default=None)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
 
 
 # 4. CONSENT_GRANTS (Future Implementation: Tracks purpose-bound data access)
