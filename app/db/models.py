@@ -61,7 +61,7 @@ class EmailVerification(Base):
     )
 
     verified_at = Column(
-        DateTime(timezone=True),
+        DateTime(timezone=True),                                                                 
         nullable=True
     )
 
@@ -102,7 +102,7 @@ class Prescription(Base):
     network_token = Column(Text, index= True, nullable = False )
     local_token = Column(Text, index = True, nullable = False)
     
-    medicine_name = Column(Text, nullable = False) 
+    medicine_name = Column(Text, nullable = False)
     instructions = Column(Text, nullable = True)
     
     drug_category = Column(Text, nullable = True)
