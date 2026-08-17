@@ -1,4 +1,4 @@
-.btn {
+/* .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -36,6 +36,90 @@
 
 .btn-secondary:hover:not(:disabled) {
     background: var(--color-surface-hover);
+}
+
+.btn-danger {
+    background: var(--color-danger);
+    color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+    filter: brightness(0.95);
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--color-text);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+}
+
+.btn-sm {
+    height: 36px;
+    padding: 0 var(--space-4);
+}
+
+.btn-lg {
+    height: 52px;
+    padding: 0 var(--space-8);
+}
+
+.btn-block {
+    width: 100%;
+} */
+
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    height: 44px;
+    padding: 0 var(--space-6);
+    border: 1px solid transparent;
+    border-radius: 999px; /* Modern pill shape */
+    font-size: var(--text-sm);
+    font-weight: var(--font-semibold);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+    transform: scale(0.97); /* Satisfying click press */
+}
+
+.btn-primary {
+    background: linear-gradient(180deg, var(--color-primary) 0%, #061f32 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(9, 41, 66, 0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: linear-gradient(180deg, #0b3454 0%, #092942 100%);
+    box-shadow: 0 6px 16px rgba(9, 41, 66, 0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background: var(--color-surface);
+    border: 1px solid rgba(9, 41, 66, 0.15);
+    color: var(--color-text);
+    box-shadow: 0 2px 6px rgba(9, 41, 66, 0.04);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--color-surface-hover);
+    border-color: rgba(9, 41, 66, 0.25);
+    box-shadow: 0 4px 12px rgba(9, 41, 66, 0.08);
+    transform: translateY(-1px);
 }
 
 .btn-danger {
