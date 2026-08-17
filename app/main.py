@@ -80,26 +80,7 @@ def serve_register():
     logger.info("Clinic register opened")
     return FileResponse("frontend/clinic/register.html")
 
-@app.get("/website/{page_name}")
-def serve_website_page(page_name: str):
-    # serve files from frontend/website (e.g., index.html, about.html)
-    path = f"frontend/website/{page_name}.html"
-    return FileResponse(path)
-
-
-@app.get("/website/")
-def serve_website_index():
-    return FileResponse("frontend/website/index.html")
-
-@app.get("/")
-def read_root(): 
-    logger.info("Root Endpoint Accessed")
-    return {
-
-        "status": "online",                          
-        "project": "Tap2Med V0 Gateway",
-        "message": "Visit /dashboard or /scan to access the UI."
-    }
+app.mount("/", StaticFiles(directory="frontend/website", html=True), name="website")
 
 @app.get("/health")
 def health(): 
