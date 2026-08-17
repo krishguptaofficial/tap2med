@@ -1,7 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedClinicId = urlParams.get("clinic");
 
-
 // Volatile session state (wiped quickly)
 let currentSessionPhone = null;
 let selectedMemberId = null;
@@ -129,14 +128,13 @@ function wipeVolatileMemory() {
     console.log("Volatile memory wiped.");
 }
 
-
 function resetSessionTimeout() {
     clearTimeout(inactivityTimer);
-    lastActivityTimestamp = Date.now(); // <-- ADD THIS LINE
+    lastActivityTimestamp = Date.now();
     inactivityTimer = setTimeout(wipeVolatileMemory, 60000); // 60s idle timeout
 }
 
-// Bind memory wipe to inactivity and visibility changes (Keep this exactly as is)
+// Bind memory wipe to inactivity and visibility changes
 ['touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => 
     window.addEventListener(evt, resetSessionTimeout, { passive: true })
 );
@@ -145,7 +143,6 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         wipeVolatileMemory();
     } else if (document.visibilityState === 'visible') {
-       
         // Check if 60 seconds passed while frozen in the background
         if (Date.now() - lastActivityTimestamp > 60000) {
             wipeVolatileMemory();
@@ -210,7 +207,7 @@ async function submitCheckIn() {
 
         showScreen("screen-success");
         
-        // startQueuePolling(data.local_token); // TODO: implement polling
+        startQueuePolling(data.local_token); 
 
     } catch (error) {
         console.error(error);
@@ -231,10 +228,56 @@ document.getElementById("cancel-member-btn").addEventListener("click", () => sho
 
 window.addEventListener("load", () => {
     // If they refresh the page, see if they already have a token for today
-    const savedToken = localStorage.getItem("tap2med_daily_token_number");
+    const savedToken = localStorage.getItem("tap2med_local_token");
     if (savedToken) {
-        tokenDisplay.textContent = `#${savedToken}`;
-        showScreen("screen-success");
-        // TODO: resume polling here if needed
+        // showScreen("screen-success");
+        // startQueuePolling(savedToken);
     }
 });
+
+// --- WHATSAPP BRIDGE & POLLING LOGIC ---
+let pollingInterval = null;
+
+function startQueuePolling(localToken) {
+    if (pollingInterval) clearInterval(pollingInterval);
+    
+    // Poll every 3 seconds (3000ms)
+    pollingInterval = setInterval(async () => {
+        try {
+            const response = await fetch(`/api/events/status/${encodeURIComponent(localToken)}`);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            const waitStatusEl = document.querySelector(".text-yellow");
+            
+            if (data.status === "In Queue") {
+                // Live UI update for the patient
+                if (waitStatusEl) {
+                    waitStatusEl.innerHTML = `Your Position: ${data.your_position}<br>Estimated Wait: ${data.estimated_wait}`;
+                }
+            } 
+            else if (data.status === "Completed") {
+                // 1. Stop polling
+                clearInterval(pollingInterval);
+                
+                // 2. Fire the WhatsApp Bridge if phone is still in memory
+                if (currentSessionPhone && data.prescription_text) {
+                    const waUrl = `https://wa.me/91${currentSessionPhone}?text=${encodeURIComponent(data.prescription_text)}`;
+                    window.location.href = waUrl; // Deep links directly into the WhatsApp app
+                    
+                    // 3. AGGRESSIVELY WIPE PII THE MILLISECOND IT IS DELIVERED
+                    wipeVolatileMemory();
+                }
+                
+                // 4. Final UI Update
+                if (waitStatusEl) {
+                    waitStatusEl.innerHTML = "Consultation Complete.<br>Opening WhatsApp...";
+                    waitStatusEl.classList.add("text-green");
+                    waitStatusEl.classList.remove("text-yellow");
+                }
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+        }
+    }, 3000);
+}

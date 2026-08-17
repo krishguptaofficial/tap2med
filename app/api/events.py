@@ -1,24 +1,42 @@
 # tap2med/app/api/events.py
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
 from datetime import date, datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy import func
+import secrets
+import time
+from collections import defaultdict
 
 from app.core import hashing
 from app.db import crud, models
 from app.db.database import get_db
 from typing import List, Optional
 
-from fastapi import Header
-import secrets
-
 IST = ZoneInfo("Asia/Kolkata")
-
 router = APIRouter()
+
+# --- Simple in-memory rate limiter ---
+rate_limit_records = defaultdict(list)
+
+def check_rate_limit(request: Request):
+    client_ip = request.client.host
+    current_time = time.time()
+    
+    # Clean up timestamps older than 1 hour (3600 seconds)
+    rate_limit_records[client_ip] = [
+        ts for ts in rate_limit_records[client_ip] 
+        if current_time - ts < 3600
+    ]
+    
+    # Check if they exceeded 5 requests in the last hour
+    if len(rate_limit_records[client_ip]) >= 5:
+        raise HTTPException(status_code=429, detail="Too many recovery attempts. Try again later.")
+        
+    rate_limit_records[client_ip].append(current_time)
 
 class ScanRequest(BaseModel):
     phone: str
@@ -33,7 +51,6 @@ class CompleteRequest(BaseModel):
     local_token : str
     medicines: List[MedicineItem]=[]
 
-
 class StartVisitRequest(BaseModel):
     phone: str
     member_id: int = 0
@@ -42,12 +59,17 @@ class StartVisitRequest(BaseModel):
 @router.post("/visit/start")
 def start_visit(
     payload: StartVisitRequest, 
+    request: Request,
     db: Session = Depends(get_db),
     x_patient_id: Optional[str] = Header(None)
 ):
     clinic = crud.get_clinic(db=db, clinic_id=payload.clinic_id)
     if not clinic:
         raise HTTPException(status_code=404, detail="Clinic not found")
+    
+    # Apply rate limiting ONLY if this is a lost-device recovery attempt (no X-Patient-ID header)
+    if not x_patient_id:
+        check_rate_limit(request)
     
     try:
         phone = payload.phone
@@ -93,9 +115,6 @@ def start_visit(
 
         if not network_token:
             raise HTTPException(status_code=500, detail="Failed to generate network token")
-
-        # Generate local token for this specific clinic
-        local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
 
         # Generate local token for this specific clinic
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
@@ -147,22 +166,43 @@ def start_visit(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/status/{local_token}")
 def get_patient_status(local_token: str, db: Session = Depends(get_db)):
-    """Called by the patient's phone to check their live wait time."""
+    """Called by the patient's phone to check their live wait time and get prescriptions."""
     try:
         today = datetime.now(IST).date()
         
+        # Look for today's visit regardless of status
         current_visit = db.query(models.Event).filter(
             models.Event.local_token == local_token,
-            func.date(models.Event.timestamp) == today,
-            models.Event.status == "waiting"
-        ).first()
+            func.date(models.Event.timestamp) == today
+        ).order_by(models.Event.timestamp.desc()).first()
 
         if not current_visit:
-            return {"status": "Completed or Not Found", "people_ahead": 0}
+            return {"status": "Not Found", "people_ahead": 0}
 
+        # If completed, fetch the medicines and format the text for WhatsApp
+        if current_visit.status == "completed":
+            rx_list = db.query(models.Prescription).filter(
+                models.Prescription.event_id == current_visit.event_id
+            ).all()
+            
+            # Format the text message
+            rx_text = "Here is your Tap2Med Prescription:\n\n"
+            for rx in rx_list:
+                rx_text += f"💊 *{rx.medicine_name}*\n"
+                if rx.instructions:
+                    rx_text += f"   {rx.instructions}\n"
+            
+            rx_text += "\nThank you for visiting!"
+            
+            return {
+                "status": "Completed",
+                "prescription_text": rx_text
+            }
 
+        # If still waiting, calculate live queue position
         ahead = db.query(models.Event).filter(
             models.Event.clinic_id == current_visit.clinic_id,
             func.date(models.Event.timestamp) == today,
@@ -178,6 +218,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.put("/complete")
 def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
@@ -196,7 +237,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
                 detail="Active token not found"
             )
 
-        event.status = "completed" #type:ignore
+        event.status = "completed" 
 
         for med in payload.medicines:
             if med.name.strip() != "":
@@ -244,9 +285,7 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
         formatted_history = []
         
         for visit in past_visits:
-            
             visit_id_str = str(visit.event_id)
-
 
             matched_rx = [
                 {
