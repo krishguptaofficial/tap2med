@@ -4,108 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinic Registration | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/forms.css">
+    <link rel="stylesheet" href="/assets/css/buttons.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #092942;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover { background-color: #061f32; }
-        .error { color: #dc2626; margin-top: 10px; display: none; font-size: 14px; }
-        .step { display: none; }
+        .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); padding: 20px; }
+        .auth-card { background: var(--surface-color); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid var(--border-color); text-align: center; }
+        .brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 10px; letter-spacing: -0.02em; }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
+        .error { color: var(--error-color); margin-top: 10px; display: none; font-size: 14px; }
+        .step { display: none; text-align: left; animation: fadeIn 0.3s ease; }
         .step.active { display: block; }
+        .step h2 { font-size: 18px; color: var(--text-main); margin-bottom: 5px; }
+        .step p { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div class="brand">&lt;TAP2MED&gt;</div>
+            <div class="subtitle">Clinic Onboarding</div>
+            
+            <!-- STEP 1 -->
+            <div id="step1" class="step active">
+                <h2>Register Clinic</h2>
+                <p>Enter details to start onboarding.</p>
+                <form id="formStep1" class="input-group">
+                    <input type="text" id="docName" class="input" placeholder="Doctor's Full Name" required>
+                    <input type="text" id="clinicName" class="input" placeholder="Clinic Name" style="margin-top: 10px;" required>
+                    <input type="email" id="docEmail" class="input" placeholder="Email Address" style="margin-top: 10px;" required>
+                    <button type="submit" id="btnStep1" class="btn btn-primary btn-block" style="margin-top: 20px;">Send OTP</button>
+                </form>
+                <p id="error1" class="error"></p>
+            </div>
 
-    <div class="container">
-        
-        <!-- STEP 1: Basic Info & Email -->
-        <div id="step1" class="step active">
-            <h2>Register Clinic</h2>
-            <p>Enter details to start onboarding.</p>
-            <form id="formStep1">
-                <input type="text" id="docName" placeholder="Doctor's Full Name" required>
-                <input type="text" id="clinicName" placeholder="Clinic Name" required>
-                <input type="email" id="docEmail" placeholder="Email Address" required>
-                <button type="submit" id="btnStep1">Send OTP</button>
-            </form>
-            <p id="error1" class="error"></p>
+            <!-- STEP 2 -->
+            <div id="step2" class="step">
+                <h2>Verify Email</h2>
+                <p>Enter the 6-digit code sent to your email.</p>
+                <form id="formStep2" class="input-group">
+                    <input type="text" id="otpCode" class="input" placeholder="Enter OTP" maxlength="6" required>
+                    <button type="submit" id="btnStep2" class="btn btn-primary btn-block" style="margin-top: 20px;">Verify OTP</button>
+                </form>
+                <p id="error2" class="error"></p>
+            </div>
+
+            <!-- STEP 3 -->
+            <div id="step3" class="step">
+                <h2>Secure Your Account</h2>
+                <p>Set a password for your daily morning logins.</p>
+                <form id="formStep3" class="input-group">
+                    <input type="password" id="password" class="input" placeholder="Create Password" required>
+                    <button type="submit" id="btnStep3" class="btn btn-primary btn-block" style="margin-top: 20px;">Complete Setup</button>
+                </form>
+                <p id="error3" class="error"></p>
+            </div>
+
+            <!-- STEP 4 -->
+            <div id="step4" class="step" style="text-align: center;">
+                <h2>Scan to Check-In</h2>
+                <div id="qrCodeContainer" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+                <h3 id="displayClinicName" style="color: var(--primary-color); margin-bottom: 5px;"></h3>
+                <p style="margin-bottom: 20px;">Powered by Tap2Med</p>
+                <button onclick="window.print()" class="btn btn-primary btn-block" style="background-color: var(--success-color);">Print for Wall</button>
+                <button onclick="window.location.href='/login'" class="btn btn-secondary btn-block" style="margin-top: 10px;">Go to Login</button>
+            </div>
         </div>
-
-        <!-- STEP 2: Verify OTP -->
-        <div id="step2" class="step">
-            <h2>Verify Email</h2>
-            <p>Enter the 6-digit code sent to your email.</p>
-            <form id="formStep2">
-                <input type="text" id="otpCode" placeholder="Enter OTP" maxlength="6" required>
-                <button type="submit" id="btnStep2">Verify OTP</button>
-            </form>
-            <p id="error2" class="error"></p>
-        </div>
-
-        <!-- STEP 3: Set Password -->
-        <div id="step3" class="step">
-            <h2>Secure Your Account</h2>
-            <p>Set a password for your daily morning logins.</p>
-            <form id="formStep3">
-                <input type="password" id="password" placeholder="Create Password" required>
-                <button type="submit" id="btnStep3">Complete Setup</button>
-            </form>
-            <p id="error3" class="error"></p>
-        </div>
-
-        <!-- STEP 4: QR Code Success -->
-        <div id="step4" class="step">
-            <h2>Scan to Check-In</h2>
-            <div id="qrCodeContainer" style="display: flex; justify-content: center; margin: 20px 0;"></div>
-            <h3 id="displayClinicName"></h3>
-            <p>Powered by Tap2Med</p>
-            <button onclick="window.print()" style="background-color: #16a34a;">Print for Wall</button>
-            <button onclick="window.location.href='/login'" style="background-color: #6b7280; margin-top: 10px;">Go to Login</button>
-        </div>
-
     </div>
 
+    <!-- KEEP ALL YOUR EXISTING SCRIPT LOGIC EXACTLY AS IT IS BELOW THIS LINE -->
     <script>
         let currentClinicId = null;
 
-        // Step 1: Create Clinic & Send OTP
         document.getElementById("formStep1").addEventListener("submit", async (e) => {
             e.preventDefault();
             const btn = document.getElementById("btnStep1");
@@ -117,7 +90,6 @@
             btn.disabled = true; btn.innerText = "Sending..."; err.style.display = "none";
 
             try {
-                // 1A. Create Clinic record
                 const clinicRes = await fetch("/api/clinics/", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -129,7 +101,6 @@
                 currentClinicId = clinicData.clinic_id;
                 document.getElementById("displayClinicName").innerText = clinicName;
 
-                // 1B. Send OTP to email
                 const otpRes = await fetch("/api/auth/send-otp", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -138,7 +109,6 @@
                 const otpData = await otpRes.json();
                 if (!otpRes.ok) throw new Error(otpData.detail || "Failed to send OTP");
 
-                // Move to Step 2
                 document.getElementById("step1").classList.remove("active");
                 document.getElementById("step2").classList.add("active");
             } catch (error) {
@@ -148,7 +118,6 @@
             }
         });
 
-        // Step 2: Verify OTP
         document.getElementById("formStep2").addEventListener("submit", async (e) => {
             e.preventDefault();
             const btn = document.getElementById("btnStep2");
@@ -166,7 +135,6 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || "Invalid OTP");
 
-                // Move to Step 3
                 document.getElementById("step2").classList.remove("active");
                 document.getElementById("step3").classList.add("active");
             } catch (error) {
@@ -176,7 +144,6 @@
             }
         });
 
-        // Step 3: Set Password & Generate QR
         document.getElementById("formStep3").addEventListener("submit", async (e) => {
             e.preventDefault();
             const btn = document.getElementById("btnStep3");
@@ -194,7 +161,6 @@
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.detail || "Failed to set password");
 
-                // Generate QR Code & Move to Step 4
                 const targetUrl = window.location.origin + "/scan?clinic=" + currentClinicId;
                 new QRCode(document.getElementById("qrCodeContainer"), {
                     text: targetUrl, width: 200, height: 200, correctLevel: QRCode.CorrectLevel.H

@@ -6,52 +6,86 @@
     <title>Check-in | Tap2Med</title>
     <link rel="stylesheet" href="/assets/css/variables.css">
     <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/forms.css">
     <link rel="stylesheet" href="/assets/css/buttons.css">
-    <link rel="stylesheet" href="/assets/css/pages/scan.css">
+    <style>
+        .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); padding: 20px; }
+        .auth-card { background: var(--surface-color); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid var(--border-color); text-align: center; }
+        .brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 30px; letter-spacing: -0.02em; }
+        
+        .scan-screen { animation: fadeIn 0.3s ease; text-align: left; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .scan-screen h1 { font-size: 20px; color: var(--text-main); margin-bottom: 5px; }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+        
+        .input-phone { text-align: center; letter-spacing: 2px; font-size: 18px; font-weight: 600; }
+        
+        .member-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .member-row { min-height: 48px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color); color: var(--text-main); font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .member-row:hover { background: var(--bg-canvas); }
+        .member-row.selected { border-color: var(--primary-color); background: rgba(2, 132, 199, 0.05); color: var(--primary-color); }
+        .member-row.add-member { border-style: dashed; color: var(--text-muted); }
+        
+        .token-display-box { background: #f8fafc; border: 1px dashed var(--border-color); border-radius: 12px; padding: 20px; margin: 20px 0; text-align: center; }
+        .token-label { color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .token-number { font-size: 64px; line-height: 1; font-weight: 800; color: var(--primary-color); margin: 10px 0; letter-spacing: -0.04em; }
+        
+        .status-live { color: #d97706; font-weight: 600; font-size: 14px; background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 8px; text-align: center; }
+        .status-live.text-green { color: var(--success-color); background: rgba(22, 163, 74, 0.1); }
+        
+        .footer-text { margin-top: 20px; color: var(--text-muted); font-size: 12px; line-height: 1.5; text-align: center; }
+    </style>
 </head>
 <body>
-    <main class="scan-page-wrapper">
-        <div class="scan-card">
-            <header class="scan-header">
-                <div class="scan-brand">&lt;TAP2MED&gt;</div>
+    <main class="auth-wrapper">
+        <div class="auth-card">
+            <header>
+                <div class="brand">&lt;TAP2MED&gt;</div>
             </header>
 
             <!-- Screen 1: Phone Entry -->
             <section id="screen-phone" class="scan-screen">
                 <h1>Welcome to Clinic</h1>
-                <p class="subtitle">Enter your mobile number to get your token.</p>
+                <p class="subtitle">Enter your mobile number to check in.</p>
 
-                <input type="tel" id="phone-input" class="input input-phone" placeholder="9999999999" autocomplete="off" inputmode="numeric" maxlength="10">
+                <div class="input-group">
+                    <input type="tel" id="phone-input" class="input input-phone" placeholder="9999999999" autocomplete="off" inputmode="numeric" maxlength="10">
+                </div>
 
-                <button type="button" class="btn btn-primary btn-lg btn-block" id="submit-phone-btn">Continue</button>
+                <button type="button" class="btn btn-primary btn-block" id="submit-phone-btn" style="margin-top: 20px;">Continue</button>
 
                 <p class="footer-text">
-                    <strong>Privacy First:</strong> We do not store your phone number. It is converted into a secure token on your device.
+                    <strong>Privacy First:</strong> We do not store your phone number. It is securely tokenized on your device.
                 </p>
             </section>
 
             <!-- Screen 2: Member Selection -->
             <section id="screen-members" class="scan-screen hidden">
                 <h1>Who is visiting?</h1>
+                <p class="subtitle">Select the patient.</p>
                 <div id="member-list-container" class="member-list"></div>
-                <button type="button" class="btn btn-primary btn-lg btn-block" id="check-in-btn">Generate Token</button>
+                <button type="button" class="btn btn-primary btn-block" id="check-in-btn">Generate Token</button>
+                <button type="button" class="btn btn-ghost btn-block" id="cancel-member-btn" style="margin-top: 10px;">Back</button>
             </section>
 
             <!-- Screen 3: Add Member -->
             <section id="screen-add-member" class="scan-screen hidden">
                 <h1>Add Patient</h1>
-                <p class="subtitle">Enter the patient's full name</p>
-                <input type="text" id="new-member-name" class="input input-phone" style="font-size: 18px; letter-spacing: normal;" placeholder="Patient Name" autocomplete="off">
-                <button type="button" class="btn btn-primary btn-lg btn-block" id="save-member-btn">Save Member</button>
-                <button type="button" class="btn btn-ghost btn-lg btn-block" id="cancel-member-btn">Cancel</button>
+                <p class="subtitle">Enter the patient's full name.</p>
+                <div class="input-group">
+                    <input type="text" id="new-member-name" class="input" placeholder="Patient Name" autocomplete="off">
+                </div>
+                <button type="button" class="btn btn-primary btn-block" id="save-member-btn" style="margin-top: 20px;">Save Member</button>
+                <button type="button" class="btn btn-ghost btn-block" id="cancel-member-btn" style="margin-top: 10px;">Cancel</button>
             </section>
 
             <!-- Screen 4: Success & Live Wait -->
-            <section id="screen-success" class="scan-screen hidden">
-                <h1 style="color: var(--success-color);">You're Checked In!</h1>
+            <section id="screen-success" class="scan-screen hidden" style="text-align: center;">
+                <h1 style="color: var(--success-color); text-align: center;">Checked In!</h1>
                 
                 <div class="token-display-box">
-                    <div class="token-label">Your Token No.</div>
+                    <div class="token-label">Your Token</div>
                     <div id="token-display" class="token-number">#--</div>
                 </div>
 
@@ -62,6 +96,7 @@
         </div>
     </main>
 
+    <!-- KEEP ALL YOUR EXISTING SCRIPT LOGIC EXACTLY AS IT IS -->
     <script type="module" src="/assets/js/pages/scan.js"></script>
 </body>
 </html>
