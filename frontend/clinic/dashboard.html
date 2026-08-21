@@ -3,88 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clinic Dashboard | Tap2Med</title>
+    <title>Clinic Workspace | Tap2Med</title>
     <link rel="stylesheet" href="/assets/css/variables.css">
     <link rel="stylesheet" href="/assets/css/base.css">
     <link rel="stylesheet" href="/assets/css/layout.css">
     <link rel="stylesheet" href="/assets/css/components.css">
     <link rel="stylesheet" href="/assets/css/buttons.css">
     <link rel="stylesheet" href="/assets/css/forms.css">
-    <link rel="stylesheet" href="/assets/css/tables.css">
-    <link rel="stylesheet" href="/assets/css/utilities.css">
     <link rel="stylesheet" href="/assets/css/pages/dashboard.css">
 </head>
-<body>
-    <div class="clinic-app">
-        <aside id="app-sidebar" class="sidebar">
-            <div class="sidebar-content">
-                <div class="brand">
-                    <span class="brand-mark">&lt;</span>
-                    <span class="brand-name">TAP2MED</span>
+<body class="dashboard-body">
+
+    <!-- Sidebar -->
+    <aside id="clinicSidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">&lt;TAP2MED&gt;</div>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item active">
+                <span style="font-size: 18px;">⚡</span> Workspace
+            </a>
+            <a href="#" class="nav-item">
+                <span style="font-size: 18px;">👥</span> Patient Directory
+            </a>
+            <a href="#" class="nav-item">
+                <span style="font-size: 18px;">⚙️</span> Clinic Settings
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="doc-profile">
+                <div class="avatar">🩺</div>
+                <div class="doc-info">
+                    <strong id="doc-name">Dr. Faiz</strong>
+                    <span id="clinic-name">Faiz Primary Care</span>
                 </div>
-                <section class="queue-panel">
-                    <span class="queue-label">Current queue</span>
-                    <strong id="current-token" class="queue-token">#--</strong>
-                </section>
-                <section class="history-panel">
-                    <div class="panel-heading">
-                        <h2>Visit History</h2>
-                    </div>
-                    <div id="history-content" class="history-content" aria-live="polite">
-                        <p class="text-muted">Loading history...</p>
-                    </div>
-                </section>
             </div>
-            <footer class="sidebar-footer">
-                <strong id="doc-name">Loading...</strong>
-                <span id="clinic-name">Loading...</span>
-            </footer>
-        </aside>
+        </div>
+    </aside>
 
-        <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
-        <main class="clinic-main">
-            <header class="clinic-header">
-                <div class="header-content">
-                    <div style="display: flex; align-items: center; gap: 16px;">
-                        <button id="desktop-menu-btn" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="true">
-                            ☰
-                        </button>
+    <!-- Main Workspace -->
+    <main class="main-content">
+        
+        <!-- Top Status Bar -->
+        <header class="top-header">
+            <button id="sidebarToggle" class="btn-toggle">☰</button>
+            <div class="header-status">
+                <span class="pulse-dot"></span>
+                Passive Capture Live
+            </div>
+        </header>
+
+        <!-- Split Grid Layout -->
+        <div class="dashboard-layout">
+            
+            <!-- Left Column: The Queue -->
+            <div class="queue-section">
+                <div class="section-header">
+                    <h2>Waiting Room</h2>
+                    <span class="badge badge-info" id="queue-count">Live</span>
+                </div>
+                
+                <div class="queue-list" id="queue-list">
+                    <!-- Queue Items (Populated by JS) -->
+                    <div class="queue-card active">
+                        <div class="token-number" id="current-token">#--</div>
+                        <div class="patient-details">
+                            <strong>Current Patient</strong>
+                            <span>Ready for consultation</span>
+                        </div>
+                    </div>
+                    <!-- Future queue items map here -->
+                </div>
+            </div>
+
+            <!-- Right Column: The Rx Pad -->
+            <div class="consultation-section">
+                <div class="consultation-card">
+                    <div class="consultation-header">
                         <div>
-                            <span class="header-eyebrow">Consultation</span>
-                            <h1 style="margin: 0;">Draft Prescription</h1>
+                            <span class="eyebrow">Active Token</span>
+                            <h2>Prescription Pad</h2>
                         </div>
+                        <span id="prescription-status" class="badge badge-warning">Waiting...</span>
                     </div>
-                    <div class="header-actions">
-                        <button id="copy-prescription-btn" class="btn btn-secondary" type="button">Copy Last Prescription</button>
-                        <button id="print-btn" class="btn btn-primary" type="button">Print / Share</button>
-                    </div>
-                </div>
-            </header>
 
-            <section class="prescription-section">
-                <div class="prescription-status">
-                    <span id="prescription-status" class="status-badge">Draft</span>
-                </div>
-                <div id="rx-container" class="prescription-list">
-                    <div class="prescription-row">
-                        <div class="field">
-                            <label for="medicine-1">Medicine</label>
-                            <input id="medicine-1" class="input rx-med" type="text" placeholder="Medicine & dose" autocomplete="off">
-                        </div>
-                        <div class="field">
-                            <label for="instruction-1">Instructions</label>
-                            <input id="instruction-1" class="input rx-freq" type="text" placeholder="Frequency & instructions" autocomplete="off">
+                    <!-- History Accordion -->
+                    <div class="visit-history-preview">
+                        <details>
+                            <summary>View Patient Medical History</summary>
+                            <div class="history-data" id="history-content">
+                                <p class="text-sm text-muted">Waiting for patient scan...</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Prescription Builder -->
+                    <div class="prescription-builder" id="rx-container">
+                        <div class="prescription-row">
+                            <div class="field">
+                                <label>Medicine Name</label>
+                                <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off">
+                            </div>
+                            <div class="field">
+                                <label>Dosage & Instructions</label>
+                                <input type="text" class="input rx-freq" placeholder="e.g. 1-0-1 After Meals" autocomplete="off">
+                            </div>
                         </div>
                     </div>
-                </div>
-                <button id="add-row-btn" class="add-medicine" type="button">
-                    <span>+</span> Add Medicine
-                </button>
-            </section>
-        </main>
-    </div>
 
-    <script type="module" src="/assets/js/pages/dashboard.js"></script>
+                    <button id="add-row-btn" class="btn btn-ghost btn-block add-medicine-btn">+ Add Medicine</button>
+
+                    <div class="consultation-actions">
+                        <button id="print-btn" class="btn btn-primary btn-lg btn-block">
+                            Save & Send to WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/assets/js/pages/dashboard.js"></script>
 </body>
 </html>
