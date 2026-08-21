@@ -526,3 +526,19 @@ setInterval(
     loadQueue,
     5000
 );
+
+document.addEventListener('DOMContentLoaded', () => {
+  const sidebarToggleBtn = document.getElementById('YOUR_TOGGLE_BUTTON_ID');
+  const sidebar = document.getElementById('YOUR_SIDEBAR_ID');
+
+  if (!sidebarToggleBtn || !sidebar) {
+    console.error("Sidebar elements missing from DOM.");
+    return;
+  }
+
+  sidebarToggleBtn.addEventListener('click', () => {
+  
+    sidebar.classList.toggle('sidebar-closed');
+    
+  });
+});

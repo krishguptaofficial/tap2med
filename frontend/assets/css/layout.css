@@ -117,3 +117,37 @@
         padding: var(--space-8) 0;
     }
 }
+
+/* Base Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  background-color: var(--surface-color);
+  border-right: 1px solid #e2e8f0;
+  
+  transform: translateX(0);
+  transition: transform 0.2s ease-in-out;
+  will-change: transform;
+  z-index: 50;
+}
+
+/* Toggled State */
+.sidebar.sidebar-closed {
+  transform: translateX(-100%);
+}
+
+/* Main Content Area */
+.main-content {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.2s ease-in-out;
+  background-color: var(--bg-canvas);
+  min-height: 100vh;
+}
+
+/* Main Content adjusting when sidebar is closed */
+.sidebar-closed ~ .main-content {
+  margin-left: 0;
+}

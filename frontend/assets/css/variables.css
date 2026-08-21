@@ -56,4 +56,17 @@
 
     
     --transition: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    
+  /* Clinical Palette */
+   --primary-color: #0284c7;
+   --bg-canvas: #f8fafc;
+   --surface-color: #ffffff;
+   --text-main: #0f172a;
+   --text-muted: #64748b;
+   --success-color: #16a34a;
+   --error-color: #dc2626;
+
+  /* Sidebar Constants */
+   --sidebar-width: 250px;
 }
