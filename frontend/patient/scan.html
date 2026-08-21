@@ -2,158 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    >
-    <meta name="theme-color" content="#ffffff">
-
-    <title>Tap2Med</title>
-
-    <link rel="stylesheet" href="../assets/css/variables.css">
-    <link rel="stylesheet" href="../assets/css/base.css">
-    <link rel="stylesheet" href="../assets/css/layout.css">
-    <link rel="stylesheet" href="../assets/css/components.css">
-    <link rel="stylesheet" href="../assets/css/buttons.css">
-    <link rel="stylesheet" href="../assets/css/forms.css">
-    <link rel="stylesheet" href="../assets/css/tables.css">
-    <link rel="stylesheet" href="../assets/css/utilities.css">
-    <link rel="stylesheet" href="../assets/css/pages/scan.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Check-in | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css">
+    <link rel="stylesheet" href="/assets/css/base.css">
+    <link rel="stylesheet" href="/assets/css/buttons.css">
+    <link rel="stylesheet" href="/assets/css/pages/scan.css">
 </head>
-
 <body>
-    <main class="page">
-        <div class="container">
-            <div class="scan-app">
-                <header class="scan-header">
-                    <div class="brand">
-                        <span>&lt;TAP2MED&gt;</span>
-                    </div>
-                </header>
+    <main class="scan-page-wrapper">
+        <div class="scan-card">
+            <header class="scan-header">
+                <div class="scan-brand">&lt;TAP2MED&gt;</div>
+            </header>
 
-                <section id="screen-phone" class="scan-screen">
-                    <h1>Welcome to &lt;CLINIC NAME&gt;</h1>
+            <!-- Screen 1: Phone Entry -->
+            <section id="screen-phone" class="scan-screen">
+                <h1>Welcome to Clinic</h1>
+                <p class="subtitle">Enter your mobile number to get your token.</p>
 
-                    <p class="subtitle">Powered By Tap2Med</p>
+                <input type="tel" id="phone-input" class="input input-phone" placeholder="9999999999" autocomplete="off" inputmode="numeric" maxlength="10">
 
-                    <p>
-                        Enter your mobile number to<br>
-                        get your token number
-                    </p>
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="submit-phone-btn">Continue</button>
 
-                    <div class="input-group">
-                        <label class="label" for="phone-input">
-                            Mobile number
-                        </label>
+                <p class="footer-text">
+                    <strong>Privacy First:</strong> We do not store your phone number. It is converted into a secure token on your device.
+                </p>
+            </section>
 
-                        <input
-                            type="tel"
-                            id="phone-input"
-                            class="input"
-                            placeholder="Enter mobile number"
-                            autocomplete="off"
-                            inputmode="numeric"
-                            maxlength="10"
-                        >
-                    </div>
+            <!-- Screen 2: Member Selection -->
+            <section id="screen-members" class="scan-screen hidden">
+                <h1>Who is visiting?</h1>
+                <div id="member-list-container" class="member-list"></div>
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="check-in-btn">Generate Token</button>
+            </section>
 
-                    <button
-                        type="button"
-                        class="btn btn-primary btn-block"
-                        id="submit-phone-btn"
-                    >
-                        Submit
-                    </button>
+            <!-- Screen 3: Add Member -->
+            <section id="screen-add-member" class="scan-screen hidden">
+                <h1>Add Patient</h1>
+                <p class="subtitle">Enter the patient's full name</p>
+                <input type="text" id="new-member-name" class="input input-phone" style="font-size: 18px; letter-spacing: normal;" placeholder="Patient Name" autocomplete="off">
+                <button type="button" class="btn btn-primary btn-lg btn-block" id="save-member-btn">Save Member</button>
+                <button type="button" class="btn btn-ghost btn-lg btn-block" id="cancel-member-btn">Cancel</button>
+            </section>
 
-                    <p class="footer-text">
-                        We do not store your phone number or any other<br>
-                        personal identifiers in our system.
-                    </p>
-                </section>
+            <!-- Screen 4: Success & Live Wait -->
+            <section id="screen-success" class="scan-screen hidden">
+                <h1 style="color: var(--success-color);">You're Checked In!</h1>
+                
+                <div class="token-display-box">
+                    <div class="token-label">Your Token No.</div>
+                    <div id="token-display" class="token-number">#--</div>
+                </div>
 
-                <section id="screen-members" class="scan-screen hidden">
-                    <h1>Who is visiting today?</h1>
-
-                    <div
-                        id="member-list-container"
-                        class="member-list"
-                    ></div>
-
-                    <button
-                        type="button"
-                        class="btn btn-primary btn-block"
-                        id="check-in-btn"
-                    >
-                        Check-in
-                    </button>
-                </section>
-
-                <section id="screen-add-member" class="scan-screen hidden">
-                    <h1>Add Family Member</h1>
-
-                    <p class="subtitle">
-                        Enter the patient's full name
-                    </p>
-
-                    <div class="input-group">
-                        <label class="label" for="new-member-name">
-                            Patient Name
-                        </label>
-
-                        <input
-                            type="text"
-                            id="new-member-name"
-                            class="input"
-                            placeholder="Patient Name"
-                            autocomplete="off"
-                        >
-                    </div>
-
-                    <button
-                        type="button"
-                        class="btn btn-primary btn-block"
-                        id="save-member-btn"
-                    >
-                        Save Member
-                    </button>
-
-                    <button
-                        type="button"
-                        class="btn btn-secondary btn-block"
-                        id="cancel-member-btn"
-                    >
-                        Cancel
-                    </button>
-                </section>
-
-                <section id="screen-success" class="scan-screen hidden">
-                    <h1 class="text-green">
-                        VISIT<br>
-                        CREATED!
-                    </h1>
-
-                    <p class="token-label">
-                        Your Token no. is:
-                    </p>
-
-                    <div
-                        id="token-display"
-                        class="token-number"
-                    >
-                        #--
-                    </div>
-
-                    <p>Estimated Wait time:</p>
-
-                    <p class="text-yellow">
-                        Kindly take a seat and<br>
-                        wait for your turn patiently
-                    </p>
-                </section>
-            </div>
+                <div id="wait-status" class="status-live">
+                    Calculating wait time...
+                </div>
+            </section>
         </div>
     </main>
 
-    <script type="module" src="../assets/js/pages/scan.js"></script>
+    <script type="module" src="/assets/js/pages/scan.js"></script>
 </body>
 </html>

@@ -16,24 +16,16 @@ const defaultMembers = [
     { id: 5, name: "Daughter" }
 ];
 
-// Load saved family members or fallback to defaults
 const savedMembers = localStorage.getItem("tap2med_family");
 let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
 
-const screens = [
-    "screen-phone",
-    "screen-members",
-    "screen-add-member",
-    "screen-success"
-];
+const screens = ["screen-phone", "screen-members", "screen-add-member", "screen-success"];
 
-// DOM Elements
 const phoneInput = document.getElementById("phone-input");
 const newMemberInput = document.getElementById("new-member-name");
 const memberListContainer = document.getElementById("member-list-container");
 const tokenDisplay = document.getElementById("token-display");
 
-// Router-lite for UI screens
 function showScreen(screenId) {
     screens.forEach((id) => {
         document.getElementById(id).classList.add("hidden");
@@ -53,26 +45,19 @@ function goToMemberScreen() {
         return;
     }
 
-    // Temporarily hold phone in memory for the API call
     currentSessionPhone = phone;
-
     renderMemberList();
     showScreen("screen-members");
 }
 
 function renderMemberList() {
     memberListContainer.innerHTML = "";
-
     familyMembers.forEach((member) => {
         const row = document.createElement("button");
         row.type = "button";
         row.className = "member-row";
         row.textContent = member.name;
-
-        row.addEventListener("click", () => {
-            selectMember(member.id, row);
-        });
-
+        row.addEventListener("click", () => selectMember(member.id, row));
         memberListContainer.appendChild(row);
     });
 
@@ -81,13 +66,11 @@ function renderMemberList() {
     addMember.className = "member-row add-member";
     addMember.textContent = "+ Add New Member";
     addMember.addEventListener("click", showAddMemberScreen);
-
     memberListContainer.appendChild(addMember);
 }
 
 function selectMember(memberId, rowElement) {
     selectedMemberId = memberId;
-
     memberListContainer.querySelectorAll(".member-row").forEach((row) => {
         row.classList.remove("selected");
     });
@@ -106,35 +89,24 @@ function saveNewMember() {
         alert("Please enter a name.");
         return;
     }
-
-    familyMembers.push({
-        id: Date.now(),
-        name
-    });
-
+    familyMembers.push({ id: Date.now(), name });
     localStorage.setItem("tap2med_family", JSON.stringify(familyMembers));
-
     renderMemberList();
     showScreen("screen-members");
 }
 
-// --- PII Memory Management ---
 function wipeVolatileMemory() {
-    // Flush sensitive data from JS memory
     currentSessionPhone = null;
     selectedMemberId = null;
-    
-    // Note: Leaving localStorage.getItem("tap2med_patient_id") intact for return visits
     console.log("Volatile memory wiped.");
 }
 
 function resetSessionTimeout() {
     clearTimeout(inactivityTimer);
     lastActivityTimestamp = Date.now();
-    inactivityTimer = setTimeout(wipeVolatileMemory, 60000); // 60s idle timeout
+    inactivityTimer = setTimeout(wipeVolatileMemory, 60000); 
 }
 
-// Bind memory wipe to inactivity and visibility changes
 ['touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => 
     window.addEventListener(evt, resetSessionTimeout, { passive: true })
 );
@@ -143,7 +115,6 @@ document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         wipeVolatileMemory();
     } else if (document.visibilityState === 'visible') {
-        // Check if 60 seconds passed while frozen in the background
         if (Date.now() - lastActivityTimestamp > 60000) {
             wipeVolatileMemory();
         }
@@ -152,7 +123,6 @@ document.addEventListener('visibilitychange', () => {
 
 window.addEventListener('beforeunload', wipeVolatileMemory);
 
-// --- Core Check-in Flow ---
 async function submitCheckIn() {
     if (currentSessionPhone === null || selectedMemberId === null) {
         alert("Session timed out. Please enter your details again.");
@@ -166,11 +136,7 @@ async function submitCheckIn() {
         clinic_id: scannedClinicId
     };
 
-    const headers = {
-        "Content-Type": "application/json"
-    };
-
-    // Attach existing patient ID if this is a return visit
+    const headers = { "Content-Type": "application/json" };
     const savedPatientId = localStorage.getItem("tap2med_patient_id");
     if (savedPatientId) {
         headers["X-Patient-ID"] = savedPatientId;
@@ -187,26 +153,18 @@ async function submitCheckIn() {
             body: JSON.stringify(payload)
         });
 
-        if (!response.ok) {
-            throw new Error("Check-in failed");
-        }
+        if (!response.ok) throw new Error("Check-in failed");
 
         const data = await response.json();
-
         localStorage.setItem("tap2med_local_token", data.local_token);
         
-        // Save new identity if server issued one (new patient or lost-device recovery)
         if (data.patient_id) {
             localStorage.setItem("tap2med_patient_id", data.patient_id);
         }
 
         tokenDisplay.textContent = `#${data.queue_number}`;
-
-        // Start countdown to wipe phone number, giving WhatsApp time to trigger if needed
         resetSessionTimeout(); 
-
         showScreen("screen-success");
-        
         startQueuePolling(data.local_token); 
 
     } catch (error) {
@@ -220,60 +178,41 @@ async function submitCheckIn() {
     }
 }
 
-// --- Event Listeners ---
 document.getElementById("submit-phone-btn").addEventListener("click", goToMemberScreen);
 document.getElementById("check-in-btn").addEventListener("click", submitCheckIn);
 document.getElementById("save-member-btn").addEventListener("click", saveNewMember);
 document.getElementById("cancel-member-btn").addEventListener("click", () => showScreen("screen-members"));
 
-window.addEventListener("load", () => {
-    // If they refresh the page, see if they already have a token for today
-    const savedToken = localStorage.getItem("tap2med_local_token");
-    if (savedToken) {
-        // showScreen("screen-success");
-        // startQueuePolling(savedToken);
-    }
-});
-
-// --- WHATSAPP BRIDGE & POLLING LOGIC ---
 let pollingInterval = null;
 
 function startQueuePolling(localToken) {
     if (pollingInterval) clearInterval(pollingInterval);
     
-    // Poll every 3 seconds (3000ms)
     pollingInterval = setInterval(async () => {
         try {
             const response = await fetch(`/api/events/status/${encodeURIComponent(localToken)}`);
             if (!response.ok) return;
             
             const data = await response.json();
-            const waitStatusEl = document.querySelector(".text-yellow");
+            const waitStatusEl = document.getElementById("wait-status");
             
             if (data.status === "In Queue") {
-                // Live UI update for the patient
                 if (waitStatusEl) {
-                    waitStatusEl.innerHTML = `Your Position: ${data.your_position}<br>Estimated Wait: ${data.estimated_wait}`;
+                    waitStatusEl.innerHTML = `Your Position: <strong>${data.your_position}</strong><br>Estimated Wait: <strong>${data.estimated_wait}</strong>`;
                 }
             } 
             else if (data.status === "Completed") {
-                // 1. Stop polling
                 clearInterval(pollingInterval);
                 
-                // 2. Fire the WhatsApp Bridge if phone is still in memory
                 if (currentSessionPhone && data.prescription_text) {
                     const waUrl = `https://wa.me/91${currentSessionPhone}?text=${encodeURIComponent(data.prescription_text)}`;
-                    window.location.href = waUrl; // Deep links directly into the WhatsApp app
-                    
-                    // 3. AGGRESSIVELY WIPE PII THE MILLISECOND IT IS DELIVERED
+                    window.location.href = waUrl; 
                     wipeVolatileMemory();
                 }
                 
-                // 4. Final UI Update
                 if (waitStatusEl) {
                     waitStatusEl.innerHTML = "Consultation Complete.<br>Opening WhatsApp...";
                     waitStatusEl.classList.add("text-green");
-                    waitStatusEl.classList.remove("text-yellow");
                 }
             }
         } catch (error) {
