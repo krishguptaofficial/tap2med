@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Clinic Dashboard | Tap2Med</title>
-
     <link rel="stylesheet" href="../assets/css/variables.css">
     <link rel="stylesheet" href="../assets/css/base.css">
     <link rel="stylesheet" href="../assets/css/layout.css">
@@ -16,38 +14,27 @@
     <link rel="stylesheet" href="../assets/css/utilities.css">
     <link rel="stylesheet" href="../assets/css/pages/dashboard.css">
 </head>
-
 <body>
     <div class="clinic-app">
-
         <aside id="app-sidebar" class="sidebar">
             <div class="sidebar-content">
-
                 <div class="brand">
                     <span class="brand-mark">&lt;</span>
                     <span class="brand-name">TAP2MED</span>
                 </div>
-
                 <section class="queue-panel">
                     <span class="queue-label">Current queue</span>
                     <strong id="current-token" class="queue-token">#--</strong>
                 </section>
-
                 <section class="history-panel">
                     <div class="panel-heading">
                         <h2>Visit History</h2>
                     </div>
-
-                    <div
-                        id="history-content"
-                        class="history-content"
-                        aria-live="polite"
-                    >
+                    <div id="history-content" class="history-content" aria-live="polite">
                         <p class="text-muted">Loading history...</p>
                     </div>
                 </section>
             </div>
-
             <footer class="sidebar-footer">
                 <strong id="doc-name">Loading...</strong>
                 <span id="clinic-name">Loading...</span>
@@ -57,174 +44,47 @@
         <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
         <main class="clinic-main">
-
             <header class="clinic-header">
-                <div class="mobile-header">
-                    <button
-                        id="mobile-menu-btn"
-                        class="icon-btn"
-                        type="button"
-                        aria-label="Open menu"
-                        aria-controls="app-sidebar"
-                        aria-expanded="false"
-                    >
-                        ☰
-                    </button>
-
-                    <span class="mobile-brand">TAP2MED</span>
-                </div>
-
                 <div class="header-content">
-                    <div>
-                        <span class="header-eyebrow">Consultation</span>
-                        <h1>Draft Prescription</h1>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <button id="desktop-menu-btn" class="icon-btn" type="button" aria-label="Toggle menu" aria-expanded="true">
+                            ☰
+                        </button>
+                        <div>
+                            <span class="header-eyebrow">Consultation</span>
+                            <h1 style="margin: 0;">Draft Prescription</h1>
+                        </div>
                     </div>
-
                     <div class="header-actions">
-                        <button
-                            id="copy-prescription-btn"
-                            class="btn btn-secondary"
-                            type="button"
-                        >
-                            Copy Last Prescription
-                        </button>
-
-                        <button
-                            id="print-btn"
-                            class="btn btn-primary"
-                            type="button"
-                        >
-                            Print / Share
-                        </button>
+                        <button id="copy-prescription-btn" class="btn btn-secondary" type="button">Copy Last Prescription</button>
+                        <button id="print-btn" class="btn btn-primary" type="button">Print / Share</button>
                     </div>
                 </div>
             </header>
 
             <section class="prescription-section">
-
                 <div class="prescription-status">
-                    <span id="prescription-status" class="status-badge">
-                        Draft
-                    </span>
+                    <span id="prescription-status" class="status-badge">Draft</span>
                 </div>
-
-                <div
-                    id="rx-container"
-                    class="prescription-list"
-                >
+                <div id="rx-container" class="prescription-list">
                     <div class="prescription-row">
                         <div class="field">
                             <label for="medicine-1">Medicine</label>
-                            <input
-                                id="medicine-1"
-                                class="input rx-med"
-                                type="text"
-                                placeholder="Medicine & dose"
-                                autocomplete="off"
-                            >
+                            <input id="medicine-1" class="input rx-med" type="text" placeholder="Medicine & dose" autocomplete="off">
                         </div>
-
                         <div class="field">
                             <label for="instruction-1">Instructions</label>
-                            <input
-                                id="instruction-1"
-                                class="input rx-freq"
-                                type="text"
-                                placeholder="Frequency & instructions"
-                                autocomplete="off"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="prescription-row">
-                        <div class="field">
-                            <label for="medicine-2">Medicine</label>
-                            <input
-                                id="medicine-2"
-                                class="input rx-med"
-                                type="text"
-                                placeholder="Medicine & dose"
-                                autocomplete="off"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label for="instruction-2">Instructions</label>
-                            <input
-                                id="instruction-2"
-                                class="input rx-freq"
-                                type="text"
-                                placeholder="Frequency & instructions"
-                                autocomplete="off"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="prescription-row">
-                        <div class="field">
-                            <label for="medicine-3">Medicine</label>
-                            <input
-                                id="medicine-3"
-                                class="input rx-med"
-                                type="text"
-                                placeholder="Medicine & dose"
-                                autocomplete="off"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label for="instruction-3">Instructions</label>
-                            <input
-                                id="instruction-3"
-                                class="input rx-freq"
-                                type="text"
-                                placeholder="Frequency & instructions"
-                                autocomplete="off"
-                            >
-                        </div>
-                    </div>
-
-                    <div class="prescription-row">
-                        <div class="field">
-                            <label for="medicine-4">Medicine</label>
-                            <input
-                                id="medicine-4"
-                                class="input rx-med"
-                                type="text"
-                                placeholder="Medicine & dose"
-                                autocomplete="off"
-                            >
-                        </div>
-
-                        <div class="field">
-                            <label for="instruction-4">Instructions</label>
-                            <input
-                                id="instruction-4"
-                                class="input rx-freq"
-                                type="text"
-                                placeholder="Frequency & instructions"
-                                autocomplete="off"
-                            >
+                            <input id="instruction-1" class="input rx-freq" type="text" placeholder="Frequency & instructions" autocomplete="off">
                         </div>
                     </div>
                 </div>
-
-                <button
-                    id="add-row-btn"
-                    class="add-medicine"
-                    type="button"
-                >
-                    <span>+</span>
-                    Add Medicine
+                <button id="add-row-btn" class="add-medicine" type="button">
+                    <span>+</span> Add Medicine
                 </button>
-
             </section>
         </main>
     </div>
 
-    <script
-        type="module"
-        src="../assets/js/pages/dashboard.js"
-    ></script>
+    <script type="module" src="../assets/js/pages/dashboard.js"></script>
 </body>
 </html>
