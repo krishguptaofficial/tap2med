@@ -11,9 +11,9 @@ const defaultMembers = [
     { id: 0, name: "Self" },
     { id: 1, name: "Mother" },
     { id: 2, name: "Father" },
-    { id: 3, name: "Wife" },
+    { id: 3, name: "Spouse" },
     { id: 4, name: "Son" },
-    { id: 5, name: "Daughter" }
+    { id: 5, name: "Daughter"}
 ];
 
 const savedMembers = localStorage.getItem("tap2med_family");
@@ -205,8 +205,7 @@ function startQueuePolling(localToken) {
                 clearInterval(pollingInterval);
                 
                 if (currentSessionPhone && data.prescription_text) {
-                    const waUrl = `https://wa.me/91${currentSessionPhone}?text=${encodeURIComponent(data.prescription_text)}`;
-                    window.location.href = waUrl; 
+                const waUrl = `whatsapp://send?phone=91${currentSessionPhone}&text=${encodeURIComponent(data.prescription_text)}`;                    window.location.href = waUrl; 
                     wipeVolatileMemory();
                 }
                 
