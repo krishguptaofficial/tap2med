@@ -1,5 +1,3 @@
-# tap2med/app/api/clinics.py
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -15,7 +13,7 @@ router = APIRouter()
 
 IST = ZoneInfo("Asia/Kolkata")
 
-# Schema for onboarding a new clinic
+
 class ClinicCreate(BaseModel):
     doctor_name: str
     clinic_name: str

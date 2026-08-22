@@ -1,5 +1,3 @@
-# tap2med/app/api/events.py
-
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -19,7 +17,8 @@ from typing import List, Optional
 IST = ZoneInfo("Asia/Kolkata")
 router = APIRouter()
 
-# --- Simple in-memory rate limiter ---
+#rate limiter
+
 rate_limit_records = defaultdict(list)
 
 def check_rate_limit(request: Request):

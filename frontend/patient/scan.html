@@ -11,7 +11,8 @@
     <style>
         .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); padding: 20px; }
         .auth-card { background: var(--surface-color); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); width: 100%; max-width: 400px; border: 1px solid var(--border-color); text-align: center; }
-        .brand { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 30px; letter-spacing: -0.02em; }
+        .brand { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-family); font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 30px; letter-spacing: 0; line-height: 1; }
+        .brand-logo { width: 42px; height: 32px; object-fit: contain; }
         
         .scan-screen { animation: fadeIn 0.3s ease; text-align: left; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -41,7 +42,10 @@
     <main class="auth-wrapper">
         <div class="auth-card">
             <header>
-                <div class="brand">&lt;TAP2MED&gt;</div>
+                <div class="brand">
+                    <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo">
+                    <span>Tap2Med</span>
+                </div>
             </header>
 
             <!-- Screen 1: Phone Entry -->
@@ -50,7 +54,7 @@
                 <p class="subtitle">Enter your mobile number to check in.</p>
 
                 <div class="input-group">
-                    <input type="tel" id="phone-input" class="input input-phone" placeholder="Enter your phone number" autocomplete="off" inputmode="numeric" maxlength="10">
+                    <input type="tel" id="phone-input" class="input input-phone" placeholder="9999999999" autocomplete="off" inputmode="numeric" maxlength="10">
                 </div>
 
                 <button type="button" class="btn btn-primary btn-block" id="submit-phone-btn" style="margin-top: 20px;">Continue</button>
