@@ -1,133 +1,147 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Clinic Workspace | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css">
-    <link rel="stylesheet" href="/assets/css/base.css">
-    <link rel="stylesheet" href="/assets/css/layout.css">
-    <link rel="stylesheet" href="/assets/css/components.css">
-    <link rel="stylesheet" href="/assets/css/buttons.css">
-    <link rel="stylesheet" href="/assets/css/forms.css">
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css">
-</head>
-<body class="dashboard-body">
-
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+  </head>
+  <body class="dashboard-body">
     <!-- Sidebar -->
     <aside id="clinicSidebar" class="sidebar">
-        <div class="sidebar-header">
-            <div class="brand">
-                <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo">
-                <span>Tap2Med</span>
-            </div>
+      <div class="sidebar-header">
+        <div class="brand">
+          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+          <span>Tap2Med</span>
         </div>
-        <nav class="sidebar-nav">
-            <a href="/dashboard" class="nav-item active">
-                <span style="font-size: 18px;">⚡</span> Workspace
-            </a>
-            <a href="#" class="nav-item">
-                <span style="font-size: 18px;">👥</span> Patient Directory
-            </a>
-            <a href="#" class="nav-item">
-                <span style="font-size: 18px;">⚙️</span> Clinic Settings
-            </a>
-        </nav>
-        <div class="sidebar-footer">
-            <div class="doc-profile">
-                <div class="avatar">🩺</div>
-                <div class="doc-info">
-                    <strong id="doc-name">Dr. Faiz</strong>
-                    <span id="clinic-name">Faiz Primary Care</span>
-                </div>
-            </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item active">
+          <span style="font-size: 18px">⚡</span> Workspace
+        </a>
+        <a href="#" class="nav-item">
+          <span style="font-size: 18px">👥</span> Patient Directory
+        </a>
+        <a href="#" class="nav-item">
+          <span style="font-size: 18px">⚙️</span> Clinic Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="doc-profile">
+          <div class="avatar">🩺</div>
+          <div class="doc-info">
+            <strong id="doc-name">Dr. Faiz</strong>
+            <span id="clinic-name">Faiz Primary Care</span>
+          </div>
         </div>
+      </div>
     </aside>
 
     <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
     <!-- Main Workspace -->
     <main class="main-content">
-        
-        <!-- Top Status Bar -->
-        <header class="top-header">
-            <button id="sidebarToggle" class="btn-toggle">☰</button>
-            <div class="header-status">
-                <span class="pulse-dot"></span>
-                Passive Capture Live
-            </div>
-        </header>
-
-        <!-- Split Grid Layout -->
-        <div class="dashboard-layout">
-            
-            <!-- Left Column: The Queue -->
-            <div class="queue-section">
-                <div class="section-header">
-                    <h2>Waiting Room</h2>
-                    <span class="badge badge-info" id="queue-count">Live</span>
-                </div>
-                
-                <div class="queue-list" id="queue-list">
-                    <!-- Queue Items (Populated by JS) -->
-                    <div class="queue-card active">
-                        <div class="token-number" id="current-token">#--</div>
-                        <div class="patient-details">
-                            <strong>Current Patient</strong>
-                            <span>Ready for consultation</span>
-                        </div>
-                    </div>
-                    <!-- Future queue items map here -->
-                </div>
-            </div>
-
-            <!-- Right Column: The Rx Pad -->
-            <div class="consultation-section">
-                <div class="consultation-card">
-                    <div class="consultation-header">
-                        <div>
-                            <span class="eyebrow">Active Token</span>
-                            <h2>Prescription Pad</h2>
-                        </div>
-                        <span id="prescription-status" class="badge badge-warning">Waiting...</span>
-                    </div>
-
-                    <!-- History Accordion -->
-                    <div class="visit-history-preview">
-                        <details>
-                            <summary>View Patient Medical History</summary>
-                            <div class="history-data" id="history-content">
-                                <p class="text-sm text-muted">Waiting for patient scan...</p>
-                            </div>
-                        </details>
-                    </div>
-
-                    <!-- Prescription Builder -->
-                    <div class="prescription-builder" id="rx-container">
-                        <div class="prescription-row">
-                            <div class="field">
-                                <label>Medicine Name</label>
-                                <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off">
-                            </div>
-                            <div class="field">
-                                <label>Dosage & Instructions</label>
-                                <input type="text" class="input rx-freq" placeholder="e.g. 1-0-1 After Meals" autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="add-row-btn" class="btn btn-ghost btn-block add-medicine-btn">+ Add Medicine</button>
-
-                    <div class="consultation-actions">
-                        <button id="print-btn" class="btn btn-primary btn-lg btn-block">
-                            Save & Send to WhatsApp
-                        </button>
-                    </div>
-                </div>
-            </div>
+      <!-- Top Status Bar -->
+      <header class="top-header">
+        <button id="sidebarToggle" class="btn-toggle">☰</button>
+        <div class="header-status">
+          <span class="pulse-dot"></span>
+          Passive Capture Live
         </div>
+      </header>
+
+      <!-- Split Grid Layout -->
+      <div class="dashboard-layout">
+        <!-- Left Column: The Queue -->
+        <div class="queue-section">
+          <div class="section-header">
+            <h2>Waiting Room</h2>
+            <span class="badge badge-info" id="queue-count">Live</span>
+          </div>
+
+          <div class="queue-list" id="queue-list">
+            <!-- Queue Items (Populated by JS) -->
+            <div class="queue-card active">
+              <div class="token-number" id="current-token">#--</div>
+              <div class="patient-details">
+                <strong>Current Patient</strong>
+                <span>Ready for consultation</span>
+              </div>
+            </div>
+            <!-- Future queue items map here -->
+          </div>
+        </div>
+
+        <!-- Right Column: The Rx Pad -->
+        <div class="consultation-section">
+          <div class="consultation-card">
+            <div class="consultation-header">
+              <div>
+                <span class="eyebrow">Active Token</span>
+                <h2>Prescription Pad</h2>
+              </div>
+              <span id="prescription-status" class="badge badge-warning"
+                >Waiting...</span
+              >
+            </div>
+
+            <!-- History Accordion -->
+            <div class="visit-history-preview">
+              <details>
+                <summary>View Patient Medical History</summary>
+                <div class="history-data" id="history-content">
+                  <p class="text-sm text-muted">Waiting for patient scan...</p>
+                </div>
+              </details>
+            </div>
+
+            <!-- Prescription Builder -->
+            <div class="prescription-builder" id="rx-container">
+              <div class="prescription-row">
+                <div class="field">
+                  <label>Medicine Name</label>
+                  <input
+                    type="text"
+                    class="input rx-med"
+                    placeholder="e.g. Paracetamol 500mg"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="field">
+                  <label>Dosage & Instructions</label>
+                  <input
+                    type="text"
+                    class="input rx-freq"
+                    placeholder="e.g. 1-0-1 After Meals"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="add-row-btn"
+              class="btn btn-ghost btn-block add-medicine-btn"
+            >
+              + Add Medicine
+            </button>
+
+            <div class="consultation-actions">
+              <button id="print-btn" class="btn btn-primary btn-lg btn-block">
+                Save & Send to WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
 
     <script src="/assets/js/pages/dashboard.js"></script>
-</body>
+  </body>
 </html>
