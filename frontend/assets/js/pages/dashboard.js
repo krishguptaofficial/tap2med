@@ -217,44 +217,37 @@ async function completeVisit() {
 }
 
 window.showQRCode = function() {
-        try {
-            const qrContainer = document.getElementById("dashboardQRCode");
-            if (!qrContainer) {
-                console.error("Error: QR Container missing from DOM.");
-                return;
-            }
-            qrContainer.innerHTML = ""; 
-            
-            // Try multiple common localStorage keys you might have used
-            let clinicId = null;
-            if (typeof currentClinicId !== 'undefined' && currentClinicId) {
-                clinicId = currentClinicId;
-            } else {
-                clinicId = localStorage.getItem("clinic_id") || localStorage.getItem("clinicId") || localStorage.getItem("id");
-            }
-            
-            if (!clinicId) {
-                console.error("Error: Clinic ID not found in localStorage.");
-                alert("Clinic ID not found. Please log out and log back in to refresh your session.");
-                return;
-            }
-
-            const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
-            console.log("Success: Generating QR for URL ->", targetUrl);
-            
-            new QRCode(qrContainer, {
-                text: targetUrl, 
-                width: 200, 
-                height: 200, 
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            
-            document.getElementById("qrModal").style.display = "flex";
-        } catch (error) {
-            console.error("QR Generation Error:", error);
-            alert("Failed to load QR code. Please check the console.");
+    try {
+        const qrContainer = document.getElementById("dashboardQRCode");
+        if (!qrContainer) {
+            console.error("Error: QR Container missing from DOM.");
+            return;
         }
+        qrContainer.innerHTML = ""; 
+        
+        // We just use the clinicId you already safely grabbed at the top of the file!
+        if (!clinicId || clinicId === "undefined" || clinicId === "null") {
+            console.error("Error: Clinic ID not found.");
+            alert("Clinic ID not found. Please log out and log back in.");
+            return;
+        }
+
+        const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
+        console.log("Success: Generating QR for URL ->", targetUrl);
+        
+        new QRCode(qrContainer, {
+            text: targetUrl, 
+            width: 200, 
+            height: 200, 
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        document.getElementById("qrModal").style.display = "flex";
+    } catch (error) {
+        console.error("QR Generation Error:", error);
+        alert("Failed to load QR code. Please check the console.");
     }
+}
 
 // Event Listeners
 document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
