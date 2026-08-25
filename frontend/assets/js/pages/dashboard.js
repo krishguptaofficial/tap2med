@@ -80,6 +80,12 @@ function clearPrescription() {
     addPrescriptionRow();
 }
 
+function getShortCode(tokenNumber) {
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+    const letter = letters[(tokenNumber - 1) % 24]; 
+    return `${letter}-${tokenNumber}`; 
+}
+
 async function loadQueue() {
     if (!clinicId) {
         currentToken.textContent = "#--";

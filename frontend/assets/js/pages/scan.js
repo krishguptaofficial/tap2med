@@ -178,6 +178,12 @@ async function submitCheckIn() {
     }
 }
 
+function getShortCode(tokenNumber) {
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+    const letter = letters[(tokenNumber - 1) % 24]; 
+    return `${letter}-${tokenNumber}`; 
+}
+
 document.getElementById("submit-phone-btn").addEventListener("click", goToMemberScreen);
 document.getElementById("check-in-btn").addEventListener("click", submitCheckIn);
 document.getElementById("save-member-btn").addEventListener("click", saveNewMember);
