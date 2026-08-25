@@ -216,7 +216,7 @@ async function completeVisit() {
     }
 }
 
-function showQRCode() {
+window.showQRCode = function() {
         try {
             const qrContainer = document.getElementById("dashboardQRCode");
             if (!qrContainer) {
