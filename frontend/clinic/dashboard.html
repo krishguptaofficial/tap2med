@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Clinic Workspace | Tap2Med</title>
@@ -50,9 +51,12 @@
       <!-- Top Status Bar -->
       <header class="top-header">
         <button id="sidebarToggle" class="btn-toggle">☰</button>
-        <div class="header-status">
-          <span class="pulse-dot"></span>
-          Passive Capture Live
+        <div class="header-status" style="display: flex; align-items: center; gap: 15px;">
+          <button onclick="showQRCode()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px;">View QR Code</button>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <span class="pulse-dot"></span>
+            Passive Capture Live
+          </div>
         </div>
       </header>
 
@@ -86,9 +90,7 @@
                 <span class="eyebrow">Active Token</span>
                 <h2>Prescription Pad</h2>
               </div>
-              <span id="prescription-status" class="badge badge-warning"
-                >Waiting...</span
-              >
+              <span id="prescription-status" class="badge badge-warning">Waiting...</span>
             </div>
 
             <!-- History Accordion -->
@@ -106,29 +108,16 @@
               <div class="prescription-row">
                 <div class="field">
                   <label>Medicine Name</label>
-                  <input
-                    type="text"
-                    class="input rx-med"
-                    placeholder="e.g. Paracetamol 500mg"
-                    autocomplete="off"
-                  />
+                  <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
                 </div>
                 <div class="field">
                   <label>Dosage & Instructions</label>
-                  <input
-                    type="text"
-                    class="input rx-freq"
-                    placeholder="e.g. 1-0-1 After Meals"
-                    autocomplete="off"
-                  />
+                  <input type="text" class="input rx-freq" placeholder="e.g. 1-0-1 After Meals" autocomplete="off" />
                 </div>
               </div>
             </div>
 
-            <button
-              id="add-row-btn"
-              class="btn btn-ghost btn-block add-medicine-btn"
-            >
+            <button id="add-row-btn" class="btn btn-ghost btn-block add-medicine-btn">
               + Add Medicine
             </button>
 
@@ -141,6 +130,16 @@
         </div>
       </div>
     </main>
+
+    <!-- QR Code Modal -->
+    <div id="qrModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 350px;">
+            <h2 style="margin-bottom: 15px; color: var(--primary-color);">Clinic Check-In</h2>
+            <div id="dashboardQRCode" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+            <button onclick="window.print()" class="btn btn-primary btn-block" style="background-color: var(--success-color);">Print for Wall</button>
+            <button onclick="document.getElementById('qrModal').style.display='none'" class="btn btn-ghost btn-block" style="margin-top: 10px;">Close</button>
+        </div>
+    </div>
 
     <script src="/assets/js/pages/dashboard.js"></script>
   </body>

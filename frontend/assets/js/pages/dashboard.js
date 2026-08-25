@@ -216,6 +216,23 @@ async function completeVisit() {
     }
 }
 
+function showQRCode() {
+    const qrContainer = document.getElementById("dashboardQRCode");
+    qrContainer.innerHTML = ""; // Clear any existing code
+    
+    // Replace 'currentClinicId' with the variable you use to store the logged-in clinic's ID
+    const targetUrl = window.location.origin + "/scan?clinic=" + currentClinicId; 
+    
+    new QRCode(qrContainer, {
+        text: targetUrl, 
+        width: 200, 
+        height: 200, 
+        correctLevel: QRCode.CorrectLevel.H
+    });
+    
+    document.getElementById("qrModal").style.display = "flex";
+}
+
 // Event Listeners
 document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
 document.getElementById("print-btn").addEventListener("click", completeVisit);
