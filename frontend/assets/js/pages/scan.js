@@ -162,7 +162,7 @@ async function submitCheckIn() {
             localStorage.setItem("tap2med_patient_id", data.patient_id);
         }
 
-        tokenDisplay.textContent = `#${data.queue_number}`;
+        tokenDisplay.textContent = `#${getShortCode(data.queue_number)}`;
         resetSessionTimeout(); 
         showScreen("screen-success");
         startQueuePolling(data.local_token); 
