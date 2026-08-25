@@ -187,8 +187,16 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
                 models.Prescription.event_id == current_visit.event_id
             ).all()
             
-            # Format the text message
-            rx_text = "Here is your Tap2Med Prescription:\n\n"
+            clinic = db.query(models.Clinic).filter(
+                models.Clinic.clinic_id == current_visit.clinic_id
+            ).first()
+            
+            c_name = clinic.clinic_name if clinic else "Clinic"
+            d_name = clinic.doctor_name if clinic else "Doctor"
+            date_str = datetime.now(IST).strftime("%d %b %Y")
+            
+            # Format the personalized text message
+            rx_text = f"🏥 *{c_name}*\n🩺 *{d_name}*\n📅 Date: {date_str}\n\nHere is your digital prescription:\n\n"
             for rx in rx_list:
                 rx_text += f"💊 *{rx.medicine_name}*\n"
                 if rx.instructions:
