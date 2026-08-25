@@ -87,46 +87,72 @@ function getShortCode(tokenNumber) {
 }
 
 async function loadQueue() {
-    if (!clinicId) {
-        currentToken.textContent = "#--";
-        historyContent.innerHTML = '<p class="text-danger">Clinic ID is missing.</p>';
-        return;
-    }
+    if (!clinicId) return;
 
     try {
         const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
         if (!response.ok) throw new Error("Queue request failed");
         
         const data = await response.json();
+        
         doctorName.textContent = data.doctor_name || "Doctor";
         clinicName.textContent = data.clinic_name || "Clinic";
-
+        
         const queueCountBadge = document.getElementById("queue-count");
         if (queueCountBadge) {
             queueCountBadge.textContent = `${data.queue ? data.queue.length : 0} Waiting`;
         }
 
+        const queueList = document.getElementById("queue-list");
+        queueList.innerHTML = ""; 
+
         if (!data.queue || data.queue.length === 0) {
             currentToken.textContent = "—";
             currentLocalToken = null;
-            historyContent.innerHTML = '<p class="text-muted text-sm">No patients waiting.</p>';
+            queueList.innerHTML = '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
             return;
         }
 
-        const patient = data.queue[0];
-        const nextLocalToken = patient.local_token;
-        currentToken.textContent = `#${patient.daily_token_number}`;
+        data.queue.forEach((patient) => {
+            const shortCode = getShortCode(patient.daily_token_number);
+            const card = document.createElement("div");
+            
+            card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
+            card.style.cursor = "pointer";
+            
+            card.innerHTML = `
+                <div class="token-number">#${shortCode}</div>
+                <div class="patient-details">
+                    <strong>Waiting</strong>
+                    <span>Status: Pending</span>
+                </div>
+            `;
 
-        if (currentLocalToken !== nextLocalToken) {
-            currentLocalToken = nextLocalToken;
-            prescriptionStatus.textContent = "Draft";
-            prescriptionStatus.className = "badge badge-warning";
+            card.onclick = async () => {
+                currentLocalToken = patient.local_token;
+                document.getElementById("current-token").textContent = `#${shortCode}`;
+                clearPrescription();
+                await loadHistory(currentLocalToken);
+                await loadQueue(); 
+            };
+
+            queueList.appendChild(card);
+        });
+        
+        // Auto-select first patient if none selected
+        if (!currentLocalToken && data.queue.length > 0) {
+            const firstPatient = data.queue[0];
+            currentLocalToken = firstPatient.local_token;
+            currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
             clearPrescription();
             await loadHistory(currentLocalToken);
+            // Re-render to show active state
+            const firstCard = queueList.firstChild;
+            if(firstCard) firstCard.classList.add('active');
         }
+
     } catch (error) {
         console.error("Queue error:", error);
-        historyContent.innerHTML = '<p class="text-danger text-sm">Unable to load queue.</p>';
     }
 }
 
@@ -144,38 +170,38 @@ async function loadHistory(localToken) {
 
         historyContent.innerHTML = "";
         data.history.forEach((visit) => {
-            const date = new Date(visit.timestamp);
-            const visitBlock = document.createElement("div");
-            visitBlock.style.marginBottom = "16px";
+            const date = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
             
-            const dateHeader = document.createElement("strong");
-            dateHeader.style.display = "block";
-            dateHeader.style.fontSize = "13px";
-            dateHeader.style.color = "var(--text-main)";
-            dateHeader.textContent = date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-            visitBlock.appendChild(dateHeader);
-
+            let medListHTML = "";
             if (!visit.prescriptions || visit.prescriptions.length === 0) {
-                const message = document.createElement("span");
-                message.className = "text-muted text-sm";
-                message.textContent = "No medicines recorded.";
-                visitBlock.appendChild(message);
+                medListHTML = "<p class='text-muted text-sm'>No medicines recorded.</p>";
             } else {
-                const list = document.createElement("ul");
-                list.style.marginTop = "4px";
-                list.style.fontSize = "13px";
-                visit.prescriptions.forEach((prescription) => {
-                    const item = document.createElement("li");
-                    item.innerHTML = `<strong>${prescription.name}</strong> <span class="text-muted">— ${prescription.instructions || ""}</span>`;
-                    list.appendChild(item);
+                medListHTML = "<ul style='margin-top: 10px; padding-left: 15px;'>";
+                visit.prescriptions.forEach((rx) => {
+                    medListHTML += `<li style="margin-bottom: 5px;"><strong>${rx.name}</strong> <br><span class="text-muted text-sm">${rx.instructions || ""}</span></li>`;
                 });
-                visitBlock.appendChild(list);
+                medListHTML += "</ul>";
             }
-            historyContent.appendChild(visitBlock);
+
+            const card = document.createElement("details");
+            card.style.background = "#fff";
+            card.style.border = "1px solid #e2e8f0";
+            card.style.borderRadius = "8px";
+            card.style.padding = "12px";
+            card.style.marginBottom = "10px";
+            card.style.cursor = "pointer";
+
+            card.innerHTML = `
+                <summary style="font-weight: 600; color: var(--primary-color); outline: none;">📅 ${date}</summary>
+                <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; margin-top: 10px;">
+                    ${medListHTML}
+                </div>
+            `;
+            
+            historyContent.appendChild(card);
         });
     } catch (error) {
         console.error("History error:", error);
-        historyContent.innerHTML = '<p class="text-danger text-sm">Unable to load visit history.</p>';
     }
 }
 
@@ -209,6 +235,9 @@ async function completeVisit() {
         prescriptionStatus.textContent = "Sent to WhatsApp";
         prescriptionStatus.className = "badge badge-success";
         
+        // Trigger print dialogue before clearing the view
+        window.print();
+        
         currentLocalToken = null;
         clearPrescription();
         await loadQueue();
@@ -216,7 +245,7 @@ async function completeVisit() {
         console.error("Complete visit error:", error);
         prescriptionStatus.textContent = "Failed to Send";
         prescriptionStatus.className = "badge badge-danger";
-        alert("The prescription could not be saved. Please check the connection and try again.");
+        alert("The prescription could not be saved.");
     } finally {
         isSaving = false;
     }
