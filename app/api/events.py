@@ -182,6 +182,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
             return {"status": "Not Found", "people_ahead": 0}
 
         # If completed, fetch the medicines and format the text for WhatsApp
+        # If completed, fetch the medicines and format the text for WhatsApp
         if current_visit.status == "completed":
             rx_list = db.query(models.Prescription).filter(
                 models.Prescription.event_id == current_visit.event_id
@@ -191,18 +192,24 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
                 models.Clinic.clinic_id == current_visit.clinic_id
             ).first()
             
-            c_name = clinic.clinic_name if clinic else "Clinic"
+            c_name = clinic.clinic_name.upper() if clinic else "CLINIC"
             d_name = clinic.doctor_name if clinic else "Doctor"
             date_str = datetime.now(IST).strftime("%d %b %Y")
             
-            # Format the personalized text message
-            rx_text = f"🏥 *{c_name}*\n🩺 *{d_name}*\n📅 Date: {date_str}\n\nHere is your digital prescription:\n\n"
-            for rx in rx_list:
-                rx_text += f"💊 *{rx.medicine_name}*\n"
-                if rx.instructions:
-                    rx_text += f"   {rx.instructions}\n"
+            # Formatted Digital Receipt
+            rx_text = f"*{c_name}*\n"
+            rx_text += "-----------------------------------\n"
+            rx_text += f"🩺 {d_name}\n"
+            rx_text += f"📅 {date_str}\n\n"
+            rx_text += "*YOUR PRESCRIPTION*\n\n"
             
-            rx_text += "\nThank you for visiting!"
+            for idx, rx in enumerate(rx_list, 1):
+                rx_text += f"*{idx}. {rx.medicine_name}*\n"
+                if rx.instructions:
+                    rx_text += f"↳ _{rx.instructions}_\n\n"
+            
+            rx_text += "-----------------------------------\n"
+            rx_text += "_Powered by Tap2Med_"
             
             return {
                 "status": "Completed",
