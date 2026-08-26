@@ -321,3 +321,29 @@
     padding: 20px;
   }
 }
+
+/* Print Layout Isolation */
+.print-only {
+    display: none;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .print-only, .print-only * {
+        visibility: visible;
+    }
+    .print-only {
+        display: block;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        background: white;
+    }
+    @page {
+        margin: 1cm;
+    }
+}

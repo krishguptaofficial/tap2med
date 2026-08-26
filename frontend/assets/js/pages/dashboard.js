@@ -237,8 +237,30 @@ async function completeVisit() {
         prescriptionStatus.textContent = "Sent to WhatsApp";
         prescriptionStatus.className = "badge badge-success";
         
-        // Trigger print dialogue before clearing the view
-        window.print();
+        prescriptionStatus.textContent = "Sent to WhatsApp";
+        prescriptionStatus.className = "badge badge-success";
+        
+        // 1. Populate the Print Layout
+        const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+        document.getElementById("print-clinic-name").textContent = clinicName.textContent;
+        document.getElementById("print-doctor-name").textContent = doctorName.textContent;
+        document.getElementById("print-date").textContent = `Date: ${today}`;
+        
+        const printMedContainer = document.getElementById("print-medicines");
+        printMedContainer.innerHTML = "";
+        medicines.forEach(med => {
+            printMedContainer.innerHTML += `
+                <div style="margin-bottom: 20px;">
+                    <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                    <span style="font-size: 14px; color: #444;">${med.instructions}</span>
+                </div>
+            `;
+        });
+
+        // 2. ONLY trigger print if the setting is enabled
+        if (localStorage.getItem("tap2med_auto_print") === "true") {
+            window.print();
+        }
         
         currentLocalToken = null;
         clearPrescription();
