@@ -64,6 +64,11 @@ def serve_doctor_dashboard():
     logger.info("Dashboard Opened")   
     return FileResponse("frontend/clinic/dashboard.html")
 
+@app.get("/settings")
+def serve_settings():
+    logger.info("Settings Opened")
+    return FileResponse("frontend/clinic/settings.html")
+
 @app.get("/scan")
 def serve_patient_scan():
     logger.info("Scan Page Opened")
@@ -88,8 +93,3 @@ def health():
     return {
         "status": "ok"
     }   
-
-@app.get("/settings")
-def serve_settings():
-    logger.info("Settings Opened")
-    return FileResponse("frontend/clinic/settings.html")
