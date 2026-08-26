@@ -91,4 +91,5 @@ def health():
 
 @app.get("/settings")
 def serve_settings():
+    logger.info("Settings Opened")
     return FileResponse("frontend/clinic/settings.html")
