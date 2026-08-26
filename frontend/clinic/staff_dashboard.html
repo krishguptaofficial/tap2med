@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Staff Reception | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <style>
+      .queue-grid { max-width: 800px; margin: 40px auto; padding: 20px; }
+      .queue-card { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+      .queue-card.active-patient { border-color: var(--primary-color); background: rgba(2, 132, 199, 0.05); }
+      .token-badge { font-size: 24px; font-weight: 800; color: var(--primary-color); background: #f1f5f9; padding: 10px 20px; border-radius: 8px; }
+      .active-patient .token-badge { background: var(--primary-color); color: white; }
+    </style>
+  </head>
+  <body style="background: var(--bg-canvas);">
+    
+    <header class="top-header" style="background: white; padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+      <h2 style="margin: 0; color: var(--primary-color);">Front Desk Live Queue</h2>
+      <button onclick="logout()" class="btn btn-ghost">Log Out</button>
+    </header>
+
+    <main class="queue-grid">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="margin: 0;">Waiting Room</h3>
+        <span class="badge badge-info" id="queue-count">Updating...</span>
+      </div>
+
+      <div id="staff-queue-list">
+        <!-- Javascript populates this -->
+      </div>
+    </main>
+
+    <script>
+      const clinicId = localStorage.getItem("tap2med_clinic_id");
+      if (!clinicId) window.location.href = "/staff-login";
+
+      function logout() {
+          localStorage.removeItem("tap2med_clinic_id");
+          localStorage.removeItem("tap2med_staff_role");
+          window.location.href = "/staff-login";
+      }
+
+      function getShortCode(tokenNumber) {
+          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+          const letter = letters[(tokenNumber - 1) % 24]; 
+          return `${letter}-${tokenNumber}`; 
+      }
+
+      async function loadStaffQueue() {
+          try {
+              const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
+              if (!response.ok) return;
+              
+              const data = await response.json();
+              const list = document.getElementById("staff-queue-list");
+              document.getElementById("queue-count").textContent = `${data.queue ? data.queue.length : 0} Waiting`;
+              list.innerHTML = "";
+
+              if (!data.queue || data.queue.length === 0) {
+                  list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Queue is empty.</div>';
+                  return;
+              }
+
+              data.queue.forEach((patient, index) => {
+                  const shortCode = getShortCode(patient.daily_token_number);
+                  const isCurrent = index === 0; // Top of the list is assumed with doctor
+                  
+                  const card = document.createElement("div");
+                  card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
+                  
+                  card.innerHTML = `
+                      <div style="display: flex; align-items: center; gap: 20px;">
+                          <div class="token-badge">#${shortCode}</div>
+                          <div>
+                              <strong style="display: block; font-size: 18px;">${isCurrent ? 'With Doctor' : 'Waiting'}</strong>
+                              <span style="color: var(--text-muted); font-size: 13px;">Joined via QR</span>
+                          </div>
+                      </div>
+                      <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color);">Remove</button>
+                  `;
+                  list.appendChild(card);
+              });
+          } catch (error) {
+              console.error("Queue error:", error);
+          }
+      }
+
+      async function cancelToken(localToken) {
+          if(!confirm("Are you sure you want to remove this patient from the queue?")) return;
+          
+          // For V1, we can simply call the complete endpoint to clear them out, 
+          // or ideally build a quick DELETE route later. 
+          try {
+              await fetch("/api/events/complete", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_token: localToken, medicines: [] })
+              });
+              loadStaffQueue();
+          } catch (e) {
+              alert("Failed to remove patient.");
+          }
+      }
+
+      // Auto-refresh every 5 seconds to stay perfectly synced with the doctor
+      loadStaffQueue();
+      setInterval(loadStaffQueue, 5000);
+    </script>
+  </body>
+</html>
