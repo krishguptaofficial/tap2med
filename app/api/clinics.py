@@ -82,9 +82,9 @@ def update_clinic_roles(clinic_id: uuid.UUID, payload: RoleUpdate, db: Session =
     
     hashed_pin = security.hash_password(payload.passcode)
     
-    if payload.role_type == "reception":
-        clinic.reception_username = payload.username
-        clinic.reception_passcode_hash = hashed_pin
+    if payload.role_type == "staff":
+        clinic.staff_username = payload.username
+        clinic.staff_passcode_hash = hashed_pin
     elif payload.role_type == "pharmacy":
         clinic.pharmacy_username = payload.username
         clinic.pharmacy_passcode_hash = hashed_pin
