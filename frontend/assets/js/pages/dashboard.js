@@ -124,7 +124,7 @@ async function loadQueue() {
                 <div class="token-number">#${shortCode}</div>
                 <div class="patient-details">
                     <strong>Waiting</strong>
-                    <span>Status: Pending</span>
+                    <span>Status: Pending ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
                 </div>
             `;
 
@@ -191,8 +191,10 @@ async function loadHistory(localToken) {
             card.style.marginBottom = "10px";
             card.style.cursor = "pointer";
 
+            const weightBadge = visit.weight ? `<span class="badge badge-info" style="font-size: 11px; margin-left: 10px;">Wt: ${visit.weight}</span>` : "";
+
             card.innerHTML = `
-                <summary style="font-weight: 600; color: var(--primary-color); outline: none;">📅 ${date}</summary>
+                <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date} ${weightBadge}</summary>
                 <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; margin-top: 10px;">
                     ${medListHTML}
                 </div>

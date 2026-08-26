@@ -306,10 +306,35 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
             formatted_history.append({
                 "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
+                "weight": visit.patient_weight, 
                 "prescriptions": matched_rx
             })
 
         return {"history": formatted_history}
 
     except Exception as e:       
+        raise HTTPException(status_code=500, detail=str(e))
+
+class WeightUpdate(BaseModel):
+    local_token: str
+    weight: str
+
+@router.put("/weight")
+def update_patient_weight(payload: WeightUpdate, db: Session = Depends(get_db)):
+    try:
+        today = datetime.now(IST).date()
+        event = db.query(models.Event).filter(
+            models.Event.local_token == payload.local_token,
+            func.date(models.Event.timestamp) == today,
+            models.Event.status == "waiting"
+        ).first()
+
+        if not event:
+            raise HTTPException(status_code=404, detail="Active token not found")
+
+        event.patient_weight = payload.weight
+        db.commit()
+
+        return {"status": "success"}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

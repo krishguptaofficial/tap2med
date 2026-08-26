@@ -68,17 +68,23 @@
 
               data.queue.forEach((patient, index) => {
                   const shortCode = getShortCode(patient.daily_token_number);
-                  const isCurrent = index === 0; // Top of the list is assumed with doctor
+                  const isCurrent = index === 0; 
                   
                   const card = document.createElement("div");
                   card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                   
                   card.innerHTML = `
-                      <div style="display: flex; align-items: center; gap: 20px;">
+                      <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
                           <div class="token-badge">#${shortCode}</div>
                           <div>
                               <strong style="display: block; font-size: 18px;">${isCurrent ? 'With Doctor' : 'Waiting'}</strong>
                               <span style="color: var(--text-muted); font-size: 13px;">Joined via QR</span>
+                          </div>
+                          
+                          <!-- OPTIONAL WEIGHT INPUT -->
+                          <div style="display:flex; gap: 8px; align-items:center; margin-left: 15px; border-left: 1px solid #e2e8f0; padding-left: 15px;">
+                              <input type="text" id="wt-${patient.local_token}" placeholder="Wt (kg)" value="${patient.weight || ''}" style="width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
+                              <button onclick="saveWeight('${patient.local_token}')" class="btn btn-secondary" style="padding: 6px 12px; height: auto; font-size: 12px;">Save Wt</button>
                           </div>
                       </div>
                       <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color);">Remove</button>
@@ -87,6 +93,21 @@
               });
           } catch (error) {
               console.error("Queue error:", error);
+          }
+      }
+
+      async function saveWeight(localToken) {
+          const wt = document.getElementById(`wt-${localToken}`).value.trim();
+          if(!wt) return;
+          try {
+              await fetch("/api/events/weight", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_token: localToken, weight: wt })
+              });
+              loadStaffQueue(); // Refresh to show saved state
+          } catch (e) {
+              alert("Failed to save weight.");
           }
       }
 

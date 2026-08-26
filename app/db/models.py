@@ -91,6 +91,8 @@ class Event(Base):
     network_token = Column(Text, index= True, nullable = False)
     local_token = Column(Text, index = True, nullable = False)
 
+    patient_weight = Column(Text, nullable=True)
+
     daily_token_number = Column(Integer, nullable= False)
     event_type = Column(String, default ="clinic_visit", nullable = False )
     timestamp= Column(DateTime(timezone=True), server_default=func.now())

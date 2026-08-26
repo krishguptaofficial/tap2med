@@ -47,7 +47,8 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "event_id": str(event.event_id), 
                 "local_token": event.local_token,
                 "daily_token_number": event.daily_token_number, 
-                "status": event.status
+                "status": event.status,
+                "weight": event.patient_weight 
             } 
             for event in queue
         ]
