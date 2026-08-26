@@ -6,6 +6,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy import func
 
+from app.core import security
 from app.db import crud, models
 from app.db.database import get_db
 
@@ -65,3 +66,30 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+   
+
+class RoleUpdate(BaseModel):
+    role_type: str # 'reception' or 'pharmacy'
+    username: str
+    passcode: str
+
+@router.put("/{clinic_id}/roles")
+def update_clinic_roles(clinic_id: uuid.UUID, payload: RoleUpdate, db: Session = Depends(get_db)):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+    
+    hashed_pin = security.hash_password(payload.passcode)
+    
+    if payload.role_type == "reception":
+        clinic.reception_username = payload.username
+        clinic.reception_passcode_hash = hashed_pin
+    elif payload.role_type == "pharmacy":
+        clinic.pharmacy_username = payload.username
+        clinic.pharmacy_passcode_hash = hashed_pin
+    else:
+        raise HTTPException(status_code=400, detail="Invalid role type")
+        
+    db.commit()
+    return {"status": "success"}

@@ -88,3 +88,7 @@ def health():
     return {
         "status": "ok"
     }   
+
+@app.get("/settings")
+def serve_settings():
+    return FileResponse("frontend/clinic/settings.html")

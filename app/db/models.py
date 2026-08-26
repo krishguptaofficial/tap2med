@@ -29,6 +29,13 @@ class Clinic(Base):
     back_populates="clinic",
     cascade="all, delete-orphan"
 )
+    # Staff & Pharmacy Credentials (Optional)
+    staff_username = Column(Text, nullable=True, unique=True)
+    staff_passcode_hash = Column(Text, nullable=True)
+    
+    pharmacy_username = Column(Text, nullable=True, unique=True)
+    pharmacy_passcode_hash = Column(Text, nullable=True)
+
     
 class EmailVerification(Base):
 
