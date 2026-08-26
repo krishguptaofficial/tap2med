@@ -69,6 +69,11 @@ def serve_settings():
     logger.info("Settings Opened")
     return FileResponse("frontend/clinic/settings.html")
 
+@app.get("/staff-login")
+def serve_staff_login():
+    logger.info("Staff Login Opened")
+    return FileResponse("frontend/clinic/staff_login.html")
+
 @app.get("/scan")
 def serve_patient_scan():
     logger.info("Scan Page Opened")

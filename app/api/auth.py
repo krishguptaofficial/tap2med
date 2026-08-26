@@ -184,3 +184,30 @@ def forgot_reset(payload: ForgotResetPayload, db: Session = Depends(get_db)):
     crud.set_clinic_password(db, clinic.clinic_id, pw_hash)
     crud.mark_verification_verified(db, verification)
     return {"status": "ok", "message": "Password reset"}
+
+
+class StaffLoginPayload(BaseModel):
+    username: str
+    passcode: str
+
+@router.post("/staff-login")
+def staff_login(payload: StaffLoginPayload, db: Session = Depends(get_db)):
+    # 1. Check if it's a Queue Staff account
+    clinic_staff = db.query(models.Clinic).filter(
+        models.Clinic.staff_username == payload.username
+    ).first()
+    
+    if clinic_staff and clinic_staff.staff_passcode_hash:
+        if security.verify_password(payload.passcode, clinic_staff.staff_passcode_hash):
+            return {"status": "success", "clinic_id": str(clinic_staff.clinic_id), "role": "staff"}
+
+    # 2. Check if it's a Pharmacy account
+    clinic_phar = db.query(models.Clinic).filter(
+        models.Clinic.pharmacy_username == payload.username
+    ).first()
+    
+    if clinic_phar and clinic_phar.pharmacy_passcode_hash:
+        if security.verify_password(payload.passcode, clinic_phar.pharmacy_passcode_hash):
+            return {"status": "success", "clinic_id": str(clinic_phar.clinic_id), "role": "pharmacy"}
+
+    raise HTTPException(status_code=401, detail="Invalid username or PIN")
