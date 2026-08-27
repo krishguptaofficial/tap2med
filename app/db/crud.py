@@ -34,14 +34,15 @@ def create_patient_event(db: Session, clinic_id: uuid.UUID, local_token: str, ne
         daily_token_number=daily_token_number
     )
 
+    # CHANGE: Look back 3 hours instead of 2 minutes to prevent duplicate tokens
     recent = db.query(models.Event).filter(
         models.Event.clinic_id == clinic_id,
         models.Event.local_token == local_token,
-        models.Event.timestamp >= datetime.now(timezone.utc) - timedelta(minutes=2)
+        models.Event.timestamp >= datetime.now(timezone.utc) - timedelta(hours=3)
     ).first()
 
     if recent:
-        return recent
+        return recent # Returns the existing token so they don't lose their place
 
     db.add(db_event)
     db.commit()

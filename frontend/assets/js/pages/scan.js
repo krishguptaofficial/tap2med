@@ -101,27 +101,28 @@ function wipeVolatileMemory() {
     console.log("Volatile memory wiped.");
 }
 
-function resetSessionTimeout() {
-    clearTimeout(inactivityTimer);
-    lastActivityTimestamp = Date.now();
-    inactivityTimer = setTimeout(wipeVolatileMemory, 60000); 
-}
-
-['touchstart', 'mousemove', 'keypress', 'scroll'].forEach(evt => 
-    window.addEventListener(evt, resetSessionTimeout, { passive: true })
-);
-
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-        wipeVolatileMemory();
-    } else if (document.visibilityState === 'visible') {
-        if (Date.now() - lastActivityTimestamp > 60000) {
-            wipeVolatileMemory();
+// Auto-Resume Session on Page Load
+window.addEventListener('DOMContentLoaded', async () => {
+    const savedLocalToken = localStorage.getItem("tap2med_local_token");
+    
+    if (savedLocalToken) {
+        try {
+            const response = await fetch(`/api/events/status/${encodeURIComponent(savedLocalToken)}`);
+            if (response.ok) {
+                const data = await response.json();
+                
+                // If they are still in the queue, jump straight to the live status screen
+                if (data.status === "In Queue") {
+                    showScreen("screen-success");
+                    startQueuePolling(savedLocalToken);
+                }
+                // If completed, we let them stay on the phone entry screen in case they need it again later
+            }
+        } catch (error) {
+            console.error("Failed to resume session:", error);
         }
     }
 });
-
-window.addEventListener('beforeunload', wipeVolatileMemory);
 
 async function submitCheckIn() {
     if (currentSessionPhone === null || selectedMemberId === null) {
