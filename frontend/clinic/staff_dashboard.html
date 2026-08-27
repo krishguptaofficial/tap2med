@@ -136,7 +136,7 @@
           const statusEl = document.getElementById("manual-status");
           const btn = document.getElementById("btn-manual-checkin");
 
-          if (!/^\\d{10}$/.test(phone)) {
+          if (!/^\d{10}$/.test(phone)) {
               statusEl.textContent = "Please enter a valid 10-digit phone number.";
               statusEl.style.color = "var(--error-color)";
               return;
