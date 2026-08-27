@@ -226,6 +226,7 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
 
         return {
             "status": "In Queue",
+            "token_number": current_visit.daily_token_number,  
             "your_position": ahead + 1,
             "people_ahead": ahead,
             "estimated_wait": f"{ahead * 10} mins"

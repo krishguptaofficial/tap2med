@@ -112,7 +112,11 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const data = await response.json();
                 
                 // If they are still in the queue, jump straight to the live status screen
+               
                 if (data.status === "In Queue") {
+                    // Inject the token number into the UI before showing the screen
+                    document.getElementById("token-display").textContent = `#${getShortCode(data.token_number)}`;
+                    
                     showScreen("screen-success");
                     startQueuePolling(savedLocalToken);
                 }
