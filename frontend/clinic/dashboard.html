@@ -1,56 +1,88 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clinic Workspace | Tap2Med</title>
+    <title>Reception | Tap2Med</title>
     <link rel="stylesheet" href="/assets/css/variables.css" />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/layout.css" />
     <link rel="stylesheet" href="/assets/css/components.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <link rel="stylesheet" href="/assets/css/forms.css" />
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
-  </head>
-  <body class="dashboard-body">
-    <!-- Sidebar -->
-    <aside id="clinicSidebar" class="sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
-          <span>Tap2Med</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item active">
-          <span style="font-size: 18px">⚡</span> Workspace
-        </a>
-        <a href="#" class="nav-item">
-          <span style="font-size: 18px">👥</span> Patient Directory
-        </a>
-        <a href="/settings" class="nav-item">
-          <span style="font-size: 18px">⚙️</span> Clinic Settings
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="doc-profile">
-          <div class="avatar">🩺</div>
-          <div class="doc-info">
-            <strong id="doc-name">Dr. Faiz</strong>
-            <span id="clinic-name">Faiz Primary Care</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-
-    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-
-    <!-- Hidden Print Layout (Only visible when printing) -->
-    <!-- Premium Print Layout (Only visible when printing) -->
-    <div id="print-layout" class="print-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <style>
+      .queue-grid { max-width: 850px; margin: 40px auto; padding: 0 20px; }
       
-      <!-- Letterhead -->
+      /* Premium Card Styling */
+      .queue-card { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: all 0.2s ease; }
+      .queue-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
+      .queue-card.active-patient { border-color: var(--primary-color); background: linear-gradient(to right, rgba(2, 132, 199, 0.05), #ffffff); box-shadow: 0 0 0 1px var(--primary-color), 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+      
+      .token-badge { font-size: 26px; font-weight: 800; color: var(--primary-color); background: #f1f5f9; padding: 12px 20px; border-radius: 12px; letter-spacing: -0.02em; }
+      .active-patient .token-badge { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
+      
+      /* Header Branding */
+      .brand-header { display: flex; align-items: center; gap: 12px; }
+      .brand-logo { width: 38px; height: 32px; object-fit: contain; }
+      .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
+      .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
+      .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+      /* Print Layout Isolation */
+      .print-only { display: none; }
+      @media print {
+          body * { visibility: hidden; }
+          .print-only, .print-only * { visibility: visible; }
+          .print-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+          @page { margin: 1cm; }
+      }
+    </style>
+  </head>
+  <body style="background: #f8fafc;">
+    
+    <header class="top-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
+      <div class="brand-header">
+        <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" onerror="this.style.display='none'" />
+        <span class="brand-text">Tap2Med</span>
+        <div class="brand-divider"></div>
+        <span class="brand-role">Reception</span>
+      </div>
+      <button onclick="logout()" class="btn btn-secondary btn-sm" style="font-weight: 600;">Log Out</button>
+    </header>
+
+    <main class="queue-grid">
+      
+      <!-- Walk-in Registration -->
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; margin-bottom: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">📱</span> Manual Walk-in Check-In
+        </h3>
+        <div style="display: flex; gap: 16px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Phone Number</label>
+                <input type="tel" id="walkin-phone" class="input" placeholder="Enter 10-digit number" maxlength="10" style="background: #f8fafc;">
+            </div>
+            <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin">Generate Token</button>
+        </div>
+        <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
+      </div>
+
+      <!-- Waiting Section -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h3 style="margin: 0; font-size: 20px; color: var(--text-main); font-weight: 800;">Waiting Room</h3>
+        <span class="badge badge-info" id="queue-count" style="font-size: 14px; padding: 6px 12px;">Updating...</span>
+      </div>
+      <div id="staff-queue-list" style="margin-bottom: 48px;"></div>
+
+      <!-- Completed Section -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-top: 32px; border-top: 2px dashed #cbd5e1;">
+        <h3 style="margin: 0; font-size: 18px; color: #64748b; font-weight: 700;">Completed Visits</h3>
+        <span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 14px; padding: 6px 12px;" id="completed-count">0</span>
+      </div>
+      <div id="staff-completed-list"></div>
+    </main>
+
+    <!-- Premium Print Layout -->
+    <div id="print-layout" class="print-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
         <div>
           <h1 id="print-clinic-name" style="margin: 0; font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">Clinic Name</h1>
@@ -61,30 +93,17 @@
           <p id="print-date" style="margin: 4px 0 0; font-size: 14px; color: #475569;">Date: </p>
         </div>
       </div>
-
-      <!-- Scribble Bar for Physical Hand-offs -->
       <div style="display: flex; gap: 30px; margin-bottom: 30px; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; color: #334155;">
         <div style="flex: 2;"><strong>Name:</strong> ___________________________</div>
         <div style="flex: 1;"><strong>Age/Sex:</strong> _______</div>
-        <div style="flex: 1;"><strong>Wt:</strong> _______</div>
+        <div style="flex: 1;"><strong>Vitals:</strong> <span id="print-vitals-field">_______</span></div>
       </div>
-      
-      <!-- Rx Symbol -->
       <div style="margin-bottom: 25px;">
         <span style="font-size: 36px; font-weight: bold; font-family: 'Times New Roman', serif; color: #0f172a;">&#8471;</span>
       </div>
-      
-      <!-- Medicines List -->
-      <div id="print-medicines" style="min-height: 450px;">
-        <!-- JS will populate medicines here -->
-      </div>
-      
-      <!-- Footer & Signature Line -->
+      <div id="print-medicines" style="min-height: 450px;"></div>
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-        <div style="font-size: 12px; color: #64748b;">
-          <strong>Powered by Tap2Med</strong><br>
-          Smart Clinic Network
-        </div>
+        <div style="font-size: 12px; color: #64748b;"><strong>Powered by Tap2Med</strong><br>Smart Clinic Network</div>
         <div style="text-align: center; width: 200px;">
           <div style="border-bottom: 1px solid #0f172a; height: 40px; margin-bottom: 8px;"></div>
           <span style="font-size: 14px; color: #0f172a; font-weight: 600;">Doctor's Signature</span>
@@ -92,101 +111,344 @@
       </div>
     </div>
 
-    <!-- Main Workspace -->
-    <main class="main-content">
-      <!-- Top Status Bar -->
-      <header class="top-header">
-        <button id="sidebarToggle" class="btn-toggle">☰</button>
-        <div class="header-status" style="display: flex; align-items: center; gap: 15px;">
-          <button onclick="showQRCode()" class="btn btn-secondary" style="padding: 6px 12px; font-size: 14px;">View QR Code</button>
-          <div style="display: flex; align-items: center; gap: 5px;">
-            <span class="pulse-dot"></span>
-            Passive Capture Live
-          </div>
+    <!-- Complete Vitals Modal -->
+    <div id="vitals-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center;">
+      <div style="background: white; padding: 32px; border-radius: 16px; width: 100%; max-width: 550px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        <h3 style="margin-top: 0; color: var(--text-main); margin-bottom: 24px; font-size: 20px; font-weight: 700;">Add Vitals</h3>
+        
+        <input type="hidden" id="vitals-token">
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <!-- BP & Pulse -->
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <input type="number" id="vital-bp-sys" placeholder="Sys" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                    <span style="color: #94a3b8; font-weight: bold;">/</span>
+                    <input type="number" id="vital-bp-dia" placeholder="Dia" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+                </div>
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Pulse (bpm)</label>
+                <input type="number" id="vital-pr" placeholder="e.g. 80" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+            
+            <!-- Weight & Height -->
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Weight (kg)</label>
+                <input type="number" id="vital-wt" placeholder="e.g. 70" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Height (cm)</label>
+                <input type="number" id="vital-ht" placeholder="e.g. 170" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+
+            <!-- Temp & SpO2 -->
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Temperature (F)</label>
+                <input type="number" id="vital-temp" placeholder="e.g. 98.6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">SpO2 (%)</label>
+                <input type="number" id="vital-spo2" placeholder="e.g. 99" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+
+            <!-- Waist & Hip -->
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Waist (cm)</label>
+                <input type="number" id="vital-waist" placeholder="e.g. 85" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
+            <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Hip (cm)</label>
+                <input type="number" id="vital-hip" placeholder="e.g. 95" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
+            </div>
         </div>
-      </header>
 
-      <!-- Split Grid Layout -->
-      <div class="dashboard-layout">
-        <!-- Left Column: The Queue -->
-        <div class="queue-section">
-          <div class="section-header">
-            <h2>Waiting Room</h2>
-            <span class="badge badge-info" id="queue-count">Live</span>
-          </div>
-
-          <div class="queue-list" id="queue-list">
-            <!-- Queue Items (Populated by JS) -->
-            <div class="queue-card active">
-              <div class="token-number" id="current-token">#--</div>
-              <div class="patient-details">
-                <strong>Current Patient</strong>
-                <span>Ready for consultation</span>
-              </div>
-            </div>
-            <!-- Future queue items map here -->
-          </div>
-        </div>
-
-        <!-- Right Column: The Rx Pad -->
-        <div class="consultation-section">
-          <div class="consultation-card">
-            <div class="consultation-header">
-              <div>
-                <span class="eyebrow">Active Token</span>
-                <h2>Prescription Pad</h2>
-              </div>
-              <span id="prescription-status" class="badge badge-warning">Waiting...</span>
-            </div>
-
-            <!-- History Accordion -->
-            <div class="visit-history-preview">
-              <details>
-                <summary>View Patient Medical History</summary>
-                <div class="history-data" id="history-content">
-                  <p class="text-sm text-muted">Waiting for patient scan...</p>
-                </div>
-              </details>
-            </div>
-
-            <!-- Prescription Builder -->
-            <div class="prescription-builder" id="rx-container">
-              <div class="prescription-row">
-                <div class="field">
-                  <label>Medicine Name</label>
-                  <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
-                </div>
-                <div class="field">
-                  <label>Dosage & Instructions</label>
-                  <input type="text" class="input rx-freq" placeholder="e.g. 1-0-1 After Meals" autocomplete="off" />
-                </div>
-              </div>
-            </div>
-
-            <button id="add-row-btn" class="btn btn-ghost btn-block add-medicine-btn">
-              + Add Medicine
-            </button>
-
-            <div class="consultation-actions">
-              <button id="print-btn" class="btn btn-primary btn-lg btn-block">
-                Save & Send to WhatsApp
-              </button>
-            </div>
-          </div>
+        <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+            <button onclick="closeVitalsModal()" class="btn btn-ghost" style="color: var(--text-muted);">Cancel</button>
+            <button onclick="submitVitals()" class="btn btn-primary" style="padding-left: 24px; padding-right: 24px;">Save Vitals</button>
         </div>
       </div>
-    </main>
-
-    <!-- QR Code Modal -->
-    <div id="qrModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
-        <div style="background: white; padding: 40px; border-radius: 12px; text-align: center; max-width: 350px;">
-            <h2 style="margin-bottom: 15px; color: var(--primary-color);">Clinic Check-In</h2>
-            <div id="dashboardQRCode" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
-            <button onclick="window.print()" class="btn btn-primary btn-block" style="background-color: var(--success-color);">Print for Wall</button>
-            <button onclick="document.getElementById('qrModal').style.display='none'" class="btn btn-ghost btn-block" style="margin-top: 10px;">Close</button>
-        </div>
     </div>
 
-    <script src="/assets/js/pages/dashboard.js"></script>
+    <script>
+      const clinicId = localStorage.getItem("tap2med_clinic_id");
+      if (!clinicId) window.location.href = "/staff-login";
+
+      let currentClinicName = "Clinic";
+      let currentDoctorName = "Doctor";
+
+      // Client-side only name storage (Never hits the database)
+      let patientNames = JSON.parse(localStorage.getItem("tap2med_patient_names") || "{}");
+
+      function saveName(localToken) {
+          const nameInput = document.getElementById(`name-${localToken}`).value.trim();
+          if (nameInput) {
+              patientNames[localToken] = nameInput;
+              localStorage.setItem("tap2med_patient_names", JSON.stringify(patientNames));
+              loadStaffQueue(); 
+          }
+      }
+
+      function logout() {
+          localStorage.removeItem("tap2med_clinic_id");
+          localStorage.removeItem("tap2med_staff_role");
+          window.location.href = "/staff-login";
+      }
+
+      function getShortCode(tokenNumber) {
+          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+          const letter = letters[(tokenNumber - 1) % 24]; 
+          return `${letter}-${tokenNumber}`; 
+      }
+
+      async function manualCheckIn() {
+          const phoneInput = document.getElementById("walkin-phone");
+          const phone = phoneInput.value.trim();
+          const statusEl = document.getElementById("manual-status");
+          const btn = document.getElementById("btn-manual-checkin");
+
+          if (!/^\d{10}$/.test(phone)) {
+              statusEl.textContent = "Please enter a valid 10-digit phone number.";
+              statusEl.style.color = "var(--error-color)";
+              return;
+          }
+
+          btn.disabled = true;
+          btn.textContent = "Generating...";
+          statusEl.textContent = "";
+
+          try {
+              const response = await fetch("/api/events/visit/start", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                      phone: phone,
+                      member_id: 0,
+                      clinic_id: clinicId
+                  })
+              });
+
+              if (!response.ok) throw new Error("Check-in failed");
+
+              const data = await response.json();
+              const tokenStr = getShortCode(data.queue_number);
+              
+              statusEl.innerHTML = `Success! Token is <strong style="font-size: 18px; color: var(--primary-color);">#${tokenStr}</strong>`;
+              statusEl.style.color = "var(--success-color)";
+              phoneInput.value = "";
+              
+              loadStaffQueue();
+          } catch (error) {
+              statusEl.textContent = "Failed to add patient to queue.";
+              statusEl.style.color = "var(--error-color)";
+          } finally {
+              btn.disabled = false;
+              btn.textContent = "Generate Token";
+          }
+      }
+
+      function openVitalsModal(localToken) {
+          document.getElementById('vitals-token').value = localToken;
+          document.getElementById('vitals-modal').style.display = 'flex';
+          
+          ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
+              document.getElementById(`vital-${id}`).value = '';
+          });
+      }
+
+      function closeVitalsModal() {
+          document.getElementById('vitals-modal').style.display = 'none';
+      }
+
+      async function submitVitals() {
+          const localToken = document.getElementById('vitals-token').value;
+          
+          const sys = document.getElementById('vital-bp-sys').value.trim();
+          const dia = document.getElementById('vital-bp-dia').value.trim();
+          const pr = document.getElementById('vital-pr').value.trim();
+          const wt = document.getElementById('vital-wt').value.trim();
+          const ht = document.getElementById('vital-ht').value.trim();
+          const temp = document.getElementById('vital-temp').value.trim();
+          const spo2 = document.getElementById('vital-spo2').value.trim();
+          const waist = document.getElementById('vital-waist').value.trim();
+          const hip = document.getElementById('vital-hip').value.trim();
+
+          let compiledVitals = [];
+          if (sys && dia) compiledVitals.push(`BP:${sys}/${dia}`);
+          if (pr) compiledVitals.push(`PR:${pr}`);
+          if (wt) compiledVitals.push(`Wt:${wt}kg`);
+          if (ht) compiledVitals.push(`Ht:${ht}cm`);
+          if (temp) compiledVitals.push(`T:${temp}F`);
+          if (spo2) compiledVitals.push(`SpO2:${spo2}%`);
+          if (waist) compiledVitals.push(`Waist:${waist}cm`);
+          if (hip) compiledVitals.push(`Hip:${hip}cm`);
+
+          const finalString = compiledVitals.join(' | ');
+          
+          if (!finalString) {
+              closeVitalsModal();
+              return; 
+          }
+
+          try {
+              await fetch("/api/events/weight", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_token: localToken, weight: finalString })
+              });
+              
+              closeVitalsModal();
+              loadStaffQueue(); 
+          } catch (e) {
+              alert("Failed to save vitals.");
+          }
+      }
+
+      async function loadStaffQueue() {
+          try {
+              const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
+              if (!response.ok) return;
+              
+              const data = await response.json();
+              currentClinicName = data.clinic_name;
+              currentDoctorName = data.doctor_name;
+              
+              const list = document.getElementById("staff-queue-list");
+              const completedList = document.getElementById("staff-completed-list");
+              
+              const waiting = data.queue.filter(p => p.status === 'waiting');
+              const completed = data.queue.filter(p => p.status === 'completed');
+
+              document.getElementById("queue-count").textContent = `${waiting.length} Waiting`;
+              document.getElementById("completed-count").textContent = `${completed.length} Completed`;
+              
+              list.innerHTML = "";
+              completedList.innerHTML = "";
+
+              if (waiting.length === 0) {
+                  list.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">Waiting room is empty.</div>';
+              } else {
+                  waiting.forEach((patient, index) => {
+                      const shortCode = getShortCode(patient.daily_token_number);
+                      const isCurrent = index === 0; 
+                      const savedName = patientNames[patient.local_token] || '';
+                      
+                      const card = document.createElement("div");
+                      card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
+                      card.innerHTML = `
+                          <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                              <div class="token-badge">#${shortCode}</div>
+                              <div>
+                                  <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
+                                      ${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'}
+                                  </strong>
+                                  <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Added to Queue</span>
+                              </div>
+                              
+                              <div style="display:flex; gap: 8px; align-items:center; margin-left: 20px;">
+                                  ${savedName 
+                                      ? `<span style="font-size: 16px; font-weight: 700; color: var(--primary-color); background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">👤 ${savedName}</span>` 
+                                      : `<input type="text" id="name-${patient.local_token}" placeholder="Patient Name" style="width: 120px; padding: 8px; border: 1px dashed #cbd5e1; border-radius: 8px; font-size: 13px; background: transparent;">
+                                         <button onclick="saveName('${patient.local_token}')" class="btn btn-ghost" style="padding: 6px; color: var(--primary-color);">Save</button>`
+                                  }
+                              </div>
+
+                              <div style="display:flex; flex-direction: column; gap: 4px; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px;">
+                                  <button onclick="openVitalsModal('${patient.local_token}')" class="btn btn-secondary" style="padding: 6px 16px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Add Vitals</button>
+                                  ${patient.weight ? `<span style="font-size: 12px; color: var(--success-color); font-weight: 600; text-align: center;">✓ Saved</span>` : ''}
+                              </div>
+                          </div>
+                          <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color); padding: 8px 16px; margin-left: 16px;">Remove</button>
+                      `;
+                      list.appendChild(card);
+                  });
+              }
+
+              if (completed.length === 0) {
+                   completedList.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: #cbd5e1; font-weight: 500;">No completed visits yet.</div>';
+              } else {
+                  completed.forEach(patient => {
+                      const shortCode = getShortCode(patient.daily_token_number);
+                      const card = document.createElement("div");
+                      card.className = "queue-card";
+                      card.style.background = "#f1f5f9";
+                      card.style.borderColor = "#e2e8f0";
+                      card.style.boxShadow = "none";
+                      card.innerHTML = `
+                          <div style="display: flex; align-items: center; gap: 24px;">
+                              <div class="token-badge" style="background: #e2e8f0; color: #94a3b8;">#${shortCode}</div>
+                              <div>
+                                  <strong style="display: block; font-size: 16px; color: #475569; margin-bottom: 2px;">Consultation Completed</strong>
+                                  <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Visited Today</span>
+                              </div>
+                          </div>
+                          <div>
+                              <button onclick="printPrescription('${patient.local_token}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🖨️ Print Rx</button>
+                          </div>
+                      `;
+                      completedList.appendChild(card);
+                  });
+              }
+          } catch (error) {
+              console.error("Queue error:", error);
+          }
+      }
+
+      async function cancelToken(localToken) {
+          if(!confirm("Are you sure you want to remove this patient from the queue?")) return;
+          try {
+              await fetch("/api/events/complete", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_token: localToken, medicines: [] })
+              });
+              loadStaffQueue();
+          } catch (e) {
+              alert("Failed to remove patient.");
+          }
+      }
+
+      async function printPrescription(localToken) {
+          try {
+              const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+              const data = await response.json();
+              if (!data.history || data.history.length === 0) {
+                  alert("No prescription found.");
+                  return;
+              }
+              
+              const visit = data.history[0]; 
+              const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+              
+              document.getElementById("print-clinic-name").textContent = currentClinicName;
+              document.getElementById("print-doctor-name").textContent = currentDoctorName;
+              document.getElementById("print-date").textContent = `Date: ${today}`;
+              document.getElementById("print-vitals-field").textContent = visit.weight ? visit.weight : "N/A";
+              
+              const printMedContainer = document.getElementById("print-medicines");
+              printMedContainer.innerHTML = "";
+              
+              visit.prescriptions.forEach((med, index) => {
+                  printMedContainer.innerHTML += `
+                      <div style="display: flex; gap: 15px; margin-bottom: 24px; align-items: baseline;">
+                          <div style="font-weight: 700; font-size: 16px; color: #0f172a; min-width: 25px;">${index + 1}.</div>
+                          <div>
+                              <strong style="font-size: 18px; color: #0f172a; display: block; letter-spacing: -0.01em;">${med.name}</strong>
+                              <span style="font-size: 15px; color: #475569; display: block; margin-top: 4px; font-style: italic;">${med.instructions}</span>
+                          </div>
+                      </div>
+                  `;
+              });
+              
+              window.print();
+          } catch (e) {
+              alert("Failed to load prescription for printing.");
+          }
+      }
+
+      loadStaffQueue();
+      setInterval(loadStaffQueue, 5000);
+    </script>
   </body>
 </html>
