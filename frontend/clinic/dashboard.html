@@ -377,21 +377,23 @@
 
       // 5. Instantly clear inputs & refresh vitals when a new patient hits the screen
       async function fetchActiveVitals() {
-          try {
-              const clinicId = localStorage.getItem("tap2med_clinic_id");
-              const res = await fetch(`/api/clinics/queue/${clinicId}`);
-              const data = await res.json();
-              const activePatient = data.queue.find(p => p.status === 'waiting');
-              const display = document.getElementById('doctor-vitals-display');
-              
-              if (activePatient && activePatient.weight) {
-                  display.style.display = 'block';
-                  display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${activePatient.weight}</span>`;
-              } else {
-                  display.style.display = 'none';
-              }
-          } catch (e) {}
-      }
+    try {
+        const clinicId = localStorage.getItem("tap2med_clinic_id");
+        const res = await fetch(`/api/clinics/queue/${clinicId}`);
+        const data = await res.json();
+        const activePatient = data.queue.find(p => p.status === 'waiting');
+        const display = document.getElementById('doctor-vitals-display');
+        
+        if (activePatient && activePatient.weight) {
+            window.currentActiveVitals = activePatient.weight; // Store it for the modal to use
+            display.style.display = 'block';
+            display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${activePatient.weight}</span>`;
+        } else {
+            window.currentActiveVitals = ""; // Wipe it if empty
+            display.style.display = 'none';
+        }
+    } catch (e) {}
+}
 
       const tokenObserver = new MutationObserver(() => {
           document.querySelectorAll('.rx-dosage, .rx-days, #life-adv-ui, #life-dur-ui').forEach(el => el.value = '');
