@@ -1,4 +1,4 @@
-// 1. Safely grab the clinic ID from storage
+
 const clinicId = localStorage.getItem("tap2med_clinic_id");
 
 // 2. Boot unauthenticated users or broken sessions back to login

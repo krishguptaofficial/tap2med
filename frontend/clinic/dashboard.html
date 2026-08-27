@@ -172,17 +172,12 @@
                  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px;">
                    <div class="field">
                      <label style="color: #166534; font-size: 12px; font-weight: 600;">Advice / Lifestyle Change</label>
-                     <input type="text" id="life-adv-ui" class="input" placeholder="e.g. Drink warm water" style="background: white; border-color: #bbf7d0;" oninput="updateLife()" />
+                     <input type="text" id="life-adv-ui" class="input" placeholder="e.g. Drink warm water" style="background: white; border-color: #bbf7d0;" />
                    </div>
                    <div class="field">
                      <label style="color: #166534; font-size: 12px; font-weight: 600;">Duration</label>
-                     <input type="text" id="life-dur-ui" class="input" placeholder="e.g. 1 month" style="background: white; border-color: #bbf7d0;" oninput="updateLife()" />
+                     <input type="text" id="life-dur-ui" class="input" placeholder="e.g. 1 month" style="background: white; border-color: #bbf7d0;" />
                    </div>
-                 </div>
-                 <!-- HIDDEN: This completely tricks dashboard.js into saving advice as medicine -->
-                 <div class="prescription-row" style="display: none;">
-                    <input type="hidden" class="rx-med" id="life-med-hidden" />
-                    <input type="hidden" class="rx-freq" id="life-freq-hidden" />
                  </div>
               </div>
             </div>
@@ -302,13 +297,26 @@
           row.querySelector('.rx-freq').value = inst;
       }
 
-      // 2. Lifestyle Advice Handler: Syncs to a hidden prescription row
-      function updateLife() {
+      // 2. The Ghost Injector: Guarantees Lifestyle Advice prints AND saves without touching dashboard.js
+      // By using 'true' at the end, this fires BEFORE your original save function triggers!
+      document.getElementById('print-btn').addEventListener('click', () => {
+          document.querySelectorAll('.temp-lifestyle-row').forEach(el => el.remove());
+          
           const adv = document.getElementById('life-adv-ui').value.trim();
           const dur = document.getElementById('life-dur-ui').value.trim();
-          document.getElementById('life-med-hidden').value = adv ? `Advice: ${adv}` : "";
-          document.getElementById('life-freq-hidden').value = dur ? `Duration: ${dur}` : "";
-      }
+          
+          if (adv) {
+              const container = document.getElementById('rx-container');
+              const tempRow = document.createElement('div');
+              tempRow.className = 'prescription-row temp-lifestyle-row';
+              tempRow.style.display = 'none';
+              tempRow.innerHTML = `
+                  <input type="hidden" class="rx-med" value="Advice: ${adv}">
+                  <input type="hidden" class="rx-freq" value="${dur ? 'Duration: ' + dur : ''}">
+              `;
+              container.appendChild(tempRow);
+          }
+      }, true);
 
       // 3. Add Row Interceptor: Ensures new rows match the 3-grid layout
       document.addEventListener("DOMContentLoaded", () => {
