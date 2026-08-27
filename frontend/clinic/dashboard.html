@@ -316,12 +316,44 @@
       });
 
       // 4. Vitals Logic (Fetches token directly to bypass dashboard.js scope limitations)
-      function openVitalsModal() {
-          document.getElementById('vitals-modal').style.display = 'flex';
-          ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
-              document.getElementById(`vital-${id}`).value = '';
-          });
-      }
+      async function openVitalsModal() {
+    // Show the modal immediately so the UI feels fast
+    document.getElementById('vitals-modal').style.display = 'flex';
+    
+    // 1. Clear old inputs to prevent ghost data
+    ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
+        document.getElementById(`vital-${id}`).value = '';
+    });
+
+    try {
+        // 2. Failsafe: Actively pull the absolute latest vitals straight from the server
+        const clinicId = localStorage.getItem("tap2med_clinic_id");
+        const res = await fetch(`/api/clinics/queue/${clinicId}`);
+        const data = await res.json();
+        const activePatient = data.queue.find(p => p.status === 'waiting');
+        
+        // 3. Decode the string and fill the boxes perfectly
+        if (activePatient && activePatient.weight) {
+            const parts = activePatient.weight.split('|').map(p => p.trim());
+            parts.forEach(part => {
+                if (part.includes('BP:')) {
+                    const bp = part.replace('BP:', '').split('/');
+                    if (bp[0]) document.getElementById('vital-bp-sys').value = bp[0].trim();
+                    if (bp[1]) document.getElementById('vital-bp-dia').value = bp[1].trim();
+                }
+                if (part.includes('PR:')) document.getElementById('vital-pr').value = part.replace('PR:', '').trim();
+                if (part.includes('Wt:')) document.getElementById('vital-wt').value = part.replace('Wt:', '').replace('kg', '').trim();
+                if (part.includes('Ht:')) document.getElementById('vital-ht').value = part.replace('Ht:', '').replace('cm', '').trim();
+                if (part.includes('T:')) document.getElementById('vital-temp').value = part.replace('T:', '').replace('F', '').trim();
+                if (part.includes('SpO2:')) document.getElementById('vital-spo2').value = part.replace('SpO2:', '').replace('%', '').trim();
+                if (part.includes('Waist:')) document.getElementById('vital-waist').value = part.replace('Waist:', '').replace('cm', '').trim();
+                if (part.includes('Hip:')) document.getElementById('vital-hip').value = part.replace('Hip:', '').replace('cm', '').trim();
+            });
+        }
+    } catch (e) {
+        console.error("Could not auto-fill vitals:", e);
+    }
+}
 
       function closeVitalsModal() {
           document.getElementById('vitals-modal').style.display = 'none';
