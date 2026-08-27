@@ -184,8 +184,8 @@ async function submitCheckIn() {
 }
 
 function getShortCode(tokenNumber) {
-    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
-    const letter = letters[(tokenNumber - 1) % 24]; 
+    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const letter = letters[(tokenNumber - 1) % 24];
     return `${letter}-${tokenNumber}`; 
 }
 
