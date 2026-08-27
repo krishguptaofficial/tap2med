@@ -404,7 +404,9 @@
           tokenObserver.observe(currentTokenEl, { childList: true, characterData: true, subtree: true });
       }
       
-      setTimeout(fetchActiveVitals, 1000);
+      // CONSTANT SYNC: Check for updates from reception every 3 seconds
+      fetchActiveVitals();
+      setInterval(fetchActiveVitals, 3000);
     </script>
   </body>
 </html>
