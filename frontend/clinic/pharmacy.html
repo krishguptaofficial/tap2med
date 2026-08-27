@@ -10,31 +10,57 @@
     <link rel="stylesheet" href="/assets/css/components.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <style>
-      .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 20px; }
-      .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 12px; margin-bottom: 20px; padding: 24px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1); transition: opacity 0.3s ease; }
-      .rx-card.packed { border-color: var(--border-color); opacity: 0.5; box-shadow: none; background: #f8fafc; }
-      .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
-      .token-badge { font-size: 32px; font-weight: 800; color: var(--primary-color); }
-      .packed .token-badge { color: var(--text-muted); }
-      .med-list { list-style: none; padding: 0; margin: 0; }
-      .med-item { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+      .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+      
+      /* Premium Rx Card */
+      .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 16px; margin-bottom: 24px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+      .rx-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary-color); }
+      
+      /* Packed State */
+      .rx-card.packed { border-color: #e2e8f0; opacity: 0.6; box-shadow: none; background: #f8fafc; }
+      .rx-card.packed::before { background: #cbd5e1; }
+      
+      .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px dashed #cbd5e1; }
+      .token-badge { font-size: 36px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.03em; line-height: 1; }
+      .packed .token-badge { color: #64748b; }
+      
+      .med-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+      .med-item { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: background 0.2s; }
+      .rx-card:not(.packed) .med-item:hover { background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
       .med-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
-      .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 500; }
+      .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 600; font-style: italic; }
+
+      /* Header Branding */
+      .brand-header { display: flex; align-items: center; gap: 12px; }
+      .brand-logo { width: 38px; height: 32px; object-fit: contain; }
+      .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
+      .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
+      .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
     </style>
   </head>
-  <body style="background: var(--bg-canvas);">
+  <body style="background: #f1f5f9;">
     
-    <header class="top-header" style="background: white; padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
-      <h2 style="margin: 0; color: var(--primary-color);">Live Pharmacy Feed</h2>
-      <div style="display: flex; gap: 15px;">
-          <button onclick="clearPacked()" class="btn btn-secondary">Clear Packed (End of Day)</button>
-          <button onclick="logout()" class="btn btn-ghost">Log Out</button>
+    <header class="top-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
+      <div class="brand-header">
+        <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" />
+        <span class="brand-text">Tap2Med</span>
+        <div class="brand-divider"></div>
+        <span class="brand-role">Pharmacy</span>
+      </div>
+      <div style="display: flex; gap: 16px;">
+          <button onclick="clearPacked()" class="btn btn-secondary btn-sm" style="background: white;">Clear Packed History</button>
+          <button onclick="logout()" class="btn btn-ghost btn-sm" style="font-weight: 600;">Log Out</button>
       </div>
     </header>
 
     <main class="pharmacy-grid">
+      <div style="margin-bottom: 30px;">
+        <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main);">Live Prescription Feed</h2>
+        <p style="margin: 8px 0 0; color: var(--text-muted); font-weight: 500;">Prescriptions sync instantly when the doctor saves them.</p>
+      </div>
+
       <div id="rx-feed">
-        <p style="text-align: center; color: var(--text-muted); margin-top: 50px;">Waiting for prescriptions...</p>
+        <p style="text-align: center; color: var(--text-muted); margin-top: 80px; font-weight: 500; font-size: 16px;">Waiting for prescriptions...</p>
       </div>
     </main>
 
@@ -84,7 +110,7 @@
               const feedContainer = document.getElementById("rx-feed");
               
               if (!data.feed || data.feed.length === 0) {
-                  feedContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No prescriptions generated yet today.</div>';
+                  feedContainer.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500; margin-top: 20px;">No prescriptions generated yet today.</div>';
                   return;
               }
 
@@ -111,8 +137,8 @@
                   card.innerHTML = `
                       <div class="rx-header">
                           <div class="token-badge">#${shortCode}</div>
-                          <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? '' : 'background-color: var(--success-color);'}">
-                              ${isPacked ? 'Undo' : 'Mark as Packed'}
+                          <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? 'background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);' : 'background: var(--success-color); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); padding: 0 24px;'}">
+                              ${isPacked ? 'Undo' : '✓ Mark as Packed'}
                           </button>
                       </div>
                       ${medHtml}

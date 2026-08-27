@@ -3,19 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Staff Reception | Tap2Med</title>
+    <title>Reception | Tap2Med</title>
     <link rel="stylesheet" href="/assets/css/variables.css" />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/layout.css" />
     <link rel="stylesheet" href="/assets/css/components.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <style>
-      .queue-grid { max-width: 800px; margin: 40px auto; padding: 20px; }
-      .queue-card { display: flex; align-items: center; justify-content: space-between; padding: 20px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-      .queue-card.active-patient { border-color: var(--primary-color); background: rgba(2, 132, 199, 0.05); }
-      .token-badge { font-size: 24px; font-weight: 800; color: var(--primary-color); background: #f1f5f9; padding: 10px 20px; border-radius: 8px; }
-      .active-patient .token-badge { background: var(--primary-color); color: white; }
+      .queue-grid { max-width: 850px; margin: 40px auto; padding: 0 20px; }
       
+      /* Premium Card Styling */
+      .queue-card { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: all 0.2s ease; }
+      .queue-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
+      .queue-card.active-patient { border-color: var(--primary-color); background: linear-gradient(to right, rgba(2, 132, 199, 0.05), #ffffff); box-shadow: 0 0 0 1px var(--primary-color), 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+      
+      .token-badge { font-size: 26px; font-weight: 800; color: var(--primary-color); background: #f1f5f9; padding: 12px 20px; border-radius: 12px; letter-spacing: -0.02em; }
+      .active-patient .token-badge { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
+      
+      /* Header Branding */
+      .brand-header { display: flex; align-items: center; gap: 12px; }
+      .brand-logo { width: 38px; height: 32px; object-fit: contain; }
+      .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
+      .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
+      .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
       /* Print Layout Isolation */
       .print-only { display: none; }
       @media print {
@@ -26,30 +37,51 @@
       }
     </style>
   </head>
-  <body style="background: var(--bg-canvas);">
+  <body style="background: #f8fafc;">
     
-    <header class="top-header" style="background: white; padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
-      <h2 style="margin: 0; color: var(--primary-color);">Front Desk Operations</h2>
-      <button onclick="logout()" class="btn btn-ghost">Log Out</button>
+    <header class="top-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
+      <div class="brand-header">
+        <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" />
+        <span class="brand-text">Tap2Med</span>
+        <div class="brand-divider"></div>
+        <span class="brand-role">Reception</span>
+      </div>
+      <button onclick="logout()" class="btn btn-secondary btn-sm" style="font-weight: 600;">Log Out</button>
     </header>
 
     <main class="queue-grid">
-      <!-- Waiting Section -->
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-        <h3 style="margin: 0;">Waiting Room</h3>
-        <span class="badge badge-info" id="queue-count">Updating...</span>
+      
+      <!-- Walk-in Registration -->
+      <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; margin-bottom: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);">
+        <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 20px;">📱</span> Manual Walk-in Check-In
+        </h3>
+        <div style="display: flex; gap: 16px; align-items: flex-end;">
+            <div style="flex: 1;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Phone Number</label>
+                <input type="tel" id="walkin-phone" class="input" placeholder="Enter 10-digit number" maxlength="10" style="background: #f8fafc;">
+            </div>
+            <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin">Generate Token</button>
+        </div>
+        <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
       </div>
-      <div id="staff-queue-list" style="margin-bottom: 40px;"></div>
+
+      <!-- Waiting Section -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h3 style="margin: 0; font-size: 20px; color: var(--text-main); font-weight: 800;">Waiting Room</h3>
+        <span class="badge badge-info" id="queue-count" style="font-size: 14px; padding: 6px 12px;">Updating...</span>
+      </div>
+      <div id="staff-queue-list" style="margin-bottom: 48px;"></div>
 
       <!-- Completed Section -->
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; padding-top: 20px; border-top: 2px dashed #cbd5e1;">
-        <h3 style="margin: 0; color: #475569;">Completed Visits</h3>
-        <span class="badge" style="background: #e2e8f0; color: #475569;" id="completed-count">0</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-top: 32px; border-top: 2px dashed #cbd5e1;">
+        <h3 style="margin: 0; font-size: 18px; color: #64748b; font-weight: 700;">Completed Visits</h3>
+        <span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 14px; padding: 6px 12px;" id="completed-count">0</span>
       </div>
       <div id="staff-completed-list"></div>
     </main>
 
-    <!-- Premium Print Layout (Only visible when printing) -->
+    <!-- Premium Print Layout -->
     <div id="print-layout" class="print-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
         <div>
@@ -98,6 +130,52 @@
           return `${letter}-${tokenNumber}`; 
       }
 
+      async function manualCheckIn() {
+          const phoneInput = document.getElementById("walkin-phone");
+          const phone = phoneInput.value.trim();
+          const statusEl = document.getElementById("manual-status");
+          const btn = document.getElementById("btn-manual-checkin");
+
+          if (!/^\\d{10}$/.test(phone)) {
+              statusEl.textContent = "Please enter a valid 10-digit phone number.";
+              statusEl.style.color = "var(--error-color)";
+              return;
+          }
+
+          btn.disabled = true;
+          btn.textContent = "Generating...";
+          statusEl.textContent = "";
+
+          try {
+              const response = await fetch("/api/events/visit/start", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                      phone: phone,
+                      member_id: 0,
+                      clinic_id: clinicId
+                  })
+              });
+
+              if (!response.ok) throw new Error("Check-in failed");
+
+              const data = await response.json();
+              const tokenStr = getShortCode(data.queue_number);
+              
+              statusEl.innerHTML = `Success! Tell the patient their token is <strong style="font-size: 18px; color: var(--primary-color);">#${tokenStr}</strong>`;
+              statusEl.style.color = "var(--success-color)";
+              phoneInput.value = "";
+              
+              loadStaffQueue();
+          } catch (error) {
+              statusEl.textContent = "Failed to add patient to queue.";
+              statusEl.style.color = "var(--error-color)";
+          } finally {
+              btn.disabled = false;
+              btn.textContent = "Generate Token";
+          }
+      }
+
       async function loadStaffQueue() {
           try {
               const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
@@ -120,7 +198,7 @@
               completedList.innerHTML = "";
 
               if (waiting.length === 0) {
-                  list.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">Waiting room is empty.</div>';
+                  list.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">Waiting room is empty.</div>';
               } else {
                   waiting.forEach((patient, index) => {
                       const shortCode = getShortCode(patient.daily_token_number);
@@ -129,42 +207,48 @@
                       const card = document.createElement("div");
                       card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                       card.innerHTML = `
-                          <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+                          <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
                               <div class="token-badge">#${shortCode}</div>
                               <div>
-                                  <strong style="display: block; font-size: 18px;">${isCurrent ? 'With Doctor' : 'Waiting'}</strong>
-                                  <span style="color: var(--text-muted); font-size: 13px;">Joined via QR</span>
+                                  <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'}</strong>
+                                  <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Added to Queue</span>
                               </div>
-                              <div style="display:flex; gap: 8px; align-items:center; margin-left: 15px; border-left: 1px solid #e2e8f0; padding-left: 15px;">
-                                  <input type="text" id="wt-${patient.local_token}" placeholder="Wt (kg)" value="${patient.weight || ''}" style="width: 70px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px;">
-                                  <button onclick="saveWeight('${patient.local_token}')" class="btn btn-secondary" style="padding: 6px 12px; height: auto; font-size: 12px;">Save Wt</button>
+                              <div style="display:flex; gap: 8px; align-items:center; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px;">
+                                  <input type="text" id="wt-${patient.local_token}" placeholder="Wt (kg)" value="${patient.weight || ''}" style="width: 75px; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; background: #f8fafc;">
+                                  <button onclick="saveWeight('${patient.local_token}')" class="btn btn-secondary" style="padding: 8px 16px; height: auto; font-size: 13px;">Save Wt</button>
                               </div>
                           </div>
-                          <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color);">Remove</button>
+                          <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color); padding: 8px 16px; margin-left: 16px;">Remove</button>
                       `;
                       list.appendChild(card);
                   });
               }
 
-              completed.forEach(patient => {
-                  const shortCode = getShortCode(patient.daily_token_number);
-                  const card = document.createElement("div");
-                  card.className = "queue-card";
-                  card.style.opacity = "0.8";
-                  card.innerHTML = `
-                      <div style="display: flex; align-items: center; gap: 20px;">
-                          <div class="token-badge" style="background: #e2e8f0; color: #64748b;">#${shortCode}</div>
-                          <div>
-                              <strong style="display: block; font-size: 16px; color: #475569;">Completed</strong>
-                              <span style="color: var(--text-muted); font-size: 13px;">Visited Today</span>
+              if (completed.length === 0) {
+                   completedList.innerHTML = '<div style="text-align: center; padding: 40px 20px; color: #cbd5e1; font-weight: 500;">No completed visits yet.</div>';
+              } else {
+                  completed.forEach(patient => {
+                      const shortCode = getShortCode(patient.daily_token_number);
+                      const card = document.createElement("div");
+                      card.className = "queue-card";
+                      card.style.background = "#f1f5f9";
+                      card.style.borderColor = "#e2e8f0";
+                      card.style.boxShadow = "none";
+                      card.innerHTML = `
+                          <div style="display: flex; align-items: center; gap: 24px;">
+                              <div class="token-badge" style="background: #e2e8f0; color: #94a3b8;">#${shortCode}</div>
+                              <div>
+                                  <strong style="display: block; font-size: 16px; color: #475569; margin-bottom: 2px;">Consultation Completed</strong>
+                                  <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Visited Today</span>
+                              </div>
                           </div>
-                      </div>
-                      <div>
-                          <button onclick="printPrescription('${patient.local_token}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px;">🖨️ Print</button>
-                      </div>
-                  `;
-                  completedList.appendChild(card);
-              });
+                          <div>
+                              <button onclick="printPrescription('${patient.local_token}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🖨️ Print Rx</button>
+                          </div>
+                      `;
+                      completedList.appendChild(card);
+                  });
+              }
           } catch (error) {
               console.error("Queue error:", error);
           }
@@ -196,26 +280,6 @@
               loadStaffQueue();
           } catch (e) {
               alert("Failed to remove patient.");
-          }
-      }
-
-      async function resendWhatsApp(localToken) {
-          const phone = prompt("Enter patient's 10-digit WhatsApp number:");
-          if (!phone || !/^\\d{10}$/.test(phone.trim())) {
-              alert("A valid 10-digit phone number is required.");
-              return;
-          }
-          try {
-              const response = await fetch(`/api/events/status/${encodeURIComponent(localToken)}`);
-              const data = await response.json();
-              if (data.prescription_text) {
-                  const waUrl = `https://wa.me/91${phone.trim()}?text=${encodeURIComponent(data.prescription_text)}`;
-                  window.open(waUrl, '_blank');
-              } else {
-                  alert("No prescription details found for this visit.");
-              }
-          } catch(e) {
-              alert("Error preparing WhatsApp message.");
           }
       }
 
