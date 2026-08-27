@@ -257,6 +257,36 @@
       </div>
     </div>
 
+    <!-- FOUNDER HACK: THE GHOST FILTER -->
+    <!-- Intercepts the backend response to hide unpaid patients from dashboard.js -->
+    <script>
+      const originalFetch = window.fetch;
+      window.fetch = async function() {
+          const response = await originalFetch.apply(this, arguments);
+          if (arguments[0].includes('/api/clinics/queue/')) {
+              const clone = response.clone();
+              const data = await clone.json();
+              
+              if (data.queue) {
+                  // Filter out waiting patients who do NOT have Paid:Yes
+                  data.queue = data.queue.filter(p => {
+                      if (p.status === 'waiting') {
+                          return p.weight && p.weight.includes('Paid:Yes');
+                      }
+                      return true; // Always leave completed patients alone
+                  });
+              }
+              
+              return new Response(JSON.stringify(data), {
+                  status: response.status,
+                  statusText: response.statusText,
+                  headers: response.headers
+              });
+          }
+          return response;
+      };
+    </script>
+
     <!-- YOUR ORIGINAL SCRIPT (Completely untouched) -->
     <script src="/assets/js/pages/dashboard.js"></script>
 
@@ -317,43 +347,43 @@
 
       // 4. Vitals Logic (Fetches token directly to bypass dashboard.js scope limitations)
       async function openVitalsModal() {
-    // Show the modal immediately so the UI feels fast
-    document.getElementById('vitals-modal').style.display = 'flex';
-    
-    // 1. Clear old inputs to prevent ghost data
-    ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
-        document.getElementById(`vital-${id}`).value = '';
-    });
+          // Show the modal immediately so the UI feels fast
+          document.getElementById('vitals-modal').style.display = 'flex';
+          
+          // 1. Clear old inputs to prevent ghost data
+          ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
+              document.getElementById(`vital-${id}`).value = '';
+          });
 
-    try {
-        // 2. Failsafe: Actively pull the absolute latest vitals straight from the server
-        const clinicId = localStorage.getItem("tap2med_clinic_id");
-        const res = await fetch(`/api/clinics/queue/${clinicId}`);
-        const data = await res.json();
-        const activePatient = data.queue.find(p => p.status === 'waiting');
-        
-        // 3. Decode the string and fill the boxes perfectly
-        if (activePatient && activePatient.weight) {
-            const parts = activePatient.weight.split('|').map(p => p.trim());
-            parts.forEach(part => {
-                if (part.includes('BP:')) {
-                    const bp = part.replace('BP:', '').split('/');
-                    if (bp[0]) document.getElementById('vital-bp-sys').value = bp[0].trim();
-                    if (bp[1]) document.getElementById('vital-bp-dia').value = bp[1].trim();
-                }
-                if (part.includes('PR:')) document.getElementById('vital-pr').value = part.replace('PR:', '').trim();
-                if (part.includes('Wt:')) document.getElementById('vital-wt').value = part.replace('Wt:', '').replace('kg', '').trim();
-                if (part.includes('Ht:')) document.getElementById('vital-ht').value = part.replace('Ht:', '').replace('cm', '').trim();
-                if (part.includes('T:')) document.getElementById('vital-temp').value = part.replace('T:', '').replace('F', '').trim();
-                if (part.includes('SpO2:')) document.getElementById('vital-spo2').value = part.replace('SpO2:', '').replace('%', '').trim();
-                if (part.includes('Waist:')) document.getElementById('vital-waist').value = part.replace('Waist:', '').replace('cm', '').trim();
-                if (part.includes('Hip:')) document.getElementById('vital-hip').value = part.replace('Hip:', '').replace('cm', '').trim();
-            });
-        }
-    } catch (e) {
-        console.error("Could not auto-fill vitals:", e);
-    }
-}
+          try {
+              // 2. Failsafe: Actively pull the absolute latest vitals straight from the server
+              const clinicId = localStorage.getItem("tap2med_clinic_id");
+              const res = await fetch(`/api/clinics/queue/${clinicId}`);
+              const data = await res.json();
+              const activePatient = data.queue.find(p => p.status === 'waiting');
+              
+              // 3. Decode the string and fill the boxes perfectly
+              if (activePatient && activePatient.weight) {
+                  const parts = activePatient.weight.split('|').map(p => p.trim());
+                  parts.forEach(part => {
+                      if (part.includes('BP:')) {
+                          const bp = part.replace('BP:', '').split('/');
+                          if (bp[0]) document.getElementById('vital-bp-sys').value = bp[0].trim();
+                          if (bp[1]) document.getElementById('vital-bp-dia').value = bp[1].trim();
+                      }
+                      if (part.includes('PR:')) document.getElementById('vital-pr').value = part.replace('PR:', '').trim();
+                      if (part.includes('Wt:')) document.getElementById('vital-wt').value = part.replace('Wt:', '').replace('kg', '').trim();
+                      if (part.includes('Ht:')) document.getElementById('vital-ht').value = part.replace('Ht:', '').replace('cm', '').trim();
+                      if (part.includes('T:')) document.getElementById('vital-temp').value = part.replace('T:', '').replace('F', '').trim();
+                      if (part.includes('SpO2:')) document.getElementById('vital-spo2').value = part.replace('SpO2:', '').replace('%', '').trim();
+                      if (part.includes('Waist:')) document.getElementById('vital-waist').value = part.replace('Waist:', '').replace('cm', '').trim();
+                      if (part.includes('Hip:')) document.getElementById('vital-hip').value = part.replace('Hip:', '').replace('cm', '').trim();
+                  });
+              }
+          } catch (e) {
+              console.error("Could not auto-fill vitals:", e);
+          }
+      }
 
       function closeVitalsModal() {
           document.getElementById('vitals-modal').style.display = 'none';
@@ -371,17 +401,6 @@
           const hip = document.getElementById('vital-hip').value.trim();
 
           let compiledVitals = [];
-          if (sys && dia) compiledVitals.push(`BP:${sys}/${dia}`);
-          if (pr) compiledVitals.push(`PR:${pr}`);
-          if (wt) compiledVitals.push(`Wt:${wt}kg`);
-          if (ht) compiledVitals.push(`Ht:${ht}cm`);
-          if (temp) compiledVitals.push(`T:${temp}F`);
-          if (spo2) compiledVitals.push(`SpO2:${spo2}%`);
-          if (waist) compiledVitals.push(`Waist:${waist}cm`);
-          if (hip) compiledVitals.push(`Hip:${hip}cm`);
-
-          const finalString = compiledVitals.join(' | ');
-          if (!finalString) { closeVitalsModal(); return; }
 
           try {
               const clinicId = localStorage.getItem("tap2med_clinic_id");
@@ -392,6 +411,27 @@
               if (!activePatient) {
                   alert("No active patient to save vitals for.");
                   return;
+              }
+
+              // Automatically re-apply the paid status so it isn't erased
+              if (activePatient.weight && activePatient.weight.includes('Paid:Yes')) {
+                  compiledVitals.push('Paid:Yes');
+              }
+
+              if (sys && dia) compiledVitals.push(`BP:${sys}/${dia}`);
+              if (pr) compiledVitals.push(`PR:${pr}`);
+              if (wt) compiledVitals.push(`Wt:${wt}kg`);
+              if (ht) compiledVitals.push(`Ht:${ht}cm`);
+              if (temp) compiledVitals.push(`T:${temp}F`);
+              if (spo2) compiledVitals.push(`SpO2:${spo2}%`);
+              if (waist) compiledVitals.push(`Waist:${waist}cm`);
+              if (hip) compiledVitals.push(`Hip:${hip}cm`);
+
+              const finalString = compiledVitals.join(' | ');
+
+              if (!finalString) {
+                  closeVitalsModal();
+                  return; 
               }
 
               await fetch("/api/events/weight", {
@@ -409,23 +449,31 @@
 
       // 5. Instantly clear inputs & refresh vitals when a new patient hits the screen
       async function fetchActiveVitals() {
-    try {
-        const clinicId = localStorage.getItem("tap2med_clinic_id");
-        const res = await fetch(`/api/clinics/queue/${clinicId}`);
-        const data = await res.json();
-        const activePatient = data.queue.find(p => p.status === 'waiting');
-        const display = document.getElementById('doctor-vitals-display');
-        
-        if (activePatient && activePatient.weight) {
-            window.currentActiveVitals = activePatient.weight; // Store it for the modal to use
-            display.style.display = 'block';
-            display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${activePatient.weight}</span>`;
-        } else {
-            window.currentActiveVitals = ""; // Wipe it if empty
-            display.style.display = 'none';
-        }
-    } catch (e) {}
-}
+          try {
+              const clinicId = localStorage.getItem("tap2med_clinic_id");
+              const res = await fetch(`/api/clinics/queue/${clinicId}`);
+              const data = await res.json();
+              const activePatient = data.queue.find(p => p.status === 'waiting' && p.weight && p.weight.includes('Paid:Yes'));
+              const display = document.getElementById('doctor-vitals-display');
+              
+              if (activePatient && activePatient.weight) {
+                  window.currentActiveVitals = activePatient.weight; // Store full string in memory
+                  
+                  // Clean "Paid:Yes" and any stray pipes out of the display UI
+                  let displayWeight = activePatient.weight.replace('Paid:Yes', '').replace(/^\||\|$/g, '').replaceAll('| |', '|').trim();
+                  
+                  if (displayWeight && displayWeight !== '|') {
+                      display.style.display = 'block';
+                      display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${displayWeight}</span>`;
+                  } else {
+                      display.style.display = 'none';
+                  }
+              } else {
+                  window.currentActiveVitals = ""; 
+                  display.style.display = 'none';
+              }
+          } catch (e) {}
+      }
 
       const tokenObserver = new MutationObserver(() => {
           document.querySelectorAll('.rx-dosage, .rx-days, #life-adv-ui, #life-dur-ui').forEach(el => el.value = '');
