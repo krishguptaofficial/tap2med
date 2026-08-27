@@ -98,22 +98,24 @@ async function loadQueue() {
         doctorName.textContent = data.doctor_name || "Doctor";
         clinicName.textContent = data.clinic_name || "Clinic";
         
+        const waitingQueue = data.queue ? data.queue.filter(p => p.status === 'waiting') : [];
+
         const queueCountBadge = document.getElementById("queue-count");
         if (queueCountBadge) {
-            queueCountBadge.textContent = `${data.queue ? data.queue.length : 0} Waiting`;
+            queueCountBadge.textContent = `${waitingQueue.length} Waiting`;
         }
 
         const queueList = document.getElementById("queue-list");
         queueList.innerHTML = ""; 
 
-        if (!data.queue || data.queue.length === 0) {
+        if (waitingQueue.length === 0) {
             currentToken.textContent = "—";
             currentLocalToken = null;
             queueList.innerHTML = '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
             return;
         }
 
-        data.queue.forEach((patient) => {
+        waitingQueue.forEach((patient) => {
             const shortCode = getShortCode(patient.daily_token_number);
             const card = document.createElement("div");
             
@@ -140,13 +142,12 @@ async function loadQueue() {
         });
         
         // Auto-select first patient if none selected
-        if (!currentLocalToken && data.queue.length > 0) {
-            const firstPatient = data.queue[0];
+        if (!currentLocalToken && waitingQueue.length > 0) {
+            const firstPatient = waitingQueue[0];
             currentLocalToken = firstPatient.local_token;
             currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
             clearPrescription();
             await loadHistory(currentLocalToken);
-            // Re-render to show active state
             const firstCard = queueList.firstChild;
             if(firstCard) firstCard.classList.add('active');
         }
