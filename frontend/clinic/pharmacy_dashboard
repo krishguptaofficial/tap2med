@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pharmacy Feed | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <style>
+      .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 20px; }
+      .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 12px; margin-bottom: 20px; padding: 24px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.1); transition: opacity 0.3s ease; }
+      .rx-card.packed { border-color: var(--border-color); opacity: 0.5; box-shadow: none; background: #f8fafc; }
+      .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color); }
+      .token-badge { font-size: 32px; font-weight: 800; color: var(--primary-color); }
+      .packed .token-badge { color: var(--text-muted); }
+      .med-list { list-style: none; padding: 0; margin: 0; }
+      .med-item { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+      .med-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
+      .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 500; }
+    </style>
+  </head>
+  <body style="background: var(--bg-canvas);">
+    
+    <header class="top-header" style="background: white; padding: 15px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+      <h2 style="margin: 0; color: var(--primary-color);">Live Pharmacy Feed</h2>
+      <div style="display: flex; gap: 15px;">
+          <button onclick="clearPacked()" class="btn btn-secondary">Clear Packed (End of Day)</button>
+          <button onclick="logout()" class="btn btn-ghost">Log Out</button>
+      </div>
+    </header>
+
+    <main class="pharmacy-grid">
+      <div id="rx-feed">
+        <p style="text-align: center; color: var(--text-muted); margin-top: 50px;">Waiting for prescriptions...</p>
+      </div>
+    </main>
+
+    <script>
+      const clinicId = localStorage.getItem("tap2med_clinic_id");
+      if (!clinicId) window.location.href = "/staff-login";
+
+      // Keep track of which tokens the pharmacist has already packed today
+      let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
+
+      function logout() {
+          localStorage.removeItem("tap2med_clinic_id");
+          localStorage.removeItem("tap2med_staff_role");
+          window.location.href = "/staff-login";
+      }
+
+      function getShortCode(tokenNumber) {
+          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+          const letter = letters[(tokenNumber - 1) % 24]; 
+          return `${letter}-${tokenNumber}`; 
+      }
+
+      function togglePackedStatus(localToken) {
+          if (packedTokens.includes(localToken)) {
+              packedTokens = packedTokens.filter(t => t !== localToken);
+          } else {
+              packedTokens.push(localToken);
+          }
+          localStorage.setItem("tap2med_packed_rx", JSON.stringify(packedTokens));
+          loadPharmacyFeed(); 
+      }
+
+      function clearPacked() {
+          if(confirm("Are you sure you want to clear the packed history? This is usually done at the end of the day.")) {
+              packedTokens = [];
+              localStorage.setItem("tap2med_packed_rx", JSON.stringify([]));
+              loadPharmacyFeed();
+          }
+      }
+
+      async function loadPharmacyFeed() {
+          try {
+              const response = await fetch(`/api/clinics/pharmacy/${encodeURIComponent(clinicId)}`);
+              if (!response.ok) return;
+              
+              const data = await response.json();
+              const feedContainer = document.getElementById("rx-feed");
+              
+              if (!data.feed || data.feed.length === 0) {
+                  feedContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">No prescriptions generated yet today.</div>';
+                  return;
+              }
+
+              feedContainer.innerHTML = "";
+
+              data.feed.forEach((rx) => {
+                  const shortCode = getShortCode(rx.token_number);
+                  const isPacked = packedTokens.includes(rx.local_token);
+                  
+                  const card = document.createElement("div");
+                  card.className = `rx-card ${isPacked ? 'packed' : ''}`;
+                  
+                  let medHtml = '<ul class="med-list">';
+                  rx.medicines.forEach(m => {
+                      medHtml += `
+                          <li class="med-item">
+                              <span class="med-name">${m.name}</span>
+                              <span class="med-instructions">${m.instructions || ''}</span>
+                          </li>
+                      `;
+                  });
+                  medHtml += '</ul>';
+
+                  card.innerHTML = `
+                      <div class="rx-header">
+                          <div class="token-badge">#${shortCode}</div>
+                          <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? '' : 'background-color: var(--success-color);'}">
+                              ${isPacked ? 'Undo' : 'Mark as Packed'}
+                          </button>
+                      </div>
+                      ${medHtml}
+                  `;
+                  
+                  // Put unpacked items at the top, packed items at the bottom
+                  if (isPacked) {
+                      feedContainer.appendChild(card);
+                  } else {
+                      feedContainer.insertBefore(card, feedContainer.firstChild);
+                  }
+              });
+          } catch (error) {
+              console.error("Pharmacy feed error:", error);
+          }
+      }
+
+      // Auto-refresh every 5 seconds so the pharmacist never misses an update
+      loadPharmacyFeed();
+      setInterval(loadPharmacyFeed, 5000);
+    </script>
+  </body>
+</html>

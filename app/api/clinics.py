@@ -95,3 +95,33 @@ def update_clinic_roles(clinic_id: uuid.UUID, payload: RoleUpdate, db: Session =
         
     db.commit()
     return {"status": "success"}
+
+@router.get("/pharmacy/{clinic_id}")
+def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
+    try:
+        today = datetime.now(IST).date()
+        
+        # Get today's completed events, newest first
+        completed_events = db.query(models.Event).filter(
+            models.Event.clinic_id == clinic_id,
+            func.date(models.Event.timestamp) == today,
+            models.Event.status == "completed"
+        ).order_by(models.Event.timestamp.desc()).all() 
+
+        feed = []
+        for event in completed_events:
+            rx_list = db.query(models.Prescription).filter(
+                models.Prescription.event_id == event.event_id
+            ).all()
+            
+            # Only show it to the pharmacy if medicines were actually prescribed
+            if rx_list:
+                feed.append({
+                    "local_token": event.local_token,
+                    "token_number": event.daily_token_number,
+                    "medicines": [{"name": rx.medicine_name, "instructions": rx.instructions} for rx in rx_list]
+                })
+
+        return {"status": "success", "feed": feed}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
