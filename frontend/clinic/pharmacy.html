@@ -11,26 +11,18 @@
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <style>
       .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-      
-      /* Premium Rx Card */
       .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 16px; margin-bottom: 24px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
       .rx-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary-color); }
-      
-      /* Packed State */
       .rx-card.packed { border-color: #e2e8f0; opacity: 0.6; box-shadow: none; background: #f8fafc; }
       .rx-card.packed::before { background: #cbd5e1; }
-      
       .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px dashed #cbd5e1; }
       .token-badge { font-size: 36px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.03em; line-height: 1; }
       .packed .token-badge { color: #64748b; }
-      
       .med-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
       .med-item { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: background 0.2s; }
       .rx-card:not(.packed) .med-item:hover { background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
       .med-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
       .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 600; font-style: italic; }
-
-      /* Header Branding */
       .brand-header { display: flex; align-items: center; gap: 12px; }
       .brand-logo { width: 38px; height: 32px; object-fit: contain; }
       .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
@@ -58,7 +50,6 @@
         <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main);">Live Prescription Feed</h2>
         <p style="margin: 8px 0 0; color: var(--text-muted); font-weight: 500;">Prescriptions sync instantly when the doctor saves them.</p>
       </div>
-
       <div id="rx-feed">
         <p style="text-align: center; color: var(--text-muted); margin-top: 80px; font-weight: 500; font-size: 16px;">Waiting for prescriptions...</p>
       </div>
@@ -67,9 +58,6 @@
     <script>
       const clinicId = localStorage.getItem("tap2med_clinic_id");
       if (!clinicId) window.location.href = "/staff-login";
-
-      // Keep track of which tokens the pharmacist has already packed today
-      let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
 
       function logout() {
           localStorage.removeItem("tap2med_clinic_id");
@@ -84,19 +72,23 @@
       }
 
       function togglePackedStatus(localToken) {
+          let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
           if (packedTokens.includes(localToken)) {
               packedTokens = packedTokens.filter(t => t !== localToken);
           } else {
               packedTokens.push(localToken);
           }
           localStorage.setItem("tap2med_packed_rx", JSON.stringify(packedTokens));
+          
+          // Force an immediate redraw
+          window.lastPharmacyDataString = null;
           loadPharmacyFeed(); 
       }
 
       function clearPacked() {
           if(confirm("Are you sure you want to clear the packed history? This is usually done at the end of the day.")) {
-              packedTokens = [];
               localStorage.setItem("tap2med_packed_rx", JSON.stringify([]));
+              window.lastPharmacyDataString = null;
               loadPharmacyFeed();
           }
       }
@@ -107,6 +99,15 @@
               if (!response.ok) return;
               
               const data = await response.json();
+              let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
+
+              // Anti-Flicker Hack: Only redraw if data or packed status actually changed
+              const currentStateString = JSON.stringify(data.feed) + JSON.stringify(packedTokens);
+              if (window.lastPharmacyDataString === currentStateString) {
+                  return; // Skip redraw to protect the button and scroll position!
+              }
+              window.lastPharmacyDataString = currentStateString;
+              
               const feedContainer = document.getElementById("rx-feed");
               
               if (!data.feed || data.feed.length === 0) {
@@ -144,7 +145,6 @@
                       ${medHtml}
                   `;
                   
-                  // Put unpacked items at the top, packed items at the bottom
                   if (isPacked) {
                       feedContainer.appendChild(card);
                   } else {
@@ -156,7 +156,6 @@
           }
       }
 
-      // Auto-refresh every 5 seconds so the pharmacist never misses an update
       loadPharmacyFeed();
       setInterval(loadPharmacyFeed, 5000);
     </script>
