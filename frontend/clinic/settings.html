@@ -50,6 +50,39 @@
 
       <div style="padding: 30px; max-width: 800px; margin: 0 auto;">
         
+
+        <!-- Fee Management Card -->
+        <div class="consultation-card" style="margin-bottom: 24px;">
+          <div class="consultation-header" style="margin-bottom: 20px; padding-bottom: 15px;">
+            <h2 style="font-size: 20px;">Fee Structure</h2>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Direct Walk-in Fee (₹)</label>
+                  <input type="number" id="fee-walkin" class="input" placeholder="e.g. 500">
+              </div>
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Appointment Fee (₹)</label>
+                  <input type="number" id="fee-appt" class="input" placeholder="e.g. 600">
+              </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Follow-up Fee (₹)</label>
+                  <input type="number" id="fee-followup" class="input" placeholder="e.g. 200">
+              </div>
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Follow-up Validity (Days)</label>
+                  <input type="number" id="fee-days" class="input" placeholder="e.g. 7">
+              </div>
+          </div>
+
+          <button onclick="saveFees()" class="btn btn-primary" id="btn-save-fees">Save Fees</button>
+          <span id="fee-status" style="margin-left: 15px; font-size: 13px; font-weight: 600;"></span>
+        </div>
+
         <!-- Print Settings Card -->
         <div class="consultation-card" style="margin-bottom: 24px;">
           <div class="consultation-header" style="margin-bottom: 20px; padding-bottom: 15px;">
@@ -144,6 +177,53 @@
               status.style.color = "var(--error-color)";
           }
       }
+
+      async function loadFees() {
+          try {
+              const res = await fetch(`/api/clinics/${clinicId}/preferences`);
+              if (res.ok) {
+                  const data = await res.json();
+                  document.getElementById("fee-walkin").value = data.walkin_fee || "";
+                  document.getElementById("fee-appt").value = data.appointment_fee || "";
+                  document.getElementById("fee-followup").value = data.followup_fee || "";
+                  document.getElementById("fee-days").value = data.followup_days || "";
+              }
+          } catch (e) { 
+              console.error("Could not load fees"); 
+          }
+      }
+
+      async function saveFees() {
+          const status = document.getElementById("fee-status");
+          const payload = {
+              walkin_fee: document.getElementById("fee-walkin").value.trim(),
+              appointment_fee: document.getElementById("fee-appt").value.trim(),
+              followup_fee: document.getElementById("fee-followup").value.trim(),
+              followup_days: document.getElementById("fee-days").value.trim()
+          };
+
+          status.textContent = "Saving...";
+          status.style.color = "var(--text-muted)";
+
+          try {
+              const res = await fetch(`/api/clinics/${clinicId}/preferences`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload)
+              });
+              if (!res.ok) throw new Error("Failed");
+              
+              status.textContent = "Fees saved successfully!";
+              status.style.color = "var(--success-color)";
+              setTimeout(() => status.textContent = "", 3000);
+          } catch (err) {
+              status.textContent = "Error saving fees.";
+              status.style.color = "var(--error-color)";
+          }
+      }
+
+      // Trigger load when the page opens
+      loadFees();
     </script>
   </body>
 </html>

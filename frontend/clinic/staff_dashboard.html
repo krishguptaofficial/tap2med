@@ -75,6 +75,15 @@
                     <option value="5">Child 2</option>
                 </select>
             </div>
+
+            <!-- APPOINTMENT CHECKBOX -->
+            <div style="flex: 0.5;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; height: 44px; margin-bottom: 0; font-size: 14px; font-weight: 600; color: var(--text-main);">
+                    <input type="checkbox" id="walkin-is-appt" style="width: 18px; height: 18px; accent-color: var(--primary-color);">
+                    Is Appt?
+                </label>
+            </div>
+
             <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin" style="height: 44px; margin-bottom: 0;">Generate Token</button>
         </div>
         <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
@@ -142,6 +151,7 @@
         <input type="hidden" id="vital-is-paid" value="false">
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <!-- BP & Pulse -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -154,6 +164,8 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Pulse (bpm)</label>
                 <input type="number" id="vital-pr" placeholder="e.g. 80" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
+
+            <!-- Weight & Height -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Weight (kg)</label>
                 <input type="number" id="vital-wt" placeholder="e.g. 70" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -162,6 +174,8 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Height (cm)</label>
                 <input type="number" id="vital-ht" placeholder="e.g. 170" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
+
+            <!-- Temp & SpO2 -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Temperature (F)</label>
                 <input type="number" id="vital-temp" placeholder="e.g. 98.6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -170,6 +184,8 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">SpO2 (%)</label>
                 <input type="number" id="vital-spo2" placeholder="e.g. 99" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
+
+            <!-- Waist & Hip -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Waist (cm)</label>
                 <input type="number" id="vital-waist" placeholder="e.g. 85" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -179,6 +195,7 @@
                 <input type="number" id="vital-hip" placeholder="e.g. 95" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
         </div>
+
         <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e2e8f0;">
             <button onclick="closeVitalsModal()" class="btn btn-ghost" style="color: var(--text-muted);">Cancel</button>
             <button onclick="submitVitals()" class="btn btn-primary" style="padding-left: 24px; padding-right: 24px;">Save Vitals</button>
@@ -241,6 +258,9 @@
           const nameInput = document.getElementById("walkin-name");
           const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
 
+          // CAPTURE APPOINTMENT FLAG
+          const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
+
           if (!/^\d{10}$/.test(phone)) {
               statusEl.textContent = "Please enter a valid 10-digit phone number.";
               statusEl.style.color = "var(--error-color)";
@@ -264,7 +284,8 @@
                       phone: phone,
                       member_id: selectedMember, 
                       clinic_id: clinicId,
-                      name: patientName 
+                      name: patientName,
+                      is_appointment: isAppt 
                   })
               });
 
@@ -277,6 +298,7 @@
               statusEl.style.color = "var(--success-color)";
               phoneInput.value = "";
               if (nameInput) nameInput.value = "";
+              if (document.getElementById("walkin-is-appt")) document.getElementById("walkin-is-appt").checked = false;
 
               loadStaffQueue();
           } catch (error) {
@@ -378,6 +400,8 @@
 
               const list = document.getElementById("staff-queue-list");
               const completedList = document.getElementById("staff-completed-list");
+              
+              const enableVitals = localStorage.getItem("tap2med_enable_vitals") !== "false";
 
               const waiting = data.queue.filter(p => p.status === 'waiting');
               const completed = data.queue.filter(p => p.status === 'completed');
@@ -401,6 +425,39 @@
                       const displayId = patient.display_id || '--';
                       const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
 
+                      let typeBadge = "";
+                      if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+                      else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                      else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+
+                      const safeWeight = (patient.weight || '').replace(/'/g, "\\'");
+                      const isPaid = patient.weight && patient.weight.includes('Paid:Yes');
+                      const hasVitals = patient.weight && patient.weight.replace('Paid:Yes', '').replaceAll('|', '').trim() !== '';
+                      const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
+
+                      let actionButtons = '';
+                      let markPaidBtn = '';
+                      if (!isPaid) {
+                          markPaidBtn = `<button onclick="markAsPaid('${patient.local_token}', '${safeWeight}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px; background: #ea580c; border-color: #ea580c; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">💰 ${feeText}</button>`;
+                      } else {
+                          markPaidBtn = `<span style="font-size: 13px; color: var(--success-color); font-weight: 800; text-align: center; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">✅ Bill Paid</span>`;
+                      }
+
+                      let vitalsBtn = '';
+                      if (enableVitals) {
+                          vitalsBtn = `<button onclick="openVitalsModal('${patient.local_token}', '${safeWeight}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>`;
+                          if (hasVitals) {
+                              vitalsBtn += `<span style="font-size: 11px; color: var(--success-color); font-weight: 600; text-align: center;">✓ Vitals Saved</span>`;
+                          }
+                      }
+
+                      actionButtons = `
+                        <div style="display:flex; flex-direction: column; gap: 8px; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px; min-width: 140px;">
+                            ${markPaidBtn}
+                            ${vitalsBtn}
+                        </div>
+                      `;
+
                       const card = document.createElement("div");
                       card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                       card.innerHTML = `
@@ -412,7 +469,7 @@
                               <div class="token-badge">#${shortCode}</div>
                               <div>
                                   <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
-                                      ${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'}
+                                      ${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'} ${typeBadge}
                                   </strong>
                                   <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                               </div>
@@ -421,22 +478,7 @@
                                   <span style="font-size: 16px; font-weight: 700; color: var(--primary-color); background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">👤 ${displayName}</span>
                               </div>
 
-                              ${(() => {
-                                  const isPaid = patient.weight && patient.weight.includes('Paid:Yes');
-                                  const hasVitals = patient.weight && patient.weight.replace('Paid:Yes', '').replaceAll('|', '').trim() !== '';
-
-                                  return `
-                                    <div style="display:flex; flex-direction: column; gap: 8px; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px; min-width: 140px;">
-                                        ${!isPaid 
-                                            ? `<button onclick="markAsPaid('${patient.local_token}', \`${patient.weight || ''}\`)" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px; background: #ea580c; border-color: #ea580c; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">💰 Mark Paid</button>` 
-                                            : `<span style="font-size: 13px; color: var(--success-color); font-weight: 800; text-align: center; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">✅ Bill Paid</span>`
-                                        }
-
-                                        <button onclick="openVitalsModal('${patient.local_token}', \`${patient.weight || ''}\`)" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>
-                                        ${hasVitals ? `<span style="font-size: 11px; color: var(--success-color); font-weight: 600; text-align: center;">✓ Vitals Saved</span>` : ''}
-                                    </div>
-                                  `;
-                              })()}
+                              ${actionButtons}
                           </div>
                           <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color); padding: 8px 16px; margin-left: 16px;">Remove</button>
                       `;
@@ -452,6 +494,12 @@
                       const displayName = patient.patient_name || 'Patient';
                       const displayId = patient.display_id || '--';
 
+                      let typeBadge = "";
+                      if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+                      else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                      else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+
+
                       const card = document.createElement("div");
                       card.className = "queue-card";
                       card.style.background = "#f1f5f9";
@@ -461,7 +509,7 @@
                           <div style="display: flex; align-items: center; gap: 24px;">
                               <div class="token-badge" style="background: #e2e8f0; color: #94a3b8;">#${shortCode}</div>
                               <div>
-                                  <strong style="display: block; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName} (ID: ${displayId})</strong>
+                                  <strong style="display: block; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName} (ID: ${displayId}) ${typeBadge}</strong>
                                   <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Consultation Completed</span>
                               </div>
                           </div>
@@ -518,17 +566,22 @@
               const printDiagnosis = document.getElementById("print-diagnosis");
               const printTests = document.getElementById("print-tests");
 
-              if (visit.complaints || visit.diagnosis) {
+              const meds = visit.prescriptions.filter(rx => rx.category === "MEDICINE" || !rx.category || rx.category === "Not available in v0");
+              const complaints = visit.prescriptions.find(rx => rx.category === "COMPLAINT");
+              const diagnosis = visit.prescriptions.find(rx => rx.category === "DIAGNOSIS");
+              const advice = visit.prescriptions.find(rx => rx.category === "ADVICE");
+
+              if (complaints || diagnosis) {
                   printNotesContainer.style.display = "block";
-                  printComplaints.innerHTML = visit.complaints ? `<strong>C/E:</strong> ${visit.complaints}` : "";
-                  printDiagnosis.innerHTML = visit.diagnosis ? `<strong>Diagnosis:</strong> ${visit.diagnosis}` : "";
+                  printComplaints.innerHTML = complaints ? `<strong>C/E:</strong> ${complaints.instructions}` : "";
+                  printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis.instructions}` : "";
               } else {
                   printNotesContainer.style.display = "none";
               }
 
-              if (visit.tests_suggested) {
+              if (advice) {
                   printTests.style.display = "block";
-                  printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
+                  printTests.innerHTML = `<strong>Advice:</strong> ${advice.instructions}`;
               } else {
                   printTests.style.display = "none";
               }
@@ -536,7 +589,7 @@
               const printMedContainer = document.getElementById("print-medicines");
               printMedContainer.innerHTML = "";
 
-              visit.prescriptions.forEach((med, index) => {
+              meds.forEach((med, index) => {
                   printMedContainer.innerHTML += `
                       <div style="display: flex; gap: 15px; margin-bottom: 24px; align-items: baseline;">
                           <div style="font-weight: 700; font-size: 16px; color: #0f172a; min-width: 25px;">${index + 1}.</div>

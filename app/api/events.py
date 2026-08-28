@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import func
 import secrets
 import time
+import json
 from collections import defaultdict
 from typing import List, Optional
 import redis
@@ -58,6 +59,7 @@ class StartVisitRequest(BaseModel):
     clinic_id: uuid.UUID
     name: str = "Walk-in Patient"
     city: Optional[str] = None
+    is_appointment: bool = False # NEW FIELD
 
 @router.post("/visit/start")
 def start_visit(
@@ -124,6 +126,31 @@ def start_visit(
         phone = "DELETED"
 
         today = datetime.now(IST).date()
+        
+        # --- FOLLOW-UP CALCULATION LOGIC ---
+        prefs_str = redis_client.get(f"clinic_prefs:{str(clinic.clinic_id)}")
+        followup_days = 0
+        if prefs_str:
+            try:
+                prefs = json.loads(prefs_str)
+                followup_days = int(prefs.get("followup_days") or 0)
+            except Exception:
+                pass
+                
+        last_visit = db.query(models.Event).filter(
+            models.Event.local_token == local_token,
+            models.Event.status == "completed"
+        ).order_by(models.Event.timestamp.desc()).first()
+
+        visit_type = "appointment" if payload.is_appointment else "walkin"
+
+        if last_visit and followup_days > 0:
+            last_date = last_visit.timestamp.astimezone(IST).date()
+            # Calendar day difference builds in a natural buffer until midnight of the Nth day
+            if (today - last_date).days <= followup_days:
+                visit_type = "followup"
+
+        # --- EVENT CREATION ---
         today_event_count = db.query(models.Event).filter(
             models.Event.clinic_id == payload.clinic_id,
             func.date(models.Event.timestamp) == today
@@ -137,6 +164,10 @@ def start_visit(
             network_token=network_token,
             daily_token_number=assigned_token_number
         )
+        
+        # Override the default "clinic_visit" string with our dynamic status
+        new_event.event_type = visit_type
+        db.commit()
         
         if not new_event:
             raise HTTPException(status_code=500, detail="Failed to create patient event")
@@ -253,12 +284,10 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
 
         event.status = "completed" 
         
-        # Save clinical notes directly to the event table
         event.complaints = payload.complaints.strip() if payload.complaints else None
         event.diagnosis = payload.diagnosis.strip() if payload.diagnosis else None
         event.tests_suggested = payload.tests_suggested.strip() if payload.tests_suggested else None
 
-        # Save Medicines (No more hacky category flags needed)
         for med in payload.medicines:
             if med.name.strip() != "":
                 db.add(models.Prescription(
