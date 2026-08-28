@@ -556,9 +556,9 @@
             
             const complaints = document.getElementById("patient-complaints")?.value.trim();
             const diagnosis = document.getElementById("patient-diagnosis")?.value.trim();
-            const advice = document.getElementById("patient-advice")?.value.trim();
+            const tests_suggested = document.getElementById("patient-tests")?.value.trim();
 
-            if (!medicines.length && !complaints && !diagnosis && !advice) {
+            if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
                 if (!confirm("No details have been entered. Complete this visit?")) return;
             }
 
@@ -575,7 +575,7 @@
                         medicines: medicines,
                         complaints: complaints,
                         diagnosis: diagnosis,
-                        advice: advice
+                        tests_suggested: tests_suggested
                     })
                 });
 
@@ -599,6 +599,7 @@
                 const printNotesContainer = document.getElementById("print-clinical-notes");
                 const printComplaints = document.getElementById("print-complaints");
                 const printDiagnosis = document.getElementById("print-diagnosis");
+                const printTests = document.getElementById("print-tests");
 
                 if (complaints || diagnosis) {
                     printNotesContainer.style.display = "block";
@@ -606,6 +607,13 @@
                     printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis}` : "";
                 } else {
                     printNotesContainer.style.display = "none";
+                }
+
+                if (tests_suggested) {
+                    printTests.style.display = "block";
+                    printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
+                } else {
+                    printTests.style.display = "none";
                 }
 
                 const printMedContainer = document.getElementById("print-medicines");
@@ -619,21 +627,21 @@
                     `;
                 });
 
-                // THE FIX: Give the browser 150ms to paint the DOM, trigger print, then soft reset.
+                // 2. Safe timeout to render DOM before print & soft reset
                 setTimeout(async () => {
                     if (localStorage.getItem("tap2med_auto_print") === "true") {
                         window.print();
                     }
                     
-                    // Soft reset the UI without a violent reload
                     currentLocalToken = null;
                     clearPrescription();
                     
-                    // Clear the clinical note boxes manually
                     const compEl = document.getElementById("patient-complaints");
                     const diagEl = document.getElementById("patient-diagnosis");
+                    const testsEl = document.getElementById("patient-tests");
                     if(compEl) compEl.value = "";
                     if(diagEl) diagEl.value = "";
+                    if(testsEl) testsEl.value = "";
 
                     const headerEyebrow = document.querySelector(".eyebrow");
                     if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
