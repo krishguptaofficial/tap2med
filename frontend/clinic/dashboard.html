@@ -556,9 +556,9 @@
             
             const complaints = document.getElementById("patient-complaints")?.value.trim();
             const diagnosis = document.getElementById("patient-diagnosis")?.value.trim();
-            const tests_suggested = document.getElementById("patient-tests")?.value.trim();
+            const advice = document.getElementById("patient-advice")?.value.trim();
 
-            if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
+            if (!medicines.length && !complaints && !diagnosis && !advice) {
                 if (!confirm("No details have been entered. Complete this visit?")) return;
             }
 
@@ -575,7 +575,7 @@
                         medicines: medicines,
                         complaints: complaints,
                         diagnosis: diagnosis,
-                        tests_suggested: tests_suggested
+                        advice: advice
                     })
                 });
 
@@ -584,7 +584,7 @@
                 prescriptionStatus.textContent = "Sent to WhatsApp";
                 prescriptionStatus.className = "badge badge-success";
                 
-                // Print Logic
+                // 1. Populate the Print Layout
                 const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
                 document.getElementById("print-clinic-name").textContent = clinicName.textContent;
                 document.getElementById("print-doctor-name").textContent = doctorName.textContent;
@@ -599,7 +599,6 @@
                 const printNotesContainer = document.getElementById("print-clinical-notes");
                 const printComplaints = document.getElementById("print-complaints");
                 const printDiagnosis = document.getElementById("print-diagnosis");
-                const printTests = document.getElementById("print-tests");
 
                 if (complaints || diagnosis) {
                     printNotesContainer.style.display = "block";
@@ -607,13 +606,6 @@
                     printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis}` : "";
                 } else {
                     printNotesContainer.style.display = "none";
-                }
-
-                if (tests_suggested) {
-                    printTests.style.display = "block";
-                    printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
-                } else {
-                    printTests.style.display = "none";
                 }
 
                 const printMedContainer = document.getElementById("print-medicines");
@@ -627,18 +619,35 @@
                     `;
                 });
 
-                if (localStorage.getItem("tap2med_auto_print") === "true") {
-                    window.print();
-                }
-                
-                // INSTANT DASHBOARD REFRESH
-                window.location.reload();
+                // THE FIX: Give the browser 150ms to paint the DOM, trigger print, then soft reset.
+                setTimeout(async () => {
+                    if (localStorage.getItem("tap2med_auto_print") === "true") {
+                        window.print();
+                    }
+                    
+                    // Soft reset the UI without a violent reload
+                    currentLocalToken = null;
+                    clearPrescription();
+                    
+                    // Clear the clinical note boxes manually
+                    const compEl = document.getElementById("patient-complaints");
+                    const diagEl = document.getElementById("patient-diagnosis");
+                    if(compEl) compEl.value = "";
+                    if(diagEl) diagEl.value = "";
+
+                    const headerEyebrow = document.querySelector(".eyebrow");
+                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
+                    document.getElementById("current-token").textContent = `#--`;
+                    
+                    await loadQueue();
+                }, 150);
 
             } catch (error) {
                 console.error("Complete visit error:", error);
                 prescriptionStatus.textContent = "Failed to Send";
                 prescriptionStatus.className = "badge badge-danger";
                 alert("The prescription could not be saved.");
+            } finally {
                 isSaving = false;
             }
         }
