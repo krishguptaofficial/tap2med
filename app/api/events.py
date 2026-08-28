@@ -59,7 +59,7 @@ class StartVisitRequest(BaseModel):
     clinic_id: uuid.UUID
     name: str = "Walk-in Patient"
     city: Optional[str] = None
-    is_appointment: bool = False # NEW FIELD
+    is_appointment: bool = False
 
 @router.post("/visit/start")
 def start_visit(
@@ -125,9 +125,12 @@ def start_visit(
         payload.phone = "DELETED"
         phone = "DELETED"
 
-        today = datetime.now(IST).date()
+        # FIXED TIMEZONE LOGIC
+        now_ist = datetime.now(IST)
+        today = now_ist.date()
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        # --- FOLLOW-UP CALCULATION LOGIC ---
         prefs_str = redis_client.get(f"clinic_prefs:{str(clinic.clinic_id)}")
         followup_days = 0
         if prefs_str:
@@ -146,14 +149,13 @@ def start_visit(
 
         if last_visit and followup_days > 0:
             last_date = last_visit.timestamp.astimezone(IST).date()
-            # Calendar day difference builds in a natural buffer until midnight of the Nth day
             if (today - last_date).days <= followup_days:
                 visit_type = "followup"
 
-        # --- EVENT CREATION ---
         today_event_count = db.query(models.Event).filter(
             models.Event.clinic_id == payload.clinic_id,
-            func.date(models.Event.timestamp) == today
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end
         ).count()
         assigned_token_number = today_event_count + 1
         
@@ -165,7 +167,6 @@ def start_visit(
             daily_token_number=assigned_token_number
         )
         
-        # Override the default "clinic_visit" string with our dynamic status
         new_event.event_type = visit_type
         db.commit()
         
@@ -174,7 +175,8 @@ def start_visit(
         
         ahead = db.query(models.Event).filter(
             models.Event.clinic_id == payload.clinic_id,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status == "waiting",
             models.Event.timestamp < new_event.timestamp 
         ).count()
@@ -196,11 +198,14 @@ def start_visit(
 @router.get("/status/{local_token}")
 def get_patient_status(local_token: str, db: Session = Depends(get_db)):
     try:
-        today = datetime.now(IST).date()
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         current_visit = db.query(models.Event).filter(
             models.Event.local_token == local_token,
-            func.date(models.Event.timestamp) == today
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end
         ).order_by(models.Event.timestamp.desc()).first()
 
         if not current_visit:
@@ -253,7 +258,8 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
 
         ahead = db.query(models.Event).filter(
             models.Event.clinic_id == current_visit.clinic_id,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status == "waiting",
             models.Event.timestamp < current_visit.timestamp 
         ).count()
@@ -271,11 +277,14 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
 @router.put("/complete")
 def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
     try:
-        today = datetime.now(IST).date()
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
         ).first()
 
@@ -363,10 +372,14 @@ class WeightUpdate(BaseModel):
 @router.put("/weight")
 def update_patient_weight(payload: WeightUpdate, db: Session = Depends(get_db)):
     try:
-        today = datetime.now(IST).date()
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
         ).first()
 

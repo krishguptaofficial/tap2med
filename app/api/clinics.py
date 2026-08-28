@@ -36,9 +36,11 @@ def onboard_clinic(payload: ClinicCreate, db: Session = Depends(get_db)):
 @router.get("/queue/{clinic_id}")
 def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
-        today = datetime.now(IST).date()
+        # FIXED TIMEZONE LOGIC
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        # Fetch the clinic preferences for fee calculation
         prefs_data = redis_client.get(f"clinic_prefs:{str(clinic_id)}")
         prefs = {}
         if prefs_data:
@@ -49,7 +51,8 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status.in_(["waiting", "completed"]) 
         ).order_by(models.Event.timestamp.asc()).all()
 
@@ -62,9 +65,8 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 
             patient_display_id = event.local_token[:8].upper()
             
-            # Map visit type & fee
             visit_type = event.event_type if event.event_type else "walkin"
-            if visit_type == "clinic_visit": visit_type = "walkin" # Handle legacy strings
+            if visit_type == "clinic_visit": visit_type = "walkin" 
             
             fee = ""
             if visit_type == "walkin":
@@ -153,11 +155,14 @@ def update_clinic_roles(clinic_id: uuid.UUID, payload: RoleUpdate, db: Session =
 @router.get("/pharmacy/{clinic_id}")
 def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
-        today = datetime.now(IST).date()
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         completed_events = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
-            func.date(models.Event.timestamp) == today,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
             models.Event.status == "completed"
         ).order_by(models.Event.timestamp.desc()).all() 
 
@@ -201,9 +206,17 @@ def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: 
         else:
             if date_filter:
                 target_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
+                target_start = datetime.combine(target_date, datetime.min.time(), tzinfo=IST)
+                target_end = datetime.combine(target_date, datetime.max.time(), tzinfo=IST)
             else:
-                target_date = datetime.now(IST).date()
-            query = query.filter(func.date(models.Event.timestamp) == target_date)
+                now_ist = datetime.now(IST)
+                target_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+                target_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
+                
+            query = query.filter(
+                models.Event.timestamp >= target_start, 
+                models.Event.timestamp <= target_end
+            )
             
         events = query.order_by(models.Event.timestamp.desc()).all()
         
