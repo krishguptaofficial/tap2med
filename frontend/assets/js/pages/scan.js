@@ -51,6 +51,8 @@ function goToMemberScreen() {
     localStorage.setItem("tap2med_last_phone", phone); // Remember phone for WhatsApp routing
     renderMemberList();
     showScreen("screen-members");
+
+    if(!document.getElementById("patient-name-input").value.trim()) { alert("Please enter your name."); return; }
 }
 
 function renderMemberList() {
@@ -136,10 +138,15 @@ async function submitCheckIn() {
         return;
     }
 
+    const nameInput = document.getElementById("patient-name-input");
+    const cityInput = document.getElementById("patient-city-input");
+
     const payload = {
         phone: currentSessionPhone,
         member_id: selectedMemberId,
-        clinic_id: scannedClinicId
+        clinic_id: scannedClinicId,
+        name: nameInput ? nameInput.value.trim() : "Patient",
+        city: cityInput ? cityInput.value.trim() : null
     };
 
     const headers = { "Content-Type": "application/json" };

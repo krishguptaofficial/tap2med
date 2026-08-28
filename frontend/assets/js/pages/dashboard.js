@@ -122,16 +122,22 @@ async function loadQueue() {
             card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
             card.style.cursor = "pointer";
             
+            // Update the card to show Name and Patient ID
             card.innerHTML = `
                 <div class="token-number">#${shortCode}</div>
                 <div class="patient-details">
-                    <strong>Waiting</strong>
-                    <span>Status: Pending ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
+                    <strong style="font-size: 16px;">${patient.patient_name || 'Patient'}</strong>
+                    <span>ID: ${patient.display_id || '--'} ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
                 </div>
             `;
 
             card.onclick = async () => {
                 currentLocalToken = patient.local_token;
+                
+                // Store the display ID globally so the print function can grab it
+                window.currentPatientName = patient.patient_name || 'Patient';
+                window.currentDisplayId = patient.display_id || '--';
+                
                 document.getElementById("current-token").textContent = `#${shortCode}`;
                 clearPrescription();
                 await loadHistory(currentLocalToken);
@@ -241,23 +247,22 @@ async function completeVisit() {
         prescriptionStatus.textContent = "Sent to WhatsApp";
         prescriptionStatus.className = "badge badge-success";
         
-        // 1. Populate the Print Layout
+        // Populate the Print Layout with Name & ID
         const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
         document.getElementById("print-clinic-name").textContent = clinicName.textContent;
         document.getElementById("print-doctor-name").textContent = doctorName.textContent;
         document.getElementById("print-date").textContent = `Date: ${today}`;
         
-        const printMedContainer = document.getElementById("print-medicines");
-        printMedContainer.innerHTML = "";
-        medicines.forEach(med => {
-            printMedContainer.innerHTML += `
-                <div style="margin-bottom: 20px;">
-                    <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                    <span style="font-size: 14px; color: #444;">${med.instructions}</span>
-                </div>
-            `;
-        });
-
+        // Print Name & ID
+        const printNameEl = document.getElementById("print-patient-name");
+        if (printNameEl) {
+            printNameEl.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
+        }
+        
+        const printIdEl = document.getElementById("print-patient-id");
+        if (printIdEl) {
+            printIdEl.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
+        }
         // 2. ONLY trigger print if the setting is enabled
         if (localStorage.getItem("tap2med_auto_print") === "true") {
             window.print();

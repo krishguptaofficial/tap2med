@@ -107,11 +107,12 @@
           <p id="print-date" style="margin: 4px 0 0; font-size: 14px; color: #475569;">Date: </p>
         </div>
       </div>
-      <div style="display: flex; gap: 30px; margin-bottom: 30px; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; color: #334155;">
-        <div style="flex: 2;"><strong>Name:</strong> ___________________________</div>
-        <div style="flex: 1;"><strong>Age/Sex:</strong> _______</div>
-        <div style="flex: 1;"><strong>Vitals:</strong> <span id="print-vitals-field">_______</span></div>
-      </div>
+      <div style="display: flex; gap: 20px; margin-bottom: 30px; font-size: 14px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; color: #334155;">
+  <div style="flex: 2;" id="print-patient-name"><strong>Name:</strong> ______________________</div>
+  <div style="flex: 1;" id="print-patient-id"><strong>Patient ID:</strong> ________</div>
+  <div style="flex: 1;"><strong>Age/Sex:</strong> _______</div>
+  <div style="flex: 1;"><strong>Vitals:</strong> <span id="print-vitals-field">_______</span></div>
+</div>
       <div style="margin-bottom: 25px;">
         <span style="font-size: 36px; font-weight: bold; font-family: 'Times New Roman', serif; color: #0f172a;">&#8471;</span>
       </div>
@@ -480,6 +481,17 @@
               document.getElementById("print-doctor-name").textContent = currentDoctorName;
               document.getElementById("print-date").textContent = `Date: ${today}`;
               document.getElementById("print-vitals-field").textContent = visit.weight ? visit.weight : "N/A";
+
+              // Inject Name & Patient ID onto the print paper
+              const printNameEl = document.getElementById("print-patient-name");
+              if (printNameEl) {
+                  printNameEl.innerHTML = `<strong>Name:</strong> ${data.patient_name || 'Patient'}`;
+              }
+
+              const printIdEl = document.getElementById("print-patient-id");
+              if (printIdEl) {
+                  printIdEl.innerHTML = `<strong>Patient ID:</strong> ${data.display_id || localToken.slice(0, 8).toUpperCase()}`;
+              }
 
               const printMedContainer = document.getElementById("print-medicines");
               printMedContainer.innerHTML = "";

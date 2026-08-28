@@ -176,20 +176,30 @@
           </div>
         </header>
 
-        <!-- Screen 1: Phone Entry -->
+        <!-- Screen 1: Phone & City Entry -->
         <section id="screen-phone" class="scan-screen">
           <h1>Welcome to Clinic</h1>
-          <p class="subtitle">Enter your mobile number to check in.</p>
+          <p class="subtitle">Enter your details to check in.</p>
 
           <div class="input-group">
             <input
               type="tel"
               id="phone-input"
               class="input input-phone"
-              placeholder="Enter your phone number"
+              placeholder="Mobile Number (10 digits)"
               autocomplete="off"
               inputmode="numeric"
               maxlength="10"
+              required
+            />
+
+            <input
+              type="text"
+              id="patient-city-input"
+              class="input"
+              placeholder="City (Optional)"
+              style="margin-top: 15px; text-align: center; font-size: 16px;"
+              autocomplete="off"
             />
           </div>
 
@@ -197,7 +207,7 @@
             type="button"
             class="btn btn-primary btn-block"
             id="submit-phone-btn"
-            style="margin-top: 20px"
+            style="margin-top: 25px"
           >
             Continue
           </button>
@@ -208,11 +218,25 @@
           </p>
         </section>
 
-        <!-- Screen 2: Member Selection -->
+        <!-- Screen 2: Member Selection & Name -->
         <section id="screen-members" class="scan-screen hidden">
           <h1>Who is visiting?</h1>
-          <p class="subtitle">Select the patient.</p>
+          <p class="subtitle">Select the patient and enter their name.</p>
+          
           <div id="member-list-container" class="member-list"></div>
+
+          <div class="input-group" style="margin-bottom: 20px;">
+            <input
+              type="text"
+              id="patient-name-input"
+              class="input"
+              placeholder="Patient's Actual Name"
+              style="text-align: center; font-size: 16px; font-weight: 600; border-color: var(--primary-color);"
+              autocomplete="off"
+              required
+            />
+          </div>
+
           <button
             type="button"
             class="btn btn-primary btn-block"

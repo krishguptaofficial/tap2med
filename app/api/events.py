@@ -298,8 +298,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         )
 
 @router.get("/history/{local_token}")
-def get_patient_history( local_token:str, db :Session =Depends(get_db)):
-    
+def get_patient_history(local_token: str, db: Session = Depends(get_db)):
     try:
         past_visits = db.query(models.Event).filter(
             models.Event.local_token == local_token,
@@ -310,18 +309,20 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
             models.Prescription.local_token == local_token
         ).all()
 
+        # Fetch name from Redis if available
+        try:
+            patient_name = redis_client.get(f"name:{local_token}") or "Patient"
+        except Exception:
+            patient_name = "Patient"
+            
+        display_id = local_token[:8].upper()
+
         formatted_history = []
-        
         for visit in past_visits:
             visit_id_str = str(visit.event_id)
-
             matched_rx = [
-                {
-                    "name": rx.medicine_name,     
-                    "instructions": rx.instructions
-                }
-                for rx in all_rx 
-                if str(rx.event_id) == visit_id_str 
+                {"name": rx.medicine_name, "instructions": rx.instructions}
+                for rx in all_rx if str(rx.event_id) == visit_id_str 
             ]
 
             formatted_history.append({
@@ -331,7 +332,11 @@ def get_patient_history( local_token:str, db :Session =Depends(get_db)):
                 "prescriptions": matched_rx
             })
 
-        return {"history": formatted_history}
+        return {
+            "history": formatted_history,
+            "patient_name": patient_name,
+            "display_id": display_id
+        }
 
     except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
