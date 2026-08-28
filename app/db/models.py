@@ -93,6 +93,10 @@ class Event(Base):
 
     patient_weight = Column(Text, nullable=True)
 
+    complaints = Column(Text, nullable=True)
+    diagnosis = Column(Text, nullable=True)
+    tests_suggested = Column(Text, nullable=True)
+
     daily_token_number = Column(Integer, nullable= False)
     event_type = Column(String, default ="clinic_visit", nullable = False )
     timestamp= Column(DateTime(timezone=True), server_default=func.now())

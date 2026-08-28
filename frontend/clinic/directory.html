@@ -50,7 +50,6 @@
 
       <div style="padding: 30px; max-width: 1000px; margin: 0 auto;">
         
-        <!-- Search & Filter Controls -->
         <div style="display: flex; gap: 20px; margin-bottom: 30px; align-items: flex-end; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 250px;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Filter by Date</label>
@@ -67,7 +66,6 @@
             </div>
         </div>
 
-        <!-- Results Container -->
         <div id="directory-results" style="display: flex; flex-direction: column; gap: 12px;"></div>
 
       </div>
@@ -93,7 +91,6 @@
       const clinicId = localStorage.getItem("tap2med_clinic_id");
       if (!clinicId) window.location.href = "/login";
 
-      // Set date picker to today
       document.getElementById('date-filter').valueAsDate = new Date();
 
       async function loadDirectory(date = null, search = null) {
@@ -168,12 +165,23 @@
                       html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
                   }
 
+                  if (visit.complaints || visit.diagnosis) {
+                      html += `<div style="margin-bottom: 15px;">`;
+                      if (visit.complaints) html += `<div style="font-size: 14px; color: #334155; margin-bottom: 4px;"><strong>C/E:</strong> ${visit.complaints}</div>`;
+                      if (visit.diagnosis) html += `<div style="font-size: 14px; color: #0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
+                      html += `</div>`;
+                  }
+
                   if (visit.prescriptions && visit.prescriptions.length > 0) {
-                      html += `<ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">`;
+                      html += `<div style="margin-bottom: 15px;"><strong style="font-size: 14px; color: #0f172a;">Rx:</strong><ul style="list-style: none; padding-left: 0; margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">`;
                       visit.prescriptions.forEach(rx => {
                           html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ''}</span></li>`;
                       });
-                      html += `</ul>`;
+                      html += `</ul></div>`;
+                  }
+
+                  if (visit.tests_suggested) {
+                      html += `<div style="font-size: 13px; color: #0284c7; padding-top: 10px; border-top: 1px dashed #cbd5e1;"><strong>Tests Suggested:</strong> ${visit.tests_suggested}</div>`;
                   }
                   
                   html += `</div>`;
@@ -199,13 +207,11 @@
           loadDirectory(document.getElementById('date-filter').value);
       }
 
-      // Auto-load when date changes
       document.getElementById('date-filter').addEventListener('change', (e) => {
           document.getElementById('search-input').value = "";
           loadDirectory(e.target.value);
       });
 
-      // Initial Load
       loadDirectory(document.getElementById('date-filter').value);
     </script>
   </body>

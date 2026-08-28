@@ -113,10 +113,19 @@
         <div style="flex: 1;"><strong>Age/Sex:</strong> _______</div>
         <div style="flex: 1;"><strong>Vitals:</strong> <span id="print-vitals-field">_______</span></div>
       </div>
+      
+      <div id="print-clinical-notes" style="margin-bottom: 25px; display: none; padding-bottom: 15px; border-bottom: 1px dashed #cbd5e1;">
+          <div id="print-complaints" style="margin-bottom: 10px; font-size: 14px;"></div>
+          <div id="print-diagnosis" style="font-size: 14px; font-weight: bold; color: #0f172a;"></div>
+      </div>
+
       <div style="margin-bottom: 25px;">
         <span style="font-size: 36px; font-weight: bold; font-family: 'Times New Roman', serif; color: #0f172a;">&#8471;</span>
       </div>
-      <div id="print-medicines" style="min-height: 450px;"></div>
+      <div id="print-medicines" style="min-height: 250px;"></div>
+      
+      <div id="print-tests" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 14px; display: none;"></div>
+
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
         <div style="font-size: 12px; color: #64748b;"><strong>Powered by Tap2Med</strong><br>Smart Clinic Network</div>
         <div style="text-align: center; width: 200px;">
@@ -135,7 +144,6 @@
         <input type="hidden" id="vital-is-paid" value="false">
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-            <!-- BP & Pulse -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -148,8 +156,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Pulse (bpm)</label>
                 <input type="number" id="vital-pr" placeholder="e.g. 80" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Weight & Height -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Weight (kg)</label>
                 <input type="number" id="vital-wt" placeholder="e.g. 70" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -158,8 +164,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Height (cm)</label>
                 <input type="number" id="vital-ht" placeholder="e.g. 170" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Temp & SpO2 -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Temperature (F)</label>
                 <input type="number" id="vital-temp" placeholder="e.g. 98.6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -168,8 +172,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">SpO2 (%)</label>
                 <input type="number" id="vital-spo2" placeholder="e.g. 99" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Waist & Hip -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Waist (cm)</label>
                 <input type="number" id="vital-waist" placeholder="e.g. 85" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -179,7 +181,6 @@
                 <input type="number" id="vital-hip" placeholder="e.g. 95" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
         </div>
-
         <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e2e8f0;">
             <button onclick="closeVitalsModal()" class="btn btn-ghost" style="color: var(--text-muted);">Cancel</button>
             <button onclick="submitVitals()" class="btn btn-primary" style="padding-left: 24px; padding-right: 24px;">Save Vitals</button>
@@ -193,8 +194,6 @@
 
       let currentClinicName = "Clinic";
       let currentDoctorName = "Doctor";
-      
-      // Global tracking for custom sorting
       window.currentWaitingTokens = [];
 
       function logout() {
@@ -217,9 +216,8 @@
           const newIndex = index + direction;
           if (newIndex < 0 || newIndex >= tokens.length) return;
           
-          // Swap positions
           [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
-          window.currentWaitingTokens = tokens; // Optimistic update
+          window.currentWaitingTokens = tokens; 
           
           try {
               await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
@@ -513,13 +511,29 @@
               document.getElementById("print-vitals-field").textContent = visit.weight ? visit.weight : "N/A";
 
               const printNameEl = document.getElementById("print-patient-name");
-              if (printNameEl) {
-                  printNameEl.innerHTML = `<strong>Name:</strong> ${data.patient_name || 'Patient'}`;
-              }
+              if (printNameEl) printNameEl.innerHTML = `<strong>Name:</strong> ${data.patient_name || 'Patient'}`;
 
               const printIdEl = document.getElementById("print-patient-id");
-              if (printIdEl) {
-                  printIdEl.innerHTML = `<strong>Patient ID:</strong> ${data.display_id || localToken.slice(0, 8).toUpperCase()}`;
+              if (printIdEl) printIdEl.innerHTML = `<strong>Patient ID:</strong> ${data.display_id || localToken.slice(0, 8).toUpperCase()}`;
+
+              const printNotesContainer = document.getElementById("print-clinical-notes");
+              const printComplaints = document.getElementById("print-complaints");
+              const printDiagnosis = document.getElementById("print-diagnosis");
+              const printTests = document.getElementById("print-tests");
+
+              if (visit.complaints || visit.diagnosis) {
+                  printNotesContainer.style.display = "block";
+                  printComplaints.innerHTML = visit.complaints ? `<strong>C/E:</strong> ${visit.complaints}` : "";
+                  printDiagnosis.innerHTML = visit.diagnosis ? `<strong>Diagnosis:</strong> ${visit.diagnosis}` : "";
+              } else {
+                  printNotesContainer.style.display = "none";
+              }
+
+              if (visit.tests_suggested) {
+                  printTests.style.display = "block";
+                  printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
+              } else {
+                  printTests.style.display = "none";
               }
 
               const printMedContainer = document.getElementById("print-medicines");

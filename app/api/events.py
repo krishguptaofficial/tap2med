@@ -15,7 +15,6 @@ from app.core import hashing
 from app.db import crud, models
 from app.db.database import get_db
 
-# Connect to local Redis instance
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 IST = ZoneInfo("Asia/Kolkata")
@@ -49,6 +48,9 @@ class MedicineItem(BaseModel):
 class CompleteRequest(BaseModel):
     local_token : str
     medicines: List[MedicineItem]=[]
+    complaints: Optional[str] = None
+    diagnosis: Optional[str] = None
+    tests_suggested: Optional[str] = None
 
 class StartVisitRequest(BaseModel):
     phone: str
@@ -114,7 +116,6 @@ def start_visit(
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
 
         try:
-            # EPHEMERAL RAM CACHE: Store the name in Redis with a 12-Hour TTL (43200 seconds)
             redis_client.set(f"name:{local_token}", payload.name, ex=43200)
         except Exception:
             pass 
@@ -191,12 +192,25 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
             rx_text += "-----------------------------------\n"
             rx_text += f"🩺 {d_name}\n"
             rx_text += f"📅 {date_str}\n\n"
-            rx_text += "*YOUR PRESCRIPTION*\n\n"
             
-            for idx, rx in enumerate(rx_list, 1):
-                rx_text += f"*{idx}. {rx.medicine_name}*\n"
-                if rx.instructions:
-                    rx_text += f"↳ _{rx.instructions}_\n\n"
+            if current_visit.complaints:
+                rx_text += "*C/E (Complaints):*\n"
+                rx_text += f"{current_visit.complaints}\n\n"
+            if current_visit.diagnosis:
+                rx_text += "*DIAGNOSIS:*\n"
+                rx_text += f"{current_visit.diagnosis}\n\n"
+                
+            if rx_list:
+                rx_text += "*Rx / MEDICINES:*\n"
+                for idx, rx in enumerate(rx_list, 1):
+                    rx_text += f"*{idx}. {rx.medicine_name}*\n"
+                    if rx.instructions:
+                        rx_text += f"↳ _{rx.instructions}_\n"
+                rx_text += "\n"
+                
+            if current_visit.tests_suggested:
+                rx_text += "*TESTS SUGGESTED:*\n"
+                rx_text += f"{current_visit.tests_suggested}\n\n"
             
             rx_text += "-----------------------------------\n"
             rx_text += "_Powered by Tap2Med_"
@@ -235,42 +249,34 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         ).first()
 
         if not event:
-            raise HTTPException(
-                status_code=404,
-                detail="Active token not found"
-            )
+            raise HTTPException(status_code=404, detail="Active token not found")
 
         event.status = "completed" 
+        
+        # Save clinical notes directly to the event table
+        event.complaints = payload.complaints.strip() if payload.complaints else None
+        event.diagnosis = payload.diagnosis.strip() if payload.diagnosis else None
+        event.tests_suggested = payload.tests_suggested.strip() if payload.tests_suggested else None
 
+        # Save Medicines (No more hacky category flags needed)
         for med in payload.medicines:
             if med.name.strip() != "":
-                new_rx = models.Prescription(
-                    event_id=event.event_id,
-                    network_token=event.network_token,
-                    local_token=event.local_token,
-                    medicine_name=med.name,
-                    instructions=med.instructions,
-                    inferred_symptom="Not available in V0",
-                    drug_category="Not available in v0"
-                )
-                db.add(new_rx)
+                db.add(models.Prescription(
+                    event_id=event.event_id, 
+                    network_token=event.network_token, 
+                    local_token=event.local_token, 
+                    medicine_name=med.name, 
+                    instructions=med.instructions, 
+                    drug_category="MEDICINE", 
+                    inferred_symptom="Not available in V0"
+                ))
 
         db.commit()
-
-        return {
-            "status": "success",
-            "message": "Patient visit completed"
-        }
-
-    except HTTPException:
-        raise
+        return {"status": "success", "message": "Patient visit completed"}
 
     except Exception as e:
         db.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history/{local_token}")
 def get_patient_history(local_token: str, db: Session = Depends(get_db)):
@@ -295,7 +301,10 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
         for visit in past_visits:
             visit_id_str = str(visit.event_id)
             matched_rx = [
-                {"name": rx.medicine_name, "instructions": rx.instructions}
+                {
+                    "name": rx.medicine_name, 
+                    "instructions": rx.instructions
+                }
                 for rx in all_rx if str(rx.event_id) == visit_id_str 
             ]
 
@@ -303,6 +312,9 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
                 "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
                 "weight": visit.patient_weight, 
+                "complaints": visit.complaints,
+                "diagnosis": visit.diagnosis,
+                "tests_suggested": visit.tests_suggested,
                 "prescriptions": matched_rx
             })
 
