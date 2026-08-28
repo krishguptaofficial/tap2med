@@ -631,15 +631,14 @@
                     window.print();
                 }
                 
-                currentLocalToken = null;
-                clearPrescription();
-                await loadQueue();
+                // INSTANT DASHBOARD REFRESH
+                window.location.reload();
+
             } catch (error) {
                 console.error("Complete visit error:", error);
                 prescriptionStatus.textContent = "Failed to Send";
                 prescriptionStatus.className = "badge badge-danger";
                 alert("The prescription could not be saved.");
-            } finally {
                 isSaving = false;
             }
         }
