@@ -43,16 +43,26 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             models.Event.status.in_(["waiting", "completed"]) # Updated to include completed
         ).order_by(models.Event.timestamp.asc()).all()
 
-        formatted_queue = [
-            {
+        formatted_queue = []
+        for event in queue:
+            # Fetch ephemeral name from Redis
+            try:
+                patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
+            except Exception:
+                patient_name = "Patient"
+                
+            # Generate the 8-character Display ID
+            patient_display_id = event.local_token[:8].upper()
+
+            formatted_queue.append({
                 "event_id": str(event.event_id), 
                 "local_token": event.local_token,
                 "daily_token_number": event.daily_token_number, 
                 "status": event.status,
-                "weight": event.patient_weight 
-            } 
-            for event in queue
-        ]
+                "weight": event.patient_weight,
+                "patient_name": patient_name,
+                "display_id": patient_display_id
+            })
         
         clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
 
@@ -115,10 +125,20 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             ).all()
             
             # Only show it to the pharmacy if medicines were actually prescribed
+            # Only show it to the pharmacy if medicines were actually prescribed
             if rx_list:
+                try:
+                    patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
+                except Exception:
+                    patient_name = "Patient"
+                    
+                display_id = event.local_token[:8].upper()
+                
                 feed.append({
                     "local_token": event.local_token,
                     "token_number": event.daily_token_number,
+                    "display_id": display_id,
+                    "patient_name": patient_name,
                     "medicines": [{"name": rx.medicine_name, "instructions": rx.instructions} for rx in rx_list]
                 })
 

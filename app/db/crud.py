@@ -4,6 +4,7 @@ from app.db import models
 import uuid
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+from typing import Optional
 
 
 
@@ -151,12 +152,13 @@ def authenticate_clinic(db: Session, email: str, verify_password_fn):
     return None
 
 
-def create_patient(db: Session, patient_id: str, lookup_hash: str, user_salt:str, network_token:str):
+def create_patient(db: Session, patient_id: str, lookup_hash: str, user_salt:str, network_token:str, city: Optional[str] = None):
     db_patient = models.Patient(
         patient_id=patient_id,
         lookup_hash=lookup_hash,
         user_salt=user_salt,
-        network_token=network_token
+        network_token=network_token,
+        city=city
     )
     db.add(db_patient)
     db.commit()

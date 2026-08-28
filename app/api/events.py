@@ -13,6 +13,10 @@ from app.core import hashing
 from app.db import crud, models
 from app.db.database import get_db
 from typing import List, Optional
+import redis
+
+# Connect to local Redis instance
+redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 IST = ZoneInfo("Asia/Kolkata")
 router = APIRouter()
@@ -54,6 +58,8 @@ class StartVisitRequest(BaseModel):
     phone: str
     member_id: int = 0
     clinic_id: uuid.UUID
+    name: str = "Walk-in Patient"
+    city: Optional[str] = None
 
 @router.post("/visit/start")
 def start_visit(
@@ -103,13 +109,14 @@ def start_visit(
                 patient_id_to_return = secrets.token_hex(16)
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
                 
-                # Save new patient to DB
+                # Save new patient to DB with City ONLY on first creation
                 crud.create_patient(
                     db=db, 
                     patient_id=patient_id_to_return, 
                     lookup_hash=lookup_hash, 
                     user_salt=user_salt, 
-                    network_token=network_token
+                    network_token=network_token,
+                    city=payload.city
                 )
 
         if not network_token:
@@ -117,6 +124,12 @@ def start_visit(
 
         # Generate local token for this specific clinic
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
+
+        # EPHEMERAL RAM CACHE: Store the name in Redis with a 4-Hour TTL (14400 seconds)
+        try:
+            redis_client.set(f"name:{local_token}", payload.name, ex=14400)
+        except Exception as e:
+            pass # Silent fail if Redis drops, the queue will just show "Patient"
 
         # OVERWRITE PHONE IN MEMORY IMMEDIATELY
         payload.phone = "DELETED"
