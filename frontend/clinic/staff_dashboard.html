@@ -61,6 +61,20 @@
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Phone Number</label>
                 <input type="tel" id="walkin-phone" class="input" placeholder="Enter 10-digit number" maxlength="10" style="background: #f8fafc;">
             </div>
+
+            <div class="field" style="margin-bottom: 15px; margin-top: 10px;">
+    <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Family Member</label>
+    <select id="manual-member-id" class="input" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;">
+        <option value="0">Self</option>
+        <option value="1">Spouse</option>
+        <option value="2">Father</option>
+        <option value="3">Mother</option>
+        <option value="4">Child 1 (Eldest)</option>
+        <option value="5">Child 2</option>
+        <option value="6">Child 3</option>
+        <option value="7">Child 4 (Youngest)</option>
+    </select>
+</div>
             <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin">Generate Token</button>
         </div>
         <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
@@ -208,6 +222,10 @@
           const phone = phoneInput.value.trim();
           const statusEl = document.getElementById("manual-status");
           const btn = document.getElementById("btn-manual-checkin");
+          
+          // NEW: Grab the selected member ID from the dropdown
+          const memberDropdown = document.getElementById("manual-member-id");
+          const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
 
           if (!/^\d{10}$/.test(phone)) {
               statusEl.textContent = "Please enter a valid 10-digit phone number.";
@@ -225,7 +243,7 @@
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                       phone: phone,
-                      member_id: 0,
+                      member_id: selectedMember, // Send correct member ID here
                       clinic_id: clinicId
                   })
               });

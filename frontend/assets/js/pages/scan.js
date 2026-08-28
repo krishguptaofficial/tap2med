@@ -7,11 +7,13 @@ let selectedMemberId = null;
 
 const defaultMembers = [
     { id: 0, name: "Self" },
-    { id: 1, name: "Mother" },
+    { id: 1, name: "Spouse" },
     { id: 2, name: "Father" },
-    { id: 3, name: "Spouse" },
-    { id: 4, name: "Son" },
-    { id: 5, name: "Daughter"}
+    { id: 3, name: "Mother" },
+    { id: 4, name: "Child 1 (Eldest)" },
+    { id: 5, name: "Child 2" },
+    { id: 6, name: "Child 3" },
+    { id: 7, name: "Child 4 (Youngest)" }
 ];
 
 const savedMembers = localStorage.getItem("tap2med_family");
