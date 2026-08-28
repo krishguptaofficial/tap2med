@@ -22,20 +22,14 @@
       .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
       .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
-      /* Dual Print Layout CSS Magic */
       .print-rx-only, .print-bill-only { display: none; }
       
       @media print {
           body * { visibility: hidden; }
-          
-          /* Show Prescription Layout */
           body.mode-rx .print-rx-only, body.mode-rx .print-rx-only * { visibility: visible; }
           body.mode-rx .print-rx-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
-          
-          /* Show Bill Layout */
           body.mode-bill .print-bill-only, body.mode-bill .print-bill-only * { visibility: visible; }
           body.mode-bill .print-bill-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
-          
           @page { margin: 1cm; }
       }
     </style>
@@ -53,50 +47,59 @@
     </header>
 
     <main class="queue-grid">
-      <!-- Walk-in Registration -->
       <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; margin-bottom: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);">
         <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 20px;">📱</span> Manual Walk-in Check-In
         </h3>
-        <div style="display: flex; gap: 16px; align-items: flex-end;">
-            <div style="flex: 1;">
+        
+        <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 140px;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Phone</label>
-                <input type="tel" id="walkin-phone" class="input" placeholder="10-digit number" maxlength="10" style="background: #f8fafc;">
+                <input type="tel" id="walkin-phone" class="input" placeholder="10-digit number" maxlength="10" style="background: #f8fafc; width: 100%;">
             </div>
-            <div style="flex: 1;">
+
+            <div style="flex: 1; min-width: 140px;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Name</label>
-                <input type="text" id="walkin-name" class="input" placeholder="Full Name" style="background: #f8fafc;" required>
+                <input type="text" id="walkin-name" class="input" placeholder="Full Name" style="background: #f8fafc; width: 100%;" required>
             </div>
-            <div class="field" style="margin-bottom: 0;">
+
+            <div style="flex: 1; min-width: 150px; margin-bottom: 0;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Family Member</label>
                 <select id="manual-member-id" class="input" style="width: 100%; height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;">
                     <option value="0">Self</option>
                     <option value="1">Spouse</option>
                     <option value="2">Father</option>
                     <option value="3">Mother</option>
-                    <option value="4">Child 1</option>
-                    <option value="5">Child 2</option>
+                    <option value="4">Eldest Child</option>
+                    <option value="5">Middle Child</option>
+                    <option value="6">Youngest Child</option>
+                    <option value="7">Grandfather</option>
+                    <option value="8">Grandmother</option>
+                    <option value="9">Other Relative 1</option>
+                    <option value="10">Other Relative 2</option>
                 </select>
             </div>
-            <div style="flex: 0.5;">
-                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; height: 44px; margin-bottom: 0; font-size: 14px; font-weight: 600; color: var(--text-main);">
+
+            <div style="flex: 0 0 auto; display: flex; align-items: center; height: 44px; padding-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 0; font-size: 14px; font-weight: 600; color: var(--text-main); white-space: nowrap;">
                     <input type="checkbox" id="walkin-is-appt" style="width: 18px; height: 18px; accent-color: var(--primary-color);">
                     Is Appt?
                 </label>
             </div>
-            <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin" style="height: 44px; margin-bottom: 0;">Generate Token</button>
+
+            <div style="flex: 0 0 auto;">
+                <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin" style="height: 44px; margin-bottom: 0; white-space: nowrap;">Generate Token</button>
+            </div>
         </div>
         <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
       </div>
 
-      <!-- Waiting Section -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
         <h3 style="margin: 0; font-size: 20px; color: var(--text-main); font-weight: 800;">Waiting Room</h3>
         <span class="badge badge-info" id="queue-count" style="font-size: 14px; padding: 6px 12px;">Updating...</span>
       </div>
       <div id="staff-queue-list" style="margin-bottom: 48px;"></div>
 
-      <!-- Completed Section -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-top: 32px; border-top: 2px dashed #cbd5e1;">
         <h3 style="margin: 0; font-size: 18px; color: #64748b; font-weight: 700;">Completed Visits</h3>
         <span class="badge" style="background: #f1f5f9; color: #64748b; font-size: 14px; padding: 6px 12px;" id="completed-count">0</span>
@@ -143,9 +146,7 @@
         <div style="text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
             <h1 id="bill-clinic-name" style="margin: 0; font-size: 24px; font-weight: 800; color: #0f172a;">Clinic Name</h1>
         </div>
-        
         <h3 style="text-align: center; margin: 10px 0 25px 0; font-size: 16px; color: #334155; text-decoration: underline;">Bill cum Receipt</h3>
-        
         <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 25px; line-height: 1.8;">
             <div>
                 <div><strong>Patient Name:</strong> <span id="bill-patient-name"></span></div>
@@ -158,7 +159,6 @@
                 <div><strong>Bill Status:</strong> <span style="font-weight: 800;">PAID</span></div>
             </div>
         </div>
-        
         <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 25px;">
             <thead style="background: #f1f5f9; border-top: 1px solid #000; border-bottom: 1px solid #000;">
                 <tr>
@@ -177,7 +177,6 @@
                 </tr>
             </tbody>
         </table>
-        
         <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
             <div>
                 <div><strong>Payment Mode:</strong> <span style="letter-spacing: 0.05em;">CASH</span></div>
@@ -196,10 +195,8 @@
     <div id="vitals-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 100; align-items: center; justify-content: center;">
       <div style="background: white; padding: 32px; border-radius: 16px; width: 100%; max-width: 550px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
         <h3 style="margin-top: 0; color: var(--text-main); margin-bottom: 24px; font-size: 20px; font-weight: 700;">Add Vitals</h3>
-
         <input type="hidden" id="vitals-token">
         <input type="hidden" id="vital-is-paid" value="false">
-
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
@@ -238,7 +235,6 @@
                 <input type="number" id="vital-hip" placeholder="e.g. 95" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
         </div>
-
         <div style="display: flex; gap: 12px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid #e2e8f0;">
             <button onclick="closeVitalsModal()" class="btn btn-ghost" style="color: var(--text-muted);">Cancel</button>
             <button onclick="submitVitals()" class="btn btn-primary" style="padding-left: 24px; padding-right: 24px;">Save Vitals</button>
@@ -266,7 +262,6 @@
           return `${letter}-${tokenNumber}`; 
       }
 
-      // Convert Numbers to Words for Bill
       function numberToWords(num) {
           const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
           const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
@@ -281,41 +276,27 @@
           return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : '';
       }
       
-      // OPTIMISTIC UI FIX FOR RECEPTIONIST
-      window.moveQueue = function(localToken, direction, e) {
+      window.moveQueue = async function(localToken, direction, e) {
           if (e) e.stopPropagation();
-          
-          const queueList = document.getElementById("staff-queue-list");
-          const cards = Array.from(queueList.children);
-          // Using the token text since we didn't inject dataset on the staff side
-          // So we find the correct token badge inside the DOM.
-          const cardIndex = cards.findIndex(c => c.innerHTML.includes(localToken));
-          
-          if (cardIndex < 0) return;
-          const newIndex = cardIndex + direction;
-          if (newIndex < 0 || newIndex >= cards.length) return;
-          
-          const card1 = cards[cardIndex];
-          const card2 = cards[newIndex];
-          
-          if (direction === 1) { card2.after(card1); } 
-          else { card2.before(card1); }
-
           let tokens = [...window.currentWaitingTokens];
-          const tokenIndex = tokens.indexOf(localToken);
-          if (tokenIndex > -1) {
-              const newTokenIndex = tokenIndex + direction;
-              if (newTokenIndex >= 0 && newTokenIndex < tokens.length) {
-                  [tokens[tokenIndex], tokens[newTokenIndex]] = [tokens[newTokenIndex], tokens[tokenIndex]];
-                  window.currentWaitingTokens = tokens; 
-              }
-          }
+          const index = tokens.indexOf(localToken);
+          if (index < 0) return;
+          const newIndex = index + direction;
+          if (newIndex < 0 || newIndex >= tokens.length) return;
           
-          fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ local_tokens: window.currentWaitingTokens })
-          }).catch(err => console.error("Reorder failed"));
+          [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
+          window.currentWaitingTokens = tokens; 
+          
+          try {
+              await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_tokens: tokens })
+              });
+              window.location.reload();
+          } catch (err) {
+              console.error("Reorder failed");
+          }
       }
 
       async function manualCheckIn() {
@@ -323,13 +304,10 @@
           const phone = phoneInput.value.trim();
           const statusEl = document.getElementById("manual-status");
           const btn = document.getElementById("btn-manual-checkin");
-          
           const memberDropdown = document.getElementById("manual-member-id");
           const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
-          
           const nameInput = document.getElementById("walkin-name");
           const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
-
           const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
 
           if (!/^\d{10}$/.test(phone)) {
@@ -415,7 +393,6 @@
 
       async function submitVitals() {
           const localToken = document.getElementById('vitals-token').value;
-
           const sys = document.getElementById('vital-bp-sys').value.trim();
           const dia = document.getElementById('vital-bp-dia').value.trim();
           const pr = document.getElementById('vital-pr').value.trim();
@@ -452,7 +429,6 @@
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ local_token: localToken, weight: finalString })
               });
-
               closeVitalsModal();
               loadStaffQueue(); 
           } catch (e) {
@@ -471,7 +447,6 @@
 
               const list = document.getElementById("staff-queue-list");
               const completedList = document.getElementById("staff-completed-list");
-              
               const enableVitals = localStorage.getItem("tap2med_enable_vitals") !== "false";
 
               const waiting = data.queue.filter(p => p.status === 'waiting');
@@ -529,7 +504,6 @@
                           }
                       }
 
-                      // THE PRINT BILL BUTTON
                       const billBtn = patient.fee ? `<button onclick="printBill('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${currentDoctorName.replace(/'/g, "\\'")}', '${visitLabel}', '${patient.fee}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">🧾 Bill</button>` : '';
 
                       actionButtons = `
@@ -557,11 +531,9 @@
                                   </strong>
                                   <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                               </div>
-
                               <div style="display:flex; gap: 8px; align-items:center; margin-left: 20px;">
                                   <span style="font-size: 16px; font-weight: 700; color: var(--primary-color); background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">👤 ${displayName}</span>
                               </div>
-
                               ${actionButtons}
                           </div>
                           <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color); padding: 8px 16px; margin-left: 16px;">Remove</button>
@@ -632,7 +604,6 @@
           }
       }
 
-      // PRINT RX LOGIC
       async function printPrescription(localToken) {
           try {
               const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
@@ -641,17 +612,13 @@
                   alert("No prescription found.");
                   return;
               }
-
               const visit = data.history[0]; 
               const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
               document.getElementById("print-clinic-name").textContent = currentClinicName;
               document.getElementById("print-doctor-name").textContent = currentDoctorName;
               document.getElementById("print-date").textContent = `Date: ${today}`;
-
               const printNameEl = document.getElementById("print-patient-name");
               if (printNameEl) printNameEl.innerHTML = `<strong>Name:</strong> ${data.patient_name || 'Patient'}`;
-
               const printIdEl = document.getElementById("print-patient-id");
               if (printIdEl) printIdEl.innerHTML = `<strong>Patient ID:</strong> ${data.display_id || localToken.slice(0, 8).toUpperCase()}`;
 
@@ -682,7 +649,6 @@
 
               const printMedContainer = document.getElementById("print-medicines");
               printMedContainer.innerHTML = "";
-
               meds.forEach((med, index) => {
                   printMedContainer.innerHTML += `
                       <div style="display: flex; gap: 15px; margin-bottom: 24px; align-items: baseline;">
@@ -694,40 +660,30 @@
                       </div>
                   `;
               });
-
-              // Toggle CSS Class for Rx
               document.body.classList.add('mode-rx');
               window.print();
               setTimeout(() => { document.body.classList.remove('mode-rx'); }, 500);
-
           } catch (e) {
               alert("Failed to load prescription for printing.");
           }
       }
 
-      // PRINT BILL LOGIC
       function printBill(patientName, displayId, tokenNum, doctorName, visitType, fee) {
           const now = new Date();
           const dateStr = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
           const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
           document.getElementById('bill-clinic-name').textContent = currentClinicName;
           document.getElementById('bill-patient-name').textContent = patientName;
           document.getElementById('bill-patient-id').textContent = displayId;
           document.getElementById('bill-date').textContent = `${dateStr} ${timeStr}`;
           document.getElementById('bill-number').textContent = `#${tokenNum}`;
-          
           document.getElementById('bill-service-name').textContent = `Dr. ${doctorName} - ${visitType}`;
           document.getElementById('bill-price').textContent = fee;
           document.getElementById('bill-net-price').textContent = fee;
-          
           document.getElementById('bill-total-1').textContent = fee;
           document.getElementById('bill-total-2').textContent = fee;
           document.getElementById('bill-total-3').textContent = fee;
-
           document.getElementById('bill-amount-words').textContent = numberToWords(fee);
-
-          // Toggle CSS Class for Bill
           document.body.classList.add('mode-bill');
           window.print();
           setTimeout(() => { document.body.classList.remove('mode-bill'); }, 500);
@@ -749,7 +705,6 @@
               alert("Failed to mark as paid.");
           }
       }
-
     </script>
   </body>
 </html>
