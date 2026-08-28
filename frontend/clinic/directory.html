@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Directory | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+  </head>
+  <body class="dashboard-body">
+    <!-- Sidebar -->
+    <aside id="clinicSidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+          <span>Tap2Med</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item">
+          <span style="font-size: 18px">⚡</span> Workspace
+        </a>
+        <a href="/directory" class="nav-item active">
+          <span style="font-size: 18px">👥</span> Patient Directory
+        </a>
+        <a href="/settings" class="nav-item">
+          <span style="font-size: 18px">⚙️</span> Clinic Settings
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="doc-profile">
+          <div class="avatar">🩺</div>
+          <div class="doc-info">
+            <strong id="doc-name">Doctor</strong>
+            <span id="clinic-name">Clinic</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="top-header">
+        <h2 style="font-size: 18px; margin: 0; color: var(--primary-color);">Patient Directory Ledger</h2>
+      </header>
+
+      <div style="padding: 30px; max-width: 1000px; margin: 0 auto;">
+        
+        <!-- Search & Filter Controls -->
+        <div style="display: flex; gap: 20px; margin-bottom: 30px; align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 250px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Filter by Date</label>
+                <input type="date" id="date-filter" class="input" style="background: white; border: 1px solid #cbd5e1; cursor: pointer;">
+            </div>
+            
+            <div style="flex: 2; min-width: 250px;">
+                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Search by Patient ID</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="search-input" class="input" placeholder="e.g. A3F8C2D1" style="background: white; border: 1px solid #cbd5e1; text-transform: uppercase;">
+                    <button onclick="searchDirectory()" class="btn btn-primary">Search</button>
+                    <button onclick="resetDirectory()" class="btn btn-ghost">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="directory-results" style="display: flex; flex-direction: column; gap: 12px;"></div>
+
+      </div>
+    </main>
+
+    <!-- History Modal -->
+    <div id="history-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
+        <div style="background: white; width: 100%; max-width: 600px; max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.2);">
+            <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
+                <div>
+                    <h3 style="margin: 0; font-size: 20px; color: var(--primary-color);" id="modal-patient-name">Lifetime History</h3>
+                    <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="modal-patient-id">ID: --</span>
+                </div>
+                <button onclick="document.getElementById('history-modal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8;">&times;</button>
+            </div>
+            <div id="modal-history-content" style="padding: 24px; overflow-y: auto; background: #f1f5f9; flex: 1;">
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <script>
+      const clinicId = localStorage.getItem("tap2med_clinic_id");
+      if (!clinicId) window.location.href = "/login";
+
+      // Set date picker to today
+      document.getElementById('date-filter').valueAsDate = new Date();
+
+      async function loadDirectory(date = null, search = null) {
+          const resultsContainer = document.getElementById("directory-results");
+          resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;">Loading...</div>';
+
+          let url = `/api/clinics/${clinicId}/directory?`;
+          if (search) url += `search=${encodeURIComponent(search)}`;
+          else if (date) url += `date_filter=${date}`;
+
+          try {
+              const res = await fetch(url);
+              const data = await res.json();
+
+              if (!data.results || data.results.length === 0) {
+                  resultsContainer.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">No visits found for this criteria.</div>';
+                  return;
+              }
+
+              resultsContainer.innerHTML = "";
+              data.results.forEach(patient => {
+                  const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+                  
+                  const card = document.createElement("div");
+                  card.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;";
+                  card.onmouseover = () => card.style.borderColor = "var(--primary-color)";
+                  card.onmouseout = () => card.style.borderColor = "#e2e8f0";
+
+                  card.innerHTML = `
+                      <div style="display: flex; align-items: center; gap: 20px;">
+                          <div style="background: #f1f5f9; color: var(--primary-color); font-weight: 800; font-size: 18px; padding: 10px 16px; border-radius: 8px;">ID: ${patient.display_id}</div>
+                          <div>
+                              <strong style="display: block; font-size: 16px; color: var(--text-main); margin-bottom: 4px;">👤 ${patient.patient_name}</strong>
+                              <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Visit Logged: ${checkInTime}</span>
+                          </div>
+                      </div>
+                      <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
+                  `;
+                  resultsContainer.appendChild(card);
+              });
+          } catch (e) {
+              resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--error-color);">Failed to load directory.</div>';
+          }
+      }
+
+      async function openHistory(localToken, displayId, name) {
+          document.getElementById('modal-patient-name').textContent = name;
+          document.getElementById('modal-patient-id').textContent = `Patient ID: ${displayId}`;
+          document.getElementById('history-modal').style.display = 'flex';
+          
+          const content = document.getElementById('modal-history-content');
+          content.innerHTML = "Fetching secure records...";
+
+          try {
+              const res = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+              const data = await res.json();
+              
+              if (!data.history || data.history.length === 0) {
+                  content.innerHTML = "No past records found.";
+                  return;
+              }
+
+              content.innerHTML = "";
+              data.history.forEach(visit => {
+                  const date = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+                  let html = `
+                      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                          <div style="font-weight: 700; color: var(--primary-color); border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">📅 ${date}</div>
+                  `;
+                  
+                  if (visit.weight) {
+                      html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
+                  }
+
+                  if (visit.prescriptions && visit.prescriptions.length > 0) {
+                      html += `<ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px;">`;
+                      visit.prescriptions.forEach(rx => {
+                          html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ''}</span></li>`;
+                      });
+                      html += `</ul>`;
+                  }
+                  
+                  html += `</div>`;
+                  content.innerHTML += html;
+              });
+          } catch (e) {
+              content.innerHTML = "Error loading history.";
+          }
+      }
+
+      function searchDirectory() {
+          const searchVal = document.getElementById('search-input').value.trim();
+          if (searchVal) {
+              loadDirectory(null, searchVal);
+          } else {
+              loadDirectory(document.getElementById('date-filter').value);
+          }
+      }
+
+      function resetDirectory() {
+          document.getElementById('search-input').value = "";
+          document.getElementById('date-filter').valueAsDate = new Date();
+          loadDirectory(document.getElementById('date-filter').value);
+      }
+
+      // Auto-load when date changes
+      document.getElementById('date-filter').addEventListener('change', (e) => {
+          document.getElementById('search-input').value = "";
+          loadDirectory(e.target.value);
+      });
+
+      // Initial Load
+      loadDirectory(document.getElementById('date-filter').value);
+    </script>
+  </body>
+</html>

@@ -168,3 +168,52 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
         return {"status": "success", "feed": feed}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/{clinic_id}/directory")
+def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: str = None, db: Session = Depends(get_db)):
+    try:
+        # Base query: Only completed visits for this clinic
+        query = db.query(models.Event).filter(
+            models.Event.clinic_id == clinic_id, 
+            models.Event.status == "completed"
+        )
+        
+        if search:
+            # Search by the 8-character Display ID
+            query = query.filter(models.Event.local_token.ilike(f"{search.lower()}%"))
+        else:
+            # Filter by Date (Default to today)
+            if date_filter:
+                target_date = datetime.strptime(date_filter, "%Y-%m-%d").date()
+            else:
+                target_date = datetime.now(IST).date()
+            query = query.filter(func.date(models.Event.timestamp) == target_date)
+            
+        events = query.order_by(models.Event.timestamp.desc()).all()
+        
+        # Deduplicate so we only show one entry per patient per day
+        seen_tokens = set()
+        results = []
+        for e in events:
+            if e.local_token not in seen_tokens:
+                seen_tokens.add(e.local_token)
+                
+                # Check Redis for name (Will exist for today, will be None for past days)
+                try:
+                    name = redis_client.get(f"name:{e.local_token}")
+                except:
+                    name = None
+                    
+                results.append({
+                    "display_id": e.local_token[:8].upper(),
+                    "local_token": e.local_token,
+                    "timestamp": e.timestamp.isoformat(),
+                    "patient_name": name or "Archived Patient",
+                    "vitals": e.patient_weight
+                })
+                
+        return {"status": "success", "results": results}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

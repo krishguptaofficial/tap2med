@@ -84,6 +84,11 @@ def serve_pharmacy_dashboard():
     logger.info("Pharmacy Dashboard Opened")
     return FileResponse("frontend/clinic/pharmacy.html")
 
+@app.get("/directory")
+def serve_directory():
+    logger.info("Directory Opened")
+    return FileResponse("frontend/clinic/directory.html")
+
 @app.get("/scan")
 def serve_patient_scan():
     logger.info("Scan Page Opened")
