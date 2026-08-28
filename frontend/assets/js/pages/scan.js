@@ -168,9 +168,8 @@ async function submitCheckIn() {
         }
 
         tokenDisplay.textContent = `#${getShortCode(data.queue_number)}`;
-        resetSessionTimeout(); 
         showScreen("screen-success");
-        startQueuePolling(data.local_token); 
+        startQueuePolling(data.local_token);
 
     } catch (error) {
         console.error(error);
