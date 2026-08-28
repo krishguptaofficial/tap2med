@@ -63,6 +63,10 @@
             </div>
 
             <div class="field" style="margin-bottom: 15px; margin-top: 10px;">
+                <div style="flex: 1; margin-top: 10px;">
+    <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Name</label>
+    <input type="text" id="walkin-name" class="input" placeholder="Enter Full Name" style="background: #f8fafc;" required>
+</div>
     <label style="font-size: 12px; font-weight: 600; color: var(--text-muted);">Family Member</label>
     <select id="manual-member-id" class="input" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;">
         <option value="0">Self</option>
@@ -224,12 +228,20 @@
           const statusEl = document.getElementById("manual-status");
           const btn = document.getElementById("btn-manual-checkin");
           
-          // NEW: Grab the selected member ID from the dropdown
           const memberDropdown = document.getElementById("manual-member-id");
           const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
+          
+          // GRAB THE NAME
+          const nameInput = document.getElementById("walkin-name");
+          const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
 
           if (!/^\d{10}$/.test(phone)) {
               statusEl.textContent = "Please enter a valid 10-digit phone number.";
+              statusEl.style.color = "var(--error-color)";
+              return;
+          }
+          if (!patientName) {
+              statusEl.textContent = "Please enter the patient's name.";
               statusEl.style.color = "var(--error-color)";
               return;
           }
@@ -244,8 +256,9 @@
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
                       phone: phone,
-                      member_id: selectedMember, // Send correct member ID here
-                      clinic_id: clinicId
+                      member_id: selectedMember,
+                      clinic_id: clinicId,
+                      name: patientName // SEND THE NAME
                   })
               });
 

@@ -52,7 +52,6 @@ function goToMemberScreen() {
     renderMemberList();
     showScreen("screen-members");
 
-    if(!document.getElementById("patient-name-input").value.trim()) { alert("Please enter your name."); return; }
 }
 
 function renderMemberList() {
