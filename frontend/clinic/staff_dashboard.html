@@ -135,6 +135,7 @@
         <input type="hidden" id="vital-is-paid" value="false">
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+            <!-- BP & Pulse -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -148,6 +149,7 @@
                 <input type="number" id="vital-pr" placeholder="e.g. 80" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
 
+            <!-- Weight & Height -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Weight (kg)</label>
                 <input type="number" id="vital-wt" placeholder="e.g. 70" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -157,6 +159,7 @@
                 <input type="number" id="vital-ht" placeholder="e.g. 170" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
 
+            <!-- Temp & SpO2 -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Temperature (F)</label>
                 <input type="number" id="vital-temp" placeholder="e.g. 98.6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -166,6 +169,7 @@
                 <input type="number" id="vital-spo2" placeholder="e.g. 99" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
 
+            <!-- Waist & Hip -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Waist (cm)</label>
                 <input type="number" id="vital-waist" placeholder="e.g. 85" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -189,6 +193,9 @@
 
       let currentClinicName = "Clinic";
       let currentDoctorName = "Doctor";
+      
+      // Global tracking for custom sorting
+      window.currentWaitingTokens = [];
 
       function logout() {
           localStorage.removeItem("tap2med_clinic_id");
@@ -200,6 +207,30 @@
           const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
           const letter = letters[(tokenNumber - 1) % 24]; 
           return `${letter}-${tokenNumber}`; 
+      }
+      
+      async function moveQueue(localToken, direction, e) {
+          if (e) e.stopPropagation();
+          let tokens = [...window.currentWaitingTokens];
+          const index = tokens.indexOf(localToken);
+          if (index < 0) return;
+          const newIndex = index + direction;
+          if (newIndex < 0 || newIndex >= tokens.length) return;
+          
+          // Swap positions
+          [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
+          window.currentWaitingTokens = tokens; // Optimistic update
+          
+          try {
+              await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ local_tokens: tokens })
+              });
+              loadStaffQueue();
+          } catch (err) {
+              console.error("Reorder failed");
+          }
       }
 
       async function manualCheckIn() {
@@ -354,6 +385,8 @@
 
               const waiting = data.queue.filter(p => p.status === 'waiting');
               const completed = data.queue.filter(p => p.status === 'completed');
+              
+              window.currentWaitingTokens = waiting.map(p => p.local_token);
 
               document.getElementById("queue-count").textContent = `${waiting.length} Waiting`;
               document.getElementById("completed-count").textContent = `${completed.length} Completed`;
@@ -370,17 +403,22 @@
                       
                       const displayName = patient.patient_name || 'Patient';
                       const displayId = patient.display_id || '--';
+                      const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
 
                       const card = document.createElement("div");
                       card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                       card.innerHTML = `
                           <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                              <div style="display: flex; flex-direction: column; margin-right: -10px; gap: 4px;">
+                                  <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:transparent; border:none; padding:0; cursor:pointer; color: var(--primary-color); font-size: 18px; line-height: 1;">▲</button>
+                                  <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:transparent; border:none; padding:0; cursor:pointer; color: var(--primary-color); font-size: 18px; line-height: 1;">▼</button>
+                              </div>
                               <div class="token-badge">#${shortCode}</div>
                               <div>
                                   <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
                                       ${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'}
                                   </strong>
-                                  <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">ID: ${displayId}</span>
+                                  <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                               </div>
 
                               <div style="display:flex; gap: 8px; align-items:center; margin-left: 20px;">

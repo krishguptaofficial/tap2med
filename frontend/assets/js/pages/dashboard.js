@@ -17,6 +17,8 @@ const sidebar = document.getElementById("clinicSidebar");
 const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 const menuToggleBtn = document.getElementById("sidebarToggle");
 
+window.currentWaitingTokens = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     const savedState = localStorage.getItem('tap2med_sidebar_state');
     if (savedState === 'closed') {
@@ -81,6 +83,29 @@ function getShortCode(tokenNumber) {
     return `${letter}-${tokenNumber}`; 
 }
 
+window.moveQueue = async function(localToken, direction, e) {
+    if (e) e.stopPropagation();
+    let tokens = [...window.currentWaitingTokens];
+    const index = tokens.indexOf(localToken);
+    if (index < 0) return;
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= tokens.length) return;
+    
+    [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
+    window.currentWaitingTokens = tokens; 
+    
+    try {
+        await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ local_tokens: tokens })
+        });
+        loadQueue();
+    } catch (err) {
+        console.error("Reorder failed");
+    }
+}
+
 async function loadQueue() {
     if (!clinicId) return;
 
@@ -94,6 +119,7 @@ async function loadQueue() {
         clinicName.textContent = data.clinic_name || "Clinic";
         
         const waitingQueue = data.queue ? data.queue.filter(p => p.status === 'waiting') : [];
+        window.currentWaitingTokens = waitingQueue.map(p => p.local_token);
 
         const queueCountBadge = document.getElementById("queue-count");
         if (queueCountBadge) {
@@ -118,6 +144,10 @@ async function loadQueue() {
             card.style.cursor = "pointer";
             
             card.innerHTML = `
+                <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">
+                    <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▲</button>
+                    <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▼</button>
+                </div>
                 <div class="token-number">#${shortCode}</div>
                 <div class="patient-details">
                     <strong style="font-size: 16px;">${patient.patient_name || 'Patient'}</strong>

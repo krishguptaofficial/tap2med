@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 import uuid
+import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy import func
@@ -11,12 +12,11 @@ from app.core import security
 from app.db import crud, models
 from app.db.database import get_db
 
+# Connect to local Redis instance
 redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 router = APIRouter()
-
 IST = ZoneInfo("Asia/Kolkata")
-
 
 class ClinicCreate(BaseModel):
     doctor_name: str
@@ -39,22 +39,19 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         today = datetime.now(IST).date()
         
-        # Fetch ALL patients for today (waiting and completed)
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
             func.date(models.Event.timestamp) == today,
-            models.Event.status.in_(["waiting", "completed"]) # Updated to include completed
+            models.Event.status.in_(["waiting", "completed"]) 
         ).order_by(models.Event.timestamp.asc()).all()
 
         formatted_queue = []
         for event in queue:
-            # Fetch ephemeral name from Redis
             try:
                 patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
             except Exception:
                 patient_name = "Patient"
                 
-            # Generate the 8-character Display ID
             patient_display_id = event.local_token[:8].upper()
 
             formatted_queue.append({
@@ -64,8 +61,24 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "status": event.status,
                 "weight": event.patient_weight,
                 "patient_name": patient_name,
-                "display_id": patient_display_id
+                "display_id": patient_display_id,
+                "timestamp": event.timestamp.isoformat() # Exposing the timestamp
             })
+            
+        # Custom Sorting Logic using Redis
+        try:
+            order_data = redis_client.get(f"queue_order:{str(clinic_id)}")
+            if order_data:
+                order_list = json.loads(order_data)
+                waiting = [q for q in formatted_queue if q['status'] == 'waiting']
+                completed = [q for q in formatted_queue if q['status'] == 'completed']
+                
+                # Sort waiting by order_list, put newly scanned patients at the bottom
+                waiting.sort(key=lambda x: order_list.index(x['local_token']) if x['local_token'] in order_list else 99999)
+                
+                formatted_queue = waiting + completed
+        except Exception:
+            pass
         
         clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
 
@@ -82,10 +95,20 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-   
+class ReorderPayload(BaseModel):
+    local_tokens: list[str]
+
+@router.put("/{clinic_id}/queue/reorder")
+def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload):
+    try:
+        # Save the custom order for 12 hours
+        redis_client.set(f"queue_order:{str(clinic_id)}", json.dumps(payload.local_tokens), ex=43200) 
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 class RoleUpdate(BaseModel):
-    role_type: str # 'reception' or 'pharmacy'
+    role_type: str 
     username: str
     passcode: str
 
@@ -114,7 +137,6 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         today = datetime.now(IST).date()
         
-        # Get today's completed events, newest first
         completed_events = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
             func.date(models.Event.timestamp) == today,
@@ -127,8 +149,6 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 models.Prescription.event_id == event.event_id
             ).all()
             
-            # Only show it to the pharmacy if medicines were actually prescribed
-            # Only show it to the pharmacy if medicines were actually prescribed
             if rx_list:
                 try:
                     patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
