@@ -129,6 +129,7 @@ class Patient(Base):
     user_salt = Column(String, nullable=False)
     network_token = Column(String, nullable=False)
     abha_token = Column(String, nullable=True, default=None)
+    city = Column(String(100), nullable=True, default=None)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
 
