@@ -424,39 +424,32 @@
             return `${letter}-${tokenNumber}`; 
         }
 
-        // OPTIMISTIC UI FIX: Instant DOM Swap
-        window.moveQueue = function(localToken, direction, e) {
+        
+        window.moveQueue = async function(localToken, direction, e) {
             if (e) e.stopPropagation();
-            
-            const queueList = document.getElementById("queue-list");
-            const cards = Array.from(queueList.children);
-            const cardIndex = cards.findIndex(c => c.dataset.token === localToken);
-            
-            if (cardIndex < 0) return;
-            const newIndex = cardIndex + direction;
-            if (newIndex < 0 || newIndex >= cards.length) return;
-            
-            const card1 = cards[cardIndex];
-            const card2 = cards[newIndex];
-            
-            if (direction === 1) { card2.after(card1); } 
-            else { card2.before(card1); }
-
             let tokens = [...window.currentWaitingTokens];
-            const tokenIndex = tokens.indexOf(localToken);
-            if (tokenIndex > -1) {
-                const newTokenIndex = tokenIndex + direction;
-                if (newTokenIndex >= 0 && newTokenIndex < tokens.length) {
-                    [tokens[tokenIndex], tokens[newTokenIndex]] = [tokens[newTokenIndex], tokens[tokenIndex]];
-                    window.currentWaitingTokens = tokens; 
-                }
-            }
+            const index = tokens.indexOf(localToken);
+            if (index < 0) return;
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= tokens.length) return;
             
-            fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ local_tokens: window.currentWaitingTokens })
-            }).catch(err => console.error("Reorder failed"));
+            // Swap array positions
+            [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
+            window.currentWaitingTokens = tokens; 
+            
+            try {
+                // Send the new order to Redis/Backend
+                await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ local_tokens: tokens })
+                });
+                
+                // Hard refresh to pull the fresh state from the server
+                window.location.reload();
+            } catch (err) {
+                console.error("Reorder failed");
+            }
         }
 
         async function loadQueue() {
@@ -514,7 +507,6 @@
                         </div>
                     `;
 
-                    // OPTIMISTIC UI FIX: Instant Active State
                     card.onclick = () => {
                         document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
                         card.classList.add('active');
