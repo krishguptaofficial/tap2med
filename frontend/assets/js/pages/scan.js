@@ -211,8 +211,6 @@ if(btnCancelMember) btnCancelMember.addEventListener("click", () => showScreen("
 
 let pollingInterval = null;
 
-let pollingInterval = null;
-
 function startQueuePolling(localToken) {
     if (pollingInterval) clearInterval(pollingInterval);
     
