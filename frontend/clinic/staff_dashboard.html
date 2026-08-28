@@ -11,25 +11,31 @@
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <style>
       .queue-grid { max-width: 850px; margin: 40px auto; padding: 0 20px; }
-
       .queue-card { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; background: var(--surface-color); border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); transition: all 0.2s ease; }
       .queue-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); border-color: #cbd5e1; }
       .queue-card.active-patient { border-color: var(--primary-color); background: linear-gradient(to right, rgba(2, 132, 199, 0.05), #ffffff); box-shadow: 0 0 0 1px var(--primary-color), 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-
       .token-badge { font-size: 26px; font-weight: 800; color: var(--primary-color); background: #f1f5f9; padding: 12px 20px; border-radius: 12px; letter-spacing: -0.02em; }
       .active-patient .token-badge { background: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3); }
-
       .brand-header { display: flex; align-items: center; gap: 12px; }
       .brand-logo { width: 38px; height: 32px; object-fit: contain; }
       .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
       .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
       .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 
-      .print-only { display: none; }
+      /* Dual Print Layout CSS Magic */
+      .print-rx-only, .print-bill-only { display: none; }
+      
       @media print {
           body * { visibility: hidden; }
-          .print-only, .print-only * { visibility: visible; }
-          .print-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+          
+          /* Show Prescription Layout */
+          body.mode-rx .print-rx-only, body.mode-rx .print-rx-only * { visibility: visible; }
+          body.mode-rx .print-rx-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+          
+          /* Show Bill Layout */
+          body.mode-bill .print-bill-only, body.mode-bill .print-bill-only * { visibility: visible; }
+          body.mode-bill .print-bill-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+          
           @page { margin: 1cm; }
       }
     </style>
@@ -47,7 +53,6 @@
     </header>
 
     <main class="queue-grid">
-
       <!-- Walk-in Registration -->
       <div style="background: #ffffff; border: 1px solid var(--border-color); border-radius: 16px; padding: 28px; margin-bottom: 40px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);">
         <h3 style="margin-top: 0; margin-bottom: 20px; color: var(--text-main); font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
@@ -58,12 +63,10 @@
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Phone</label>
                 <input type="tel" id="walkin-phone" class="input" placeholder="10-digit number" maxlength="10" style="background: #f8fafc;">
             </div>
-
             <div style="flex: 1;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Patient Name</label>
                 <input type="text" id="walkin-name" class="input" placeholder="Full Name" style="background: #f8fafc;" required>
             </div>
-
             <div class="field" style="margin-bottom: 0;">
                 <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Family Member</label>
                 <select id="manual-member-id" class="input" style="width: 100%; height: 44px; padding: 0 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: white;">
@@ -75,15 +78,12 @@
                     <option value="5">Child 2</option>
                 </select>
             </div>
-
-            <!-- APPOINTMENT CHECKBOX -->
             <div style="flex: 0.5;">
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; height: 44px; margin-bottom: 0; font-size: 14px; font-weight: 600; color: var(--text-main);">
                     <input type="checkbox" id="walkin-is-appt" style="width: 18px; height: 18px; accent-color: var(--primary-color);">
                     Is Appt?
                 </label>
             </div>
-
             <button onclick="manualCheckIn()" class="btn btn-primary" id="btn-manual-checkin" style="height: 44px; margin-bottom: 0;">Generate Token</button>
         </div>
         <span id="manual-status" style="display: block; margin-top: 12px; font-size: 14px; font-weight: 600;"></span>
@@ -104,8 +104,8 @@
       <div id="staff-completed-list"></div>
     </main>
 
-    <!-- Premium Print Layout -->
-    <div id="print-layout" class="print-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
+    <!-- PRINT LAYOUT 1: The Clinical Prescription -->
+    <div id="print-rx-layout" class="print-rx-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 20px;">
         <div>
           <h1 id="print-clinic-name" style="margin: 0; font-size: 28px; font-weight: 800; color: #0f172a; letter-spacing: -0.02em;">Clinic Name</h1>
@@ -120,19 +120,15 @@
         <div style="flex: 2;" id="print-patient-name"><strong>Name:</strong> ______________________</div>
         <div style="flex: 1; text-align: right;" id="print-patient-id"><strong>Patient ID:</strong> ________</div>
       </div>
-      
       <div id="print-clinical-notes" style="margin-bottom: 25px; display: none; padding-bottom: 15px; border-bottom: 1px dashed #cbd5e1;">
           <div id="print-complaints" style="margin-bottom: 10px; font-size: 14px;"></div>
           <div id="print-diagnosis" style="font-size: 14px; font-weight: bold; color: #0f172a;"></div>
       </div>
-
       <div style="margin-bottom: 25px;">
         <span style="font-size: 36px; font-weight: bold; font-family: 'Times New Roman', serif; color: #0f172a;">&#8471;</span>
       </div>
       <div id="print-medicines" style="min-height: 250px;"></div>
-      
       <div id="print-tests" style="margin-top: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1; font-size: 14px; display: none;"></div>
-
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
         <div style="font-size: 12px; color: #64748b;"><strong>Powered by Tap2Med</strong><br>Smart Clinic Network</div>
         <div style="text-align: center; width: 200px;">
@@ -140,6 +136,60 @@
           <span style="font-size: 14px; color: #0f172a; font-weight: 600;">Doctor's Signature</span>
         </div>
       </div>
+    </div>
+
+    <!-- PRINT LAYOUT 2: The Billing Receipt -->
+    <div id="print-bill-layout" class="print-bill-only" style="font-family: 'Inter', sans-serif; color: #000; max-width: 800px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
+            <h1 id="bill-clinic-name" style="margin: 0; font-size: 24px; font-weight: 800; color: #0f172a;">Clinic Name</h1>
+        </div>
+        
+        <h3 style="text-align: center; margin: 10px 0 25px 0; font-size: 16px; color: #334155; text-decoration: underline;">Bill cum Receipt</h3>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 25px; line-height: 1.8;">
+            <div>
+                <div><strong>Patient Name:</strong> <span id="bill-patient-name"></span></div>
+                <div><strong>Mobile Number:</strong> <span style="color: #64748b;">Not Stored (Privacy Protected)</span></div>
+                <div><strong>Patient ID:</strong> <span id="bill-patient-id"></span></div>
+            </div>
+            <div style="text-align: right;">
+                <div><strong>Bill Date:</strong> <span id="bill-date"></span></div>
+                <div><strong>Bill Number:</strong> <span id="bill-number"></span></div>
+                <div><strong>Bill Status:</strong> <span style="font-weight: 800;">PAID</span></div>
+            </div>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 25px;">
+            <thead style="background: #f1f5f9; border-top: 1px solid #000; border-bottom: 1px solid #000;">
+                <tr>
+                    <th style="padding: 10px 8px; text-align: left;">#</th>
+                    <th style="padding: 10px 8px; text-align: left;">Service Particulars</th>
+                    <th style="padding: 10px 8px; text-align: right;">Price</th>
+                    <th style="padding: 10px 8px; text-align: right;">Net. price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 12px 8px;">1</td>
+                    <td style="padding: 12px 8px;" id="bill-service-name">Consultation</td>
+                    <td style="padding: 12px 8px; text-align: right;" id="bill-price"></td>
+                    <td style="padding: 12px 8px; text-align: right;" id="bill-net-price"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div style="display: flex; justify-content: space-between; font-size: 13px; line-height: 1.8;">
+            <div>
+                <div><strong>Payment Mode:</strong> <span style="letter-spacing: 0.05em;">CASH</span></div>
+                <div id="bill-amount-words" style="margin-top: 15px; font-weight: 600; text-transform: uppercase;"></div>
+            </div>
+            <div style="text-align: right; width: 250px;">
+                <div style="display: flex; justify-content: space-between;"><strong>Billed Amount:</strong> <span id="bill-total-1"></span></div>
+                <div style="display: flex; justify-content: space-between;"><strong>Final Amount:</strong> <span id="bill-total-2"></span></div>
+                <div style="display: flex; justify-content: space-between; font-weight: 800;"><strong>Received Amount:</strong> <span id="bill-total-3"></span></div>
+                <div style="display: flex; justify-content: space-between;"><strong>Balance Amount:</strong> <span>0</span></div>
+            </div>
+        </div>
     </div>
 
     <!-- Complete Vitals Modal -->
@@ -151,7 +201,6 @@
         <input type="hidden" id="vital-is-paid" value="false">
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-            <!-- BP & Pulse -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">BP (mmHg)</label>
                 <div style="display: flex; align-items: center; gap: 4px;">
@@ -164,8 +213,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Pulse (bpm)</label>
                 <input type="number" id="vital-pr" placeholder="e.g. 80" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Weight & Height -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Weight (kg)</label>
                 <input type="number" id="vital-wt" placeholder="e.g. 70" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -174,8 +221,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Height (cm)</label>
                 <input type="number" id="vital-ht" placeholder="e.g. 170" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Temp & SpO2 -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Temperature (F)</label>
                 <input type="number" id="vital-temp" placeholder="e.g. 98.6" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -184,8 +229,6 @@
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">SpO2 (%)</label>
                 <input type="number" id="vital-spo2" placeholder="e.g. 99" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
             </div>
-
-            <!-- Waist & Hip -->
             <div>
                 <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Waist (cm)</label>
                 <input type="number" id="vital-waist" placeholder="e.g. 85" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px;">
@@ -221,6 +264,21 @@
           const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
           const letter = letters[(tokenNumber - 1) % 24]; 
           return `${letter}-${tokenNumber}`; 
+      }
+
+      // Convert Numbers to Words for Bill
+      function numberToWords(num) {
+          const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+          const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+          if ((num = num.toString()).length > 9) return 'overflow';
+          let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+          if (!n) return; let str = '';
+          str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+          str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+          str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+          str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+          str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+          return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : '';
       }
       
       async function moveQueue(localToken, direction, e) {
@@ -258,7 +316,6 @@
           const nameInput = document.getElementById("walkin-name");
           const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
 
-          // CAPTURE APPOINTMENT FLAG
           const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
 
           if (!/^\d{10}$/.test(phone)) {
@@ -426,8 +483,15 @@
                       const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
 
                       let typeBadge = "";
-                      if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
-                      else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                      let visitLabel = "New Consultation";
+                      if (patient.visit_type === "followup") {
+                          typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+                          visitLabel = "Follow-up Consultation";
+                      }
+                      else if (patient.visit_type === "appointment") {
+                          typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                          visitLabel = "Appointment Consultation";
+                      }
                       else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
 
                       const safeWeight = (patient.weight || '').replace(/'/g, "\\'");
@@ -451,10 +515,16 @@
                           }
                       }
 
+                      // THE PRINT BILL BUTTON
+                      const billBtn = patient.fee ? `<button onclick="printBill('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${currentDoctorName.replace(/'/g, "\\'")}', '${visitLabel}', '${patient.fee}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">🧾 Bill</button>` : '';
+
                       actionButtons = `
                         <div style="display:flex; flex-direction: column; gap: 8px; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px; min-width: 140px;">
                             ${markPaidBtn}
-                            ${vitalsBtn}
+                            <div style="display: flex; gap: 8px;">
+                                ${vitalsBtn}
+                                ${billBtn}
+                            </div>
                         </div>
                       `;
 
@@ -495,10 +565,18 @@
                       const displayId = patient.display_id || '--';
 
                       let typeBadge = "";
-                      if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
-                      else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                      let visitLabel = "New Consultation";
+                      if (patient.visit_type === "followup") {
+                          typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+                          visitLabel = "Follow-up Consultation";
+                      }
+                      else if (patient.visit_type === "appointment") {
+                          typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                          visitLabel = "Appointment Consultation";
+                      }
                       else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
 
+                      const billBtn = patient.fee ? `<button onclick="printBill('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${currentDoctorName.replace(/'/g, "\\'")}', '${visitLabel}', '${patient.fee}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧾 Print Bill</button>` : '';
 
                       const card = document.createElement("div");
                       card.className = "queue-card";
@@ -513,8 +591,9 @@
                                   <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Consultation Completed</span>
                               </div>
                           </div>
-                          <div>
+                          <div style="display: flex; gap: 10px;">
                               <button onclick="printPrescription('${patient.local_token}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🖨️ Print Rx</button>
+                              ${billBtn}
                           </div>
                       `;
                       completedList.appendChild(card);
@@ -539,6 +618,7 @@
           }
       }
 
+      // PRINT RX LOGIC
       async function printPrescription(localToken) {
           try {
               const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
@@ -601,10 +681,42 @@
                   `;
               });
 
+              // Toggle CSS Class for Rx
+              document.body.classList.add('mode-rx');
               window.print();
+              setTimeout(() => { document.body.classList.remove('mode-rx'); }, 500);
+
           } catch (e) {
               alert("Failed to load prescription for printing.");
           }
+      }
+
+      // PRINT BILL LOGIC
+      function printBill(patientName, displayId, tokenNum, doctorName, visitType, fee) {
+          const now = new Date();
+          const dateStr = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+          const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+          document.getElementById('bill-clinic-name').textContent = currentClinicName;
+          document.getElementById('bill-patient-name').textContent = patientName;
+          document.getElementById('bill-patient-id').textContent = displayId;
+          document.getElementById('bill-date').textContent = `${dateStr} ${timeStr}`;
+          document.getElementById('bill-number').textContent = `#${tokenNum}`;
+          
+          document.getElementById('bill-service-name').textContent = `Dr. ${doctorName} - ${visitType}`;
+          document.getElementById('bill-price').textContent = fee;
+          document.getElementById('bill-net-price').textContent = fee;
+          
+          document.getElementById('bill-total-1').textContent = fee;
+          document.getElementById('bill-total-2').textContent = fee;
+          document.getElementById('bill-total-3').textContent = fee;
+
+          document.getElementById('bill-amount-words').textContent = numberToWords(fee);
+
+          // Toggle CSS Class for Bill
+          document.body.classList.add('mode-bill');
+          window.print();
+          setTimeout(() => { document.body.classList.remove('mode-bill'); }, 500);
       }
 
       loadStaffQueue();
