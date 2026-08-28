@@ -1,7 +1,6 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedClinicId = urlParams.get("clinic");
 
-// Volatile session state
 let currentSessionPhone = localStorage.getItem("tap2med_last_phone") || null;
 let selectedMemberId = null;
 
@@ -48,10 +47,9 @@ function goToMemberScreen() {
     }
 
     currentSessionPhone = phone;
-    localStorage.setItem("tap2med_last_phone", phone); // Remember phone for WhatsApp routing
+    localStorage.setItem("tap2med_last_phone", phone); 
     renderMemberList();
     showScreen("screen-members");
-
 }
 
 function renderMemberList() {
@@ -106,7 +104,6 @@ function wipeVolatileMemory() {
     selectedMemberId = null;
 }
 
-// Auto-Resume Session on Page Load
 window.addEventListener('DOMContentLoaded', async () => {
     const savedLocalToken = localStorage.getItem("tap2med_local_token");
     
@@ -139,12 +136,19 @@ async function submitCheckIn() {
 
     const nameInput = document.getElementById("patient-name-input");
     const cityInput = document.getElementById("patient-city-input");
+    const patientName = nameInput ? nameInput.value.trim() : "";
+    
+    if (!patientName) {
+        alert("Please enter the patient's actual name for the prescription.");
+        if (nameInput) nameInput.focus();
+        return;
+    }
 
     const payload = {
         phone: currentSessionPhone,
         member_id: selectedMemberId,
         clinic_id: scannedClinicId,
-        name: nameInput ? nameInput.value.trim() : "Patient",
+        name: patientName,
         city: cityInput ? cityInput.value.trim() : null
     };
 
@@ -189,7 +193,6 @@ async function submitCheckIn() {
 
     } catch (error) {
         console.error("Check-in Error:", error);
-        // REAL ERROR LOGGING: If it fails now, it tells you exactly why!
         alert(`Error: ${error.message}\n\nPlease try scanning the QR again.`);
     } finally {
         if(button) {
@@ -206,7 +209,6 @@ function getShortCode(tokenNumber) {
     return `${letter}-${tokenNumber}`; 
 }
 
-// Safely attach event listeners
 const btnSubmitPhone = document.getElementById("submit-phone-btn");
 const btnCheckIn = document.getElementById("check-in-btn");
 const btnSaveMember = document.getElementById("save-member-btn");
@@ -238,14 +240,12 @@ function startQueuePolling(localToken) {
             else if (data.status === "Completed") {
                 clearInterval(pollingInterval);
                 
-                // 1. Build the correct WhatsApp URL with the prescription text
                 const savedPhone = currentSessionPhone || localStorage.getItem("tap2med_last_phone");
-                let waUrl = "whatsapp://"; // fallback
+                let waUrl = "whatsapp://"; 
                 if (savedPhone && data.prescription_text) {
                     waUrl = `whatsapp://send?phone=91${savedPhone}&text=${encodeURIComponent(data.prescription_text)}`;
                 }
                 
-                // 2. Add the native WhatsApp link styled as a beautiful button
                 if (waitStatusEl) {
                     waitStatusEl.innerHTML = `
                         <div style="color: #16a34a; font-weight: 800; margin-bottom: 15px; font-size: 20px;">Consultation Complete!</div>
@@ -257,7 +257,6 @@ function startQueuePolling(localToken) {
                     `;
                 }
                 
-                // 3. Clear memory
                 wipeVolatileMemory();
                 localStorage.removeItem("tap2med_local_token"); 
             }

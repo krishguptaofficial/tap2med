@@ -80,7 +80,6 @@
           }
           localStorage.setItem("tap2med_packed_rx", JSON.stringify(packedTokens));
           
-          // Force an immediate redraw
           window.lastPharmacyDataString = null;
           loadPharmacyFeed(); 
       }
@@ -101,10 +100,9 @@
               const data = await response.json();
               let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
 
-              // Anti-Flicker Hack: Only redraw if data or packed status actually changed
               const currentStateString = JSON.stringify(data.feed) + JSON.stringify(packedTokens);
               if (window.lastPharmacyDataString === currentStateString) {
-                  return; // Skip redraw to protect the button and scroll position!
+                  return; 
               }
               window.lastPharmacyDataString = currentStateString;
               
@@ -120,6 +118,8 @@
               data.feed.forEach((rx) => {
                   const shortCode = getShortCode(rx.token_number);
                   const isPacked = packedTokens.includes(rx.local_token);
+                  const displayName = rx.patient_name || 'Patient';
+                  const displayId = rx.display_id || '--';
                   
                   const card = document.createElement("div");
                   card.className = `rx-card ${isPacked ? 'packed' : ''}`;
@@ -137,7 +137,13 @@
 
                   card.innerHTML = `
                       <div class="rx-header">
-                          <div class="token-badge">#${shortCode}</div>
+                          <div style="display: flex; align-items: center; gap: 16px;">
+                              <div class="token-badge">#${shortCode}</div>
+                              <div>
+                                  <strong style="font-size: 18px; color: var(--primary-color);">👤 ${displayName}</strong>
+                                  <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">ID: ${displayId}</div>
+                              </div>
+                          </div>
                           <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? 'background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);' : 'background: var(--success-color); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); padding: 0 24px;'}">
                               ${isPacked ? 'Undo' : '✓ Mark as Packed'}
                           </button>

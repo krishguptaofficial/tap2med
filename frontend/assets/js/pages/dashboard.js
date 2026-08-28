@@ -1,16 +1,12 @@
-
 const clinicId = localStorage.getItem("tap2med_clinic_id");
 
-// 2. Boot unauthenticated users or broken sessions back to login
 if (!clinicId || clinicId === "undefined" || clinicId === "null") {
     window.location.href = "/login";
 }
 
-// 3. Initialize state variables
 let currentLocalToken = null;
 let isSaving = false;
 
-// 4. Hook up HTML elements
 const currentToken = document.getElementById("current-token");
 const historyContent = document.getElementById("history-content");
 const doctorName = document.getElementById("doc-name");
@@ -21,7 +17,6 @@ const sidebar = document.getElementById("clinicSidebar");
 const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 const menuToggleBtn = document.getElementById("sidebarToggle");
 
-// Initialization & State persistence
 document.addEventListener('DOMContentLoaded', () => {
     const savedState = localStorage.getItem('tap2med_sidebar_state');
     if (savedState === 'closed') {
@@ -122,7 +117,6 @@ async function loadQueue() {
             card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
             card.style.cursor = "pointer";
             
-            // Update the card to show Name and Patient ID
             card.innerHTML = `
                 <div class="token-number">#${shortCode}</div>
                 <div class="patient-details">
@@ -134,11 +128,14 @@ async function loadQueue() {
             card.onclick = async () => {
                 currentLocalToken = patient.local_token;
                 
-                // Store the display ID globally so the print function can grab it
                 window.currentPatientName = patient.patient_name || 'Patient';
                 window.currentDisplayId = patient.display_id || '--';
                 
                 document.getElementById("current-token").textContent = `#${shortCode}`;
+                
+                const headerEyebrow = document.querySelector(".eyebrow");
+                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+
                 clearPrescription();
                 await loadHistory(currentLocalToken);
                 await loadQueue(); 
@@ -147,11 +144,17 @@ async function loadQueue() {
             queueList.appendChild(card);
         });
         
-        // Auto-select first patient if none selected
         if (!currentLocalToken && waitingQueue.length > 0) {
             const firstPatient = waitingQueue[0];
             currentLocalToken = firstPatient.local_token;
             currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
+            
+            window.currentPatientName = firstPatient.patient_name || 'Patient';
+            window.currentDisplayId = firstPatient.display_id || '--';
+            
+            const headerEyebrow = document.querySelector(".eyebrow");
+            if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+
             clearPrescription();
             await loadHistory(currentLocalToken);
             const firstCard = queueList.firstChild;
@@ -244,16 +247,11 @@ async function completeVisit() {
         prescriptionStatus.textContent = "Sent to WhatsApp";
         prescriptionStatus.className = "badge badge-success";
         
-        prescriptionStatus.textContent = "Sent to WhatsApp";
-        prescriptionStatus.className = "badge badge-success";
-        
-        // Populate the Print Layout with Name & ID
         const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
         document.getElementById("print-clinic-name").textContent = clinicName.textContent;
         document.getElementById("print-doctor-name").textContent = doctorName.textContent;
         document.getElementById("print-date").textContent = `Date: ${today}`;
         
-        // Print Name & ID
         const printNameEl = document.getElementById("print-patient-name");
         if (printNameEl) {
             printNameEl.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
@@ -263,7 +261,18 @@ async function completeVisit() {
         if (printIdEl) {
             printIdEl.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
         }
-        // 2. ONLY trigger print if the setting is enabled
+
+        const printMedContainer = document.getElementById("print-medicines");
+        printMedContainer.innerHTML = "";
+        medicines.forEach(med => {
+            printMedContainer.innerHTML += `
+                <div style="margin-bottom: 20px;">
+                    <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                    <span style="font-size: 14px; color: #444;">${med.instructions}</span>
+                </div>
+            `;
+        });
+
         if (localStorage.getItem("tap2med_auto_print") === "true") {
             window.print();
         }
@@ -290,7 +299,6 @@ window.showQRCode = function() {
         }
         qrContainer.innerHTML = ""; 
         
-        // We just use the clinicId you already safely grabbed at the top of the file!
         if (!clinicId || clinicId === "undefined" || clinicId === "null") {
             console.error("Error: Clinic ID not found.");
             alert("Clinic ID not found. Please log out and log back in.");
@@ -298,7 +306,6 @@ window.showQRCode = function() {
         }
 
         const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
-        console.log("Success: Generating QR for URL ->", targetUrl);
         
         new QRCode(qrContainer, {
             text: targetUrl, 
@@ -314,12 +321,10 @@ window.showQRCode = function() {
     }
 }
 
-// Event Listeners
 document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
 document.getElementById("print-btn").addEventListener("click", completeVisit);
 menuToggleBtn.addEventListener("click", toggleSidebar);
 sidebarBackdrop.addEventListener("click", toggleSidebar);
 
-// Initialize
 loadQueue();
 setInterval(loadQueue, 5000);
