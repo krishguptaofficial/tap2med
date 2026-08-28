@@ -281,10 +281,7 @@
           }
           return response;
       };
-    </script>
-
-    <!-- Includes your Javascript directly below -->
-    <script>
+    
         const clinicId = localStorage.getItem("tap2med_clinic_id");
 
         if (!clinicId || clinicId === "undefined" || clinicId === "null") {
@@ -312,6 +309,52 @@
                 sidebar.classList.add('sidebar-closed');
                 document.querySelector('.main-content').classList.add('sidebar-closed');
             }
+            
+            const enableVitals = localStorage.getItem("tap2med_enable_vitals") !== "false";
+            const enableNotes = localStorage.getItem("tap2med_enable_clinical_notes") !== "false";
+
+            if (!enableVitals) {
+                const vitalsBtn = document.getElementById('btn-vitals-header');
+                if(vitalsBtn) vitalsBtn.style.display = 'none';
+            }
+            if (!enableNotes) {
+                const notesSec = document.getElementById('clinical-notes-section');
+                const lifestyleSec = document.getElementById('lifestyle-notes-section');
+                if(notesSec) notesSec.style.display = 'none';
+                if(lifestyleSec) lifestyleSec.style.display = 'none';
+            }
+
+            setTimeout(() => {
+                const addBtn = document.getElementById('add-row-btn');
+                if (addBtn) {
+                    const newAddBtn = addBtn.cloneNode(true);
+                    addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+                    
+                    newAddBtn.addEventListener('click', () => {
+                        const container = document.getElementById('rx-container');
+                        const row = document.createElement('div');
+                        row.className = 'prescription-row';
+                        row.style.display = 'grid';
+                        row.style.gridTemplateColumns = '2fr 1fr 1fr auto';
+                        row.style.gap = '15px';
+                        row.style.marginBottom = '15px';
+                        row.innerHTML = `
+                            <div class="field">
+                              <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
+                            </div>
+                            <div class="field">
+                              <input type="text" class="input rx-dosage" placeholder="e.g. 1-0-1" autocomplete="off" oninput="updateFreq(this)" />
+                            </div>
+                            <div class="field">
+                              <input type="text" class="input rx-days" placeholder="e.g. 5 days" autocomplete="off" oninput="updateFreq(this)" />
+                            </div>
+                            <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 10px;">✕</button>
+                            <input type="hidden" class="rx-freq" />
+                        `;
+                        container.appendChild(row);
+                    });
+                }
+            }, 500); 
         });
 
         function toggleSidebar() {
@@ -360,9 +403,19 @@
         function clearPrescription() {
             prescriptionList.innerHTML = "";
             addPrescriptionRow();
-            document.getElementById("patient-complaints").value = "";
-            document.getElementById("patient-diagnosis").value = "";
-            document.getElementById("patient-tests").value = "";
+            const cEl = document.getElementById("patient-complaints");
+            const dEl = document.getElementById("patient-diagnosis");
+            const tEl = document.getElementById("patient-tests");
+            const lAdv = document.getElementById("life-adv-ui");
+            const lDur = document.getElementById("life-dur-ui");
+            const lSec = document.getElementById("lifestyle-section");
+
+            if(cEl) cEl.value = "";
+            if(dEl) dEl.value = "";
+            if(tEl) tEl.value = "";
+            if(lAdv) lAdv.value = "";
+            if(lDur) lDur.value = "";
+            if(lSec) lSec.style.display = "none";
         }
 
         function getShortCode(tokenNumber) {
@@ -371,27 +424,39 @@
             return `${letter}-${tokenNumber}`; 
         }
 
-        window.moveQueue = async function(localToken, direction, e) {
+        // OPTIMISTIC UI FIX: Instant DOM Swap
+        window.moveQueue = function(localToken, direction, e) {
             if (e) e.stopPropagation();
+            
+            const queueList = document.getElementById("queue-list");
+            const cards = Array.from(queueList.children);
+            const cardIndex = cards.findIndex(c => c.dataset.token === localToken);
+            
+            if (cardIndex < 0) return;
+            const newIndex = cardIndex + direction;
+            if (newIndex < 0 || newIndex >= cards.length) return;
+            
+            const card1 = cards[cardIndex];
+            const card2 = cards[newIndex];
+            
+            if (direction === 1) { card2.after(card1); } 
+            else { card2.before(card1); }
+
             let tokens = [...window.currentWaitingTokens];
-            const index = tokens.indexOf(localToken);
-            if (index < 0) return;
-            const newIndex = index + direction;
-            if (newIndex < 0 || newIndex >= tokens.length) return;
-            
-            [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
-            window.currentWaitingTokens = tokens; 
-            
-            try {
-                await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ local_tokens: tokens })
-                });
-                loadQueue();
-            } catch (err) {
-                console.error("Reorder failed");
+            const tokenIndex = tokens.indexOf(localToken);
+            if (tokenIndex > -1) {
+                const newTokenIndex = tokenIndex + direction;
+                if (newTokenIndex >= 0 && newTokenIndex < tokens.length) {
+                    [tokens[tokenIndex], tokens[newTokenIndex]] = [tokens[newTokenIndex], tokens[tokenIndex]];
+                    window.currentWaitingTokens = tokens; 
+                }
             }
+            
+            fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ local_tokens: window.currentWaitingTokens })
+            }).catch(err => console.error("Reorder failed"));
         }
 
         async function loadQueue() {
@@ -428,10 +493,10 @@
                     const shortCode = getShortCode(patient.daily_token_number);
                     const card = document.createElement("div");
                     
+                    card.dataset.token = patient.local_token; // Tag for instant swap
                     card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
                     card.style.cursor = "pointer";
                     
-                    // DYNAMIC TYPE BADGE
                     let typeBadge = "";
                     if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
                     else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
@@ -449,9 +514,12 @@
                         </div>
                     `;
 
-                    card.onclick = async () => {
+                    // OPTIMISTIC UI FIX: Instant Active State
+                    card.onclick = () => {
+                        document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+
                         currentLocalToken = patient.local_token;
-                        
                         window.currentPatientName = patient.patient_name || 'Patient';
                         window.currentDisplayId = patient.display_id || '--';
                         
@@ -461,8 +529,11 @@
                         if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
 
                         clearPrescription();
-                        await loadHistory(currentLocalToken);
-                        await loadQueue(); 
+                        historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+                        
+                        // Fire history fetch in background
+                        loadHistory(currentLocalToken);
+                        fetchActiveVitals(); 
                     };
 
                     queueList.appendChild(card);
@@ -472,7 +543,6 @@
                     const firstPatient = waitingQueue[0];
                     currentLocalToken = firstPatient.local_token;
                     currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
-                    
                     window.currentPatientName = firstPatient.patient_name || 'Patient';
                     window.currentDisplayId = firstPatient.display_id || '--';
                     
@@ -480,7 +550,7 @@
                     if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
 
                     clearPrescription();
-                    await loadHistory(currentLocalToken);
+                    loadHistory(currentLocalToken);
                     const firstCard = queueList.firstChild;
                     if(firstCard) firstCard.classList.add('active');
                 }
@@ -491,7 +561,6 @@
         }
 
         async function loadHistory(localToken) {
-            historyContent.innerHTML = '<p class="text-muted text-sm">Loading history...</p>';
             try {
                 const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
                 if (!response.ok) throw new Error("History request failed");
@@ -544,6 +613,22 @@
             }
         }
 
+        document.getElementById('print-btn').addEventListener('click', () => {
+            document.querySelectorAll('.temp-lifestyle-row').forEach(el => el.remove());
+            const adv = document.getElementById('life-adv-ui')?.value.trim();
+            const dur = document.getElementById('life-dur-ui')?.value.trim();
+            
+            if (adv) {
+                const container = document.getElementById('rx-container');
+                const tempRow = document.createElement('div');
+                tempRow.className = 'prescription-row temp-lifestyle-row';
+                tempRow.style.display = 'none';
+                tempRow.innerHTML = `<input type="hidden" class="rx-med" value="Advice: ${adv}"><input type="hidden" class="rx-freq" value="${dur ? 'Duration: ' + dur : ''}">`;
+                container.appendChild(tempRow);
+            }
+            completeVisit();
+        }, true);
+
         async function completeVisit() {
             if (!currentLocalToken || isSaving) return;
             const medicines = [];
@@ -584,7 +669,6 @@
                 prescriptionStatus.textContent = "Sent to WhatsApp";
                 prescriptionStatus.className = "badge badge-success";
                 
-                // 1. Populate the Print Layout
                 const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
                 document.getElementById("print-clinic-name").textContent = clinicName.textContent;
                 document.getElementById("print-doctor-name").textContent = doctorName.textContent;
@@ -627,7 +711,6 @@
                     `;
                 });
 
-                // 2. Safe timeout to render DOM before print & soft reset
                 setTimeout(async () => {
                     if (localStorage.getItem("tap2med_auto_print") === "true") {
                         window.print();
@@ -636,13 +719,6 @@
                     currentLocalToken = null;
                     clearPrescription();
                     
-                    const compEl = document.getElementById("patient-complaints");
-                    const diagEl = document.getElementById("patient-diagnosis");
-                    const testsEl = document.getElementById("patient-tests");
-                    if(compEl) compEl.value = "";
-                    if(diagEl) diagEl.value = "";
-                    if(testsEl) testsEl.value = "";
-
                     const headerEyebrow = document.querySelector(".eyebrow");
                     if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
                     document.getElementById("current-token").textContent = `#--`;
@@ -663,17 +739,10 @@
         window.showQRCode = function() {
             try {
                 const qrContainer = document.getElementById("dashboardQRCode");
-                if (!qrContainer) {
-                    console.error("Error: QR Container missing from DOM.");
-                    return;
-                }
+                if (!qrContainer) return;
                 qrContainer.innerHTML = ""; 
                 
-                if (!clinicId || clinicId === "undefined" || clinicId === "null") {
-                    console.error("Error: Clinic ID not found.");
-                    alert("Clinic ID not found. Please log out and log back in.");
-                    return;
-                }
+                if (!clinicId || clinicId === "undefined" || clinicId === "null") return;
 
                 const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
                 
@@ -685,18 +754,13 @@
                 });
                 
                 document.getElementById("qrModal").style.display = "flex";
-            } catch (error) {
-                console.error("QR Generation Error:", error);
-                alert("Failed to load QR code. Please check the console.");
-            }
+            } catch (error) {}
         }
 
         document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
-        document.getElementById("print-btn").addEventListener("click", completeVisit);
         menuToggleBtn.addEventListener("click", toggleSidebar);
         sidebarBackdrop.addEventListener("click", toggleSidebar);
 
-        // Auto-fill Vitals Logic
         async function openVitalsModal() {
             document.getElementById('vitals-modal').style.display = 'flex';
             
@@ -705,10 +769,9 @@
             });
 
             try {
-                const clinicId = localStorage.getItem("tap2med_clinic_id");
                 const res = await fetch(`/api/clinics/queue/${clinicId}`);
                 const data = await res.json();
-                const activePatient = data.queue.find(p => p.status === 'waiting');
+                const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
                 
                 if (activePatient && activePatient.weight) {
                     const parts = activePatient.weight.split('|').map(p => p.trim());
@@ -750,13 +813,12 @@
             let compiledVitals = [];
 
             try {
-                const clinicId = localStorage.getItem("tap2med_clinic_id");
                 const res = await fetch(`/api/clinics/queue/${clinicId}`);
                 const data = await res.json();
-                const activePatient = data.queue.find(p => p.status === 'waiting');
+                const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
                 
                 if (!activePatient) {
-                    alert("No active patient to save vitals for.");
+                    alert("No active patient selected.");
                     return;
                 }
 
@@ -794,11 +856,12 @@
         }
 
         async function fetchActiveVitals() {
+            if (localStorage.getItem("tap2med_enable_vitals") === "false" || !currentLocalToken) return;
+
             try {
-                const clinicId = localStorage.getItem("tap2med_clinic_id");
                 const res = await fetch(`/api/clinics/queue/${clinicId}`);
                 const data = await res.json();
-                const activePatient = data.queue.find(p => p.status === 'waiting' && p.weight && p.weight.includes('Paid:Yes'));
+                const activePatient = data.queue.find(p => p.local_token === currentLocalToken && p.weight && p.weight.includes('Paid:Yes'));
                 const display = document.getElementById('doctor-vitals-display');
                 
                 if (activePatient && activePatient.weight) {
@@ -816,22 +879,10 @@
             } catch (e) {}
         }
 
-        const tokenObserver = new MutationObserver(() => {
-            document.getElementById('patient-complaints').value = '';
-            document.getElementById('patient-diagnosis').value = '';
-            document.getElementById('patient-tests').value = '';
-            fetchActiveVitals();
-        });
-        
-        const currentTokenEl = document.getElementById('current-token');
-        if (currentTokenEl) {
-            tokenObserver.observe(currentTokenEl, { childList: true, characterData: true, subtree: true });
-        }
-        
         loadQueue();
         fetchActiveVitals();
         setInterval(fetchActiveVitals, 3000);
         setInterval(loadQueue, 5000);
     </script>
-  </body>
+    </body>
 </html>

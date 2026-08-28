@@ -281,27 +281,41 @@
           return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : '';
       }
       
-      async function moveQueue(localToken, direction, e) {
+      // OPTIMISTIC UI FIX FOR RECEPTIONIST
+      window.moveQueue = function(localToken, direction, e) {
           if (e) e.stopPropagation();
+          
+          const queueList = document.getElementById("staff-queue-list");
+          const cards = Array.from(queueList.children);
+          // Using the token text since we didn't inject dataset on the staff side
+          // So we find the correct token badge inside the DOM.
+          const cardIndex = cards.findIndex(c => c.innerHTML.includes(localToken));
+          
+          if (cardIndex < 0) return;
+          const newIndex = cardIndex + direction;
+          if (newIndex < 0 || newIndex >= cards.length) return;
+          
+          const card1 = cards[cardIndex];
+          const card2 = cards[newIndex];
+          
+          if (direction === 1) { card2.after(card1); } 
+          else { card2.before(card1); }
+
           let tokens = [...window.currentWaitingTokens];
-          const index = tokens.indexOf(localToken);
-          if (index < 0) return;
-          const newIndex = index + direction;
-          if (newIndex < 0 || newIndex >= tokens.length) return;
-          
-          [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
-          window.currentWaitingTokens = tokens; 
-          
-          try {
-              await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-                  method: "PUT",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ local_tokens: tokens })
-              });
-              loadStaffQueue();
-          } catch (err) {
-              console.error("Reorder failed");
+          const tokenIndex = tokens.indexOf(localToken);
+          if (tokenIndex > -1) {
+              const newTokenIndex = tokenIndex + direction;
+              if (newTokenIndex >= 0 && newTokenIndex < tokens.length) {
+                  [tokens[tokenIndex], tokens[newTokenIndex]] = [tokens[newTokenIndex], tokens[tokenIndex]];
+                  window.currentWaitingTokens = tokens; 
+              }
           }
+          
+          fetch(`/api/clinics/${clinicId}/queue/reorder`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ local_tokens: window.currentWaitingTokens })
+          }).catch(err => console.error("Reorder failed"));
       }
 
       async function manualCheckIn() {
