@@ -123,6 +123,11 @@ def start_visit(
                 user_salt = str(patient.user_salt)
                 patient_id_to_return = str(patient.patient_id) 
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
+                
+                # FIXED: Actively save the city if a returning patient types it in during check-in
+                if payload.city:
+                    patient.city = payload.city.strip()
+                    db.commit()
             else:
                 user_salt = hashing.generate_user_salt()
                 patient_id_to_return = secrets.token_hex(16)

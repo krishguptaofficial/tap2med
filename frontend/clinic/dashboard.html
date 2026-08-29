@@ -492,7 +492,7 @@
                     else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
                     else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
                     
-                    let cityText = patient.city ? `<span style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-left: 6px;">📍 ${patient.city}</span>` : "";
+                    let cityText = patient.city ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>` : "";
 
                     card.innerHTML = `
                         <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">

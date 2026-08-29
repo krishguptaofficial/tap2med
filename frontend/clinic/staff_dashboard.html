@@ -454,6 +454,11 @@
       }
 
       async function loadStaffQueue() {
+          // If the receptionist is actively typing in the city input field, do not refresh the screen
+          if (document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('city-input-')) {
+              return;
+          }
+
           try {
               const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
               if (!response.ok) return;
@@ -534,8 +539,8 @@
                       `;
 
                       let cityHtml = patient.city 
-                          ? `<span style="font-size: 14px; color: #0284c7; font-weight: 600; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">📍 ${patient.city}</span>`
-                          : `<div style="display:flex; gap: 4px; align-items:center;">
+                          ? `<span style="font-size: 13px; color: #0284c7; font-weight: 600; margin-left: 6px;">(${patient.city})</span>`
+                          : `<div style="display:flex; gap: 4px; align-items:center; margin-left: 8px;">
                                <input type="text" id="city-input-${patient.local_token}" placeholder="Add City" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 110px;">
                                <button onclick="updatePatientCity('${patient.local_token}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px; min-height: 26px; height: 26px;">Save</button>
                              </div>`;
@@ -555,8 +560,8 @@
                                   </strong>
                                   <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                               </div>
-                              <div style="display:flex; gap: 8px; align-items:center; margin-left: 20px;">
-                                  <span style="font-size: 16px; font-weight: 700; color: var(--primary-color); background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">👤 ${displayName}</span>
+                              <div style="display:flex; align-items:center; margin-left: 20px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
+                                  <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}</span>
                                   ${cityHtml}
                               </div>
                               ${actionButtons}
