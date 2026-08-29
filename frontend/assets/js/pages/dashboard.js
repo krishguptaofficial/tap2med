@@ -6,6 +6,8 @@ if (!clinicId || clinicId === "undefined" || clinicId === "null") {
 
 let currentLocalToken = null;
 let isSaving = false;
+let patientLabData = [];
+let labChartInstance = null;
 
 const currentToken = document.getElementById("current-token");
 const historyContent = document.getElementById("history-content");
@@ -167,7 +169,10 @@ async function loadQueue() {
                 document.getElementById("current-token").textContent = `#${shortCode}`;
                 
                 const headerEyebrow = document.querySelector(".eyebrow");
-                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+                if(headerEyebrow) {
+                    headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})
+                    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+                }
 
                 clearPrescription();
                 await loadHistory(currentLocalToken);
@@ -186,7 +191,10 @@ async function loadQueue() {
             window.currentDisplayId = firstPatient.display_id || '--';
             
             const headerEyebrow = document.querySelector(".eyebrow");
-            if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+            if(headerEyebrow) {
+                headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})
+                <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+            }
 
             clearPrescription();
             await loadHistory(currentLocalToken);
@@ -330,36 +338,172 @@ async function completeVisit() {
     }
 }
 
-window.showQRCode = function() {
-    try {
-        const qrContainer = document.getElementById("dashboardQRCode");
-        if (!qrContainer) {
-            console.error("Error: QR Container missing from DOM.");
-            return;
-        }
-        qrContainer.innerHTML = ""; 
-        
-        if (!clinicId || clinicId === "undefined" || clinicId === "null") {
-            console.error("Error: Clinic ID not found.");
-            alert("Clinic ID not found. Please log out and log back in.");
-            return;
-        }
+window.openLabsModal = async function() {
+    if (!currentLocalToken) return alert("Please select a patient first.");
+    document.getElementById("lab-modal-patient-name").textContent = window.currentPatientName || "Patient";
+    document.getElementById("labs-modal").style.display = "flex";
+    
+    const today = new Date().toLocaleDateString('en-CA');
+    document.getElementById("lab-date").value = today;
+    
+    await fetchLabData();
+};
 
-        const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
+window.closeLabsModal = function() {
+    document.getElementById("labs-modal").style.display = "none";
+};
+
+async function fetchLabData() {
+    try {
+        const res = await fetch(`/api/events/labs/${currentLocalToken}`);
+        const data = await res.json();
+        patientLabData = data.labs || [];
         
-        new QRCode(qrContainer, {
-            text: targetUrl, 
-            width: 200, 
-            height: 200, 
-            correctLevel: QRCode.CorrectLevel.H
-        });
-        
-        document.getElementById("qrModal").style.display = "flex";
-    } catch (error) {
-        console.error("QR Generation Error:", error);
-        alert("Failed to load QR code. Please check the console.");
+        populateLabInputsForDate(document.getElementById("lab-date").value);
+        updateChart();
+    } catch (e) {
+        console.error("Failed to load labs", e);
     }
 }
+
+window.populateLabInputsForDate = function(dateStr) {
+    const inputs = ['hba1c', 'fbs', 'ppbs', 'tsh', 'ft3', 'creat', 'hb'];
+    inputs.forEach(id => {
+        const el = document.getElementById(`lab-${id}`);
+        if(el) {
+            el.value = "";
+            checkRange(el, el.getAttribute('data-min'), el.getAttribute('data-max'));
+        }
+    });
+    
+    const record = patientLabData.find(l => l.test_date === dateStr);
+    if (record && record.results) {
+        inputs.forEach(id => {
+            if (record.results[id] !== undefined) {
+                const el = document.getElementById(`lab-${id}`);
+                if(el) {
+                    el.value = record.results[id];
+                    checkRange(el, el.getAttribute('data-min'), el.getAttribute('data-max'));
+                }
+            }
+        });
+    }
+};
+
+window.saveLabs = async function() {
+    const dateStr = document.getElementById("lab-date").value;
+    if (!dateStr) return alert("Please select a date.");
+    
+    const results = {
+        hba1c: document.getElementById("lab-hba1c").value,
+        fbs: document.getElementById("lab-fbs").value,
+        ppbs: document.getElementById("lab-ppbs").value,
+        tsh: document.getElementById("lab-tsh").value,
+        ft3: document.getElementById("lab-ft3").value,
+        creat: document.getElementById("lab-creat").value,
+        hb: document.getElementById("lab-hb").value,
+    };
+    
+    const payload = {
+        local_token: currentLocalToken,
+        lab_record: { test_date: dateStr, results: results }
+    };
+    
+    try {
+        const btn = document.querySelector("#labs-modal .btn-primary");
+        btn.textContent = "Saving...";
+        await fetch("/api/events/labs", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        await fetchLabData();
+        btn.textContent = "Saved ✓";
+        setTimeout(() => btn.textContent = "Save Values", 2000);
+    } catch(e) {
+        alert("Failed to save labs.");
+    }
+};
+
+window.checkRange = function(input, minStr, maxStr) {
+    if (!minStr || !maxStr) return;
+    const min = parseFloat(minStr);
+    const max = parseFloat(maxStr);
+    const val = parseFloat(input.value);
+    
+    if (!isNaN(val)) {
+        if (val < min || val > max) {
+            input.style.backgroundColor = "#fee2e2";
+            input.style.borderColor = "#ef4444";
+            input.style.color = "#b91c1c";
+        } else {
+            input.style.backgroundColor = "white";
+            input.style.borderColor = "#cbd5e1";
+            input.style.color = "inherit";
+        }
+    } else {
+        input.style.backgroundColor = "white";
+        input.style.borderColor = "#cbd5e1";
+        input.style.color = "inherit";
+    }
+};
+
+window.updateChart = function() {
+    const param = document.getElementById("chart-parameter").value;
+    const paramLabel = document.getElementById("chart-parameter").options[document.getElementById("chart-parameter").selectedIndex].text;
+    
+    const filteredData = patientLabData.filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "");
+    
+    const labels = filteredData.map(l => {
+        const d = new Date(l.test_date);
+        return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" });
+    });
+    
+    const dataPoints = filteredData.map(l => parseFloat(l.results[param]));
+    
+    if (labChartInstance) {
+        labChartInstance.destroy();
+    }
+    
+    const ctx = document.getElementById('labChart');
+    if(!ctx || typeof Chart === 'undefined') return;
+
+    labChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: paramLabel,
+                data: dataPoints,
+                borderColor: '#0284c7', 
+                backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                borderWidth: 3,
+                pointBackgroundColor: '#fff',
+                pointBorderColor: '#0284c7',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) { return context.parsed.y + " " + paramLabel; }
+                    }
+                }
+            },
+            scales: {
+                y: { beginAtZero: false, grid: { borderDash: [4, 4] } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+};
 
 document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
 document.getElementById("print-btn").addEventListener("click", completeVisit);

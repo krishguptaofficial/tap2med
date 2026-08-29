@@ -85,6 +85,14 @@ class VitalsUpdate(BaseModel):
     local_token: str
     vitals: VitalsPayload
 
+class LabRecordPayload(BaseModel):
+    test_date: str 
+    results: dict
+
+class LabUpdatePayload(BaseModel):
+    local_token: str
+    lab_record: LabRecordPayload
+
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
@@ -476,5 +484,64 @@ def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
         db.commit()
 
         return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/labs")
+def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)):
+    try:
+        record = db.query(models.ClinicPatientRecord).filter(
+            models.ClinicPatientRecord.local_token == payload.local_token
+        ).first()
+        if not record:
+            raise HTTPException(status_code=404, detail="Patient record not found")
+            
+        test_date_obj = datetime.strptime(payload.lab_record.test_date, "%Y-%m-%d").replace(tzinfo=IST)
+        
+        lab_record = db.query(models.ClinicPatientLabRecord).filter(
+            models.ClinicPatientLabRecord.local_token == payload.local_token,
+            func.date(models.ClinicPatientLabRecord.test_date) == test_date_obj.date()
+        ).first()
+        
+        clean_results = {k: v for k, v in payload.lab_record.results.items() if v != ""}
+        
+        if lab_record:
+            current_results = lab_record.results or {}
+            current_results.update(clean_results)
+            for k in list(current_results.keys()):
+                if k not in clean_results and k in payload.lab_record.results:
+                    del current_results[k]
+            lab_record.results = current_results
+        else:
+            new_lab = models.ClinicPatientLabRecord(
+                clinic_id=record.clinic_id,
+                local_token=payload.local_token,
+                test_date=test_date_obj,
+                results=clean_results
+            )
+            db.add(new_lab)
+            
+        db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/labs/{local_token}")
+def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
+    try:
+        labs = db.query(models.ClinicPatientLabRecord).filter(
+            models.ClinicPatientLabRecord.local_token == local_token
+        ).order_by(models.ClinicPatientLabRecord.test_date.asc()).all()
+        
+        return {
+            "status": "success",
+            "labs": [
+                {
+                    "test_date": l.test_date.strftime("%Y-%m-%d"),
+                    "results": l.results
+                } for l in labs
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

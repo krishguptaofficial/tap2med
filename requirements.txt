@@ -32,4 +32,3 @@ typing_extensions==4.15.0
 uvicorn==0.42.0
 gunicorn==23.0.0
 email-validator==2.0.0
-redis==8.1.0

@@ -25,7 +25,6 @@ class Clinic(Base):
     pharmacy_username = Column(Text, nullable=True, unique=True)
     pharmacy_passcode_hash = Column(Text, nullable=True)
     
-    # NEW: Clinic Preferences (Replacing Redis)
     walkin_fee = Column(Text, nullable=True)
     appointment_fee = Column(Text, nullable=True)
     followup_fee = Column(Text, nullable=True)
@@ -107,6 +106,22 @@ class ClinicPatientRecord(Base):
     
     patient_name = Column(Text, nullable=False)
     city = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    clinic = relationship("Clinic")
+
+class ClinicPatientLabRecord(Base):
+    __tablename__ = "clinic_patient_lab_records"
+
+    record_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    local_token = Column(Text, index=True, nullable=False)
+    test_date = Column(DateTime(timezone=True), nullable=False)
+    
+    # Stores {"hba1c": 6.4, "tsh": 2.4, etc.}
+    results = Column(JSONB, nullable=False, default=dict)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
