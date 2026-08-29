@@ -6,13 +6,10 @@ import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from sqlalchemy import func
-import redis
 
 from app.core import security
 from app.db import crud, models
 from app.db.database import get_db
-
-redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 router = APIRouter()
 IST = ZoneInfo("Asia/Kolkata")
@@ -36,50 +33,42 @@ def onboard_clinic(payload: ClinicCreate, db: Session = Depends(get_db)):
 @router.get("/queue/{clinic_id}")
 def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
+        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+        if not clinic:
+            raise HTTPException(status_code=404, detail="Clinic not found")
+
         now_ist = datetime.now(IST)
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        prefs_data = redis_client.get(f"clinic_prefs:{str(clinic_id)}")
-        prefs = {}
-        if prefs_data:
-            try:
-                prefs = json.loads(prefs_data)
-            except Exception:
-                pass
-                
+        # Sort entirely by the reliable daily_token_number
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status.in_(["waiting", "completed"]) 
-        ).order_by(models.Event.timestamp.asc()).all()
+        ).order_by(models.Event.daily_token_number.asc()).all()
+
+        # Batch fetch all patient names for this clinic to prevent N+1 database queries
+        patient_records = {
+            rec.local_token: rec 
+            for rec in db.query(models.ClinicPatientRecord).filter(models.ClinicPatientRecord.clinic_id == clinic_id).all()
+        }
 
         formatted_queue = []
         for event in queue:
-            try:
-                patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
-            except Exception:
-                patient_name = "Patient"
-                
-            # Fetch city instantly from Redis, fallback to DB
-            patient_city = redis_client.get(f"city:{event.local_token}")
-            if not patient_city:
-                db_patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
-                patient_city = db_patient.city if db_patient and db_patient.city else ""
-
+            rec = patient_records.get(event.local_token)
+            patient_name = rec.patient_name if rec else "Patient"
+            patient_city = rec.city if rec and rec.city else ""
             patient_display_id = event.local_token[:8].upper()
             
             visit_type = event.event_type if event.event_type else "walkin"
             if visit_type == "clinic_visit": visit_type = "walkin" 
             
             fee = ""
-            if visit_type == "walkin":
-                fee = prefs.get("walkin_fee", "")
-            elif visit_type == "appointment":
-                fee = prefs.get("appointment_fee", "")
-            elif visit_type == "followup":
-                fee = prefs.get("followup_fee", "")
+            if visit_type == "walkin": fee = clinic.walkin_fee or ""
+            elif visit_type == "appointment": fee = clinic.appointment_fee or ""
+            elif visit_type == "followup": fee = clinic.followup_fee or ""
 
             formatted_queue.append({
                 "event_id": str(event.event_id), 
@@ -87,6 +76,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "daily_token_number": event.daily_token_number, 
                 "status": event.status,
                 "weight": event.patient_weight,
+                "vitals": event.vitals,
                 "patient_name": patient_name,
                 "city": patient_city,
                 "display_id": patient_display_id,
@@ -95,20 +85,10 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "fee": fee
             })
             
-        try:
-            order_data = redis_client.get(f"queue_order:{str(clinic_id)}")
-            if order_data:
-                order_list = json.loads(order_data)
-                waiting = [q for q in formatted_queue if q['status'] == 'waiting']
-                completed = [q for q in formatted_queue if q['status'] == 'completed']
-                
-                waiting.sort(key=lambda x: order_list.index(x['local_token']) if x['local_token'] in order_list else 99999)
-                formatted_queue = waiting + completed
-        except Exception:
-            pass
+        waiting = [q for q in formatted_queue if q['status'] == 'waiting']
+        completed = [q for q in formatted_queue if q['status'] == 'completed']
+        formatted_queue = waiting + completed
         
-        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
-
         safe_clinic_name = clinic.clinic_name if clinic else "Clinic"
         safe_doctor_name = clinic.doctor_name if clinic and hasattr(clinic, 'doctor_name') else "Doctor"
 
@@ -127,11 +107,8 @@ class ReorderPayload(BaseModel):
 
 @router.put("/{clinic_id}/queue/reorder")
 def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload):
-    try:
-        redis_client.set(f"queue_order:{str(clinic_id)}", json.dumps(payload.local_tokens), ex=43200) 
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Temporarily suspended while we rely strictly on daily_token_number.
+    return {"status": "success", "message": "Manual reordering handled by token numbers"}
 
 class RoleUpdate(BaseModel):
     role_type: str 
@@ -172,6 +149,11 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             models.Event.status == "completed"
         ).order_by(models.Event.timestamp.desc()).all() 
 
+        patient_records = {
+            rec.local_token: rec 
+            for rec in db.query(models.ClinicPatientRecord).filter(models.ClinicPatientRecord.clinic_id == clinic_id).all()
+        }
+
         feed = []
         for event in completed_events:
             rx_list = db.query(models.Prescription).filter(
@@ -180,11 +162,8 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             ).all()
             
             if rx_list:
-                try:
-                    patient_name = redis_client.get(f"name:{event.local_token}") or "Patient"
-                except Exception:
-                    patient_name = "Patient"
-                    
+                rec = patient_records.get(event.local_token)
+                patient_name = rec.patient_name if rec else "Patient"
                 display_id = event.local_token[:8].upper()
                 
                 feed.append({
@@ -226,21 +205,25 @@ def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: 
             
         events = query.order_by(models.Event.timestamp.desc()).all()
         
+        patient_records = {
+            rec.local_token: rec 
+            for rec in db.query(models.ClinicPatientRecord).filter(models.ClinicPatientRecord.clinic_id == clinic_id).all()
+        }
+        
         seen_tokens = set()
         results = []
         for e in events:
             if e.local_token not in seen_tokens:
                 seen_tokens.add(e.local_token)
-                try:
-                    name = redis_client.get(f"name:{e.local_token}")
-                except:
-                    name = None
+                
+                rec = patient_records.get(e.local_token)
+                name = rec.patient_name if rec else "Archived Patient"
                     
                 results.append({
                     "display_id": e.local_token[:8].upper(),
                     "local_token": e.local_token,
                     "timestamp": e.timestamp.isoformat(),
-                    "patient_name": name or "Archived Patient",
+                    "patient_name": name,
                     "vitals": e.patient_weight
                 })
                 
@@ -256,19 +239,33 @@ class ClinicSettingsPayload(BaseModel):
     followup_days: str
 
 @router.put("/{clinic_id}/preferences")
-def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload):
+def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db: Session = Depends(get_db)):
     try:
-        redis_client.set(f"clinic_prefs:{str(clinic_id)}", payload.model_dump_json())
+        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+        if not clinic:
+            raise HTTPException(status_code=404, detail="Clinic not found")
+        
+        clinic.walkin_fee = payload.walkin_fee
+        clinic.appointment_fee = payload.appointment_fee
+        clinic.followup_fee = payload.followup_fee
+        clinic.followup_days = int(payload.followup_days) if payload.followup_days.isdigit() else 0
+        
+        db.commit()
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{clinic_id}/preferences")
-def get_preferences(clinic_id: uuid.UUID):
+def get_preferences(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
-        data = redis_client.get(f"clinic_prefs:{str(clinic_id)}")
-        if data:
-            return json.loads(data)
+        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+        if clinic:
+            return {
+                "walkin_fee": clinic.walkin_fee or "",
+                "appointment_fee": clinic.appointment_fee or "",
+                "followup_fee": clinic.followup_fee or "",
+                "followup_days": str(clinic.followup_days) if clinic.followup_days else ""
+            }
         return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": ""}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

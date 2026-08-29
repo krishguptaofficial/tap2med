@@ -10,13 +10,10 @@ import time
 import json
 from collections import defaultdict
 from typing import List, Optional
-import redis
 
 from app.core import hashing
 from app.db import crud, models
 from app.db.database import get_db
-
-redis_client = redis.Redis(host='localhost', port=6379, db=0, decode_responses=True)
 
 IST = ZoneInfo("Asia/Kolkata")
 router = APIRouter()
@@ -47,7 +44,6 @@ class LookupRequest(BaseModel):
     member_id: int = 0
     clinic_id: uuid.UUID
 
-
 class MedicineItem(BaseModel):
     name: str
     instructions: Optional[str] = None
@@ -73,7 +69,6 @@ class CityUpdate(BaseModel):
     local_token: str
     city: str
 
-# PHASE 2 FIX: Structured JSON vitals payload instead of a messy string
 class VitalsPayload(BaseModel):
     bp_sys: Optional[str] = None
     bp_dia: Optional[str] = None
@@ -93,10 +88,6 @@ class VitalsUpdate(BaseModel):
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
-        # 1. Save to Redis for instant UI updates
-        redis_client.set(f"city:{payload.local_token}", payload.city.strip(), ex=43200)
-        
-        # 2. PHASE 2 FIX: Save permanently to the new ClinicPatientRecord, NOT the global Patient table
         record = db.query(models.ClinicPatientRecord).filter(
             models.ClinicPatientRecord.local_token == payload.local_token
         ).first()
@@ -117,7 +108,6 @@ def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
         if not clinic:
             raise HTTPException(status_code=404, detail="Clinic not found")
 
-        # Generate the hash to look up the local record securely
         local_token = hashing.generate_local_token(payload.phone, payload.member_id, str(clinic.clinic_salt))
 
         record = db.query(models.ClinicPatientRecord).filter(
@@ -178,7 +168,6 @@ def start_visit(
                 patient_id_to_return = secrets.token_hex(16)
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
                 
-                # PHASE 2 FIX: Passing city=None to ensure the global Patient table remains Zero-PII
                 crud.create_patient(
                     db=db, 
                     patient_id=patient_id_to_return, 
@@ -193,7 +182,6 @@ def start_visit(
 
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
 
-        # PHASE 2 FIX: The Legal Firewall. Store PII securely attached only to the Clinic.
         record = db.query(models.ClinicPatientRecord).filter(
             models.ClinicPatientRecord.clinic_id == payload.clinic_id,
             models.ClinicPatientRecord.local_token == local_token
@@ -214,13 +202,6 @@ def start_visit(
         
         db.commit()
 
-        try:
-            redis_client.set(f"name:{local_token}", payload.name, ex=43200)
-            if payload.city:
-                redis_client.set(f"city:{local_token}", payload.city.strip(), ex=43200)
-        except Exception:
-            pass 
-
         payload.phone = "DELETED"
         phone = "DELETED"
 
@@ -229,14 +210,7 @@ def start_visit(
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        prefs_str = redis_client.get(f"clinic_prefs:{str(clinic.clinic_id)}")
-        followup_days = 0
-        if prefs_str:
-            try:
-                prefs = json.loads(prefs_str)
-                followup_days = int(prefs.get("followup_days") or 0)
-            except Exception:
-                pass
+        followup_days = clinic.followup_days or 0
                 
         last_visit = db.query(models.Event).filter(
             models.Event.local_token == local_token,
@@ -338,8 +312,6 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
                 rx_text += "*Rx / MEDICINES:*\n"
                 for idx, rx in enumerate(rx_list, 1):
                     rx_text += f"*{idx}. {rx.medicine_name}*\n"
-                    
-                    # PHASE 2 FIX: Assemble the full instruction set from the structured columns
                     details = []
                     if rx.dosage: details.append(rx.dosage)
                     if rx.duration: details.append(rx.duration)
@@ -404,7 +376,6 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
 
         db.query(models.Prescription).filter(models.Prescription.event_id == event.event_id).delete()
 
-        # PHASE 2 FIX: Inserting clean JSON values into the discrete dosage and duration columns
         for med in payload.medicines:
             if med.name.strip() != "":
                 db.add(models.Prescription(
@@ -438,10 +409,10 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
             models.Prescription.local_token == local_token
         ).all()
 
-        try:
-            patient_name = redis_client.get(f"name:{local_token}") or "Patient"
-        except Exception:
-            patient_name = "Patient"
+        record = db.query(models.ClinicPatientRecord).filter(
+            models.ClinicPatientRecord.local_token == local_token
+        ).first()
+        patient_name = record.patient_name if record else "Patient"
             
         display_id = local_token[:8].upper()
 
@@ -467,8 +438,8 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
             formatted_history.append({
                 "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
-                "weight": visit.patient_weight, # LEGACY: Keeping this just in case old data needs displaying
-                "vitals": visit.vitals, # PHASE 2 FIX: Returning the clean JSONB object
+                "weight": visit.patient_weight,
+                "vitals": visit.vitals,
                 "complaints": visit.complaints,
                 "diagnosis": visit.diagnosis,
                 "tests_suggested": visit.tests_suggested,
@@ -484,7 +455,6 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
     except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
 
-# PHASE 2 FIX: A clean JSON API endpoint mapping directly to the new JSONB vitals column
 @router.put("/vitals")
 def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
     try:
@@ -502,7 +472,6 @@ def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
         if not event:
             raise HTTPException(status_code=404, detail="Active token not found")
 
-        # Save the clean structured JSON directly into the JSONB column
         event.vitals = payload.vitals.model_dump(exclude_none=True)
         db.commit()
 

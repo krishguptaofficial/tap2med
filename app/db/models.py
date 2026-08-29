@@ -25,6 +25,12 @@ class Clinic(Base):
     pharmacy_username = Column(Text, nullable=True, unique=True)
     pharmacy_passcode_hash = Column(Text, nullable=True)
     
+    # NEW: Clinic Preferences (Replacing Redis)
+    walkin_fee = Column(Text, nullable=True)
+    appointment_fee = Column(Text, nullable=True)
+    followup_fee = Column(Text, nullable=True)
+    followup_days = Column(Integer, nullable=True, default=0)
+    
 class EmailVerification(Base):
     __tablename__ = "email_verifications"
     verification_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -45,8 +51,6 @@ class Event(Base):
     local_token = Column(Text, index = True, nullable = False)
 
     patient_weight = Column(Text, nullable=True)
-    
-
     vitals = Column(JSONB, nullable=True)
 
     complaints = Column(Text, nullable=True)
@@ -71,7 +75,6 @@ class Prescription(Base):
     local_token = Column(Text, index = True, nullable = False)
     
     medicine_name = Column(Text, nullable = False)
-    
     instructions = Column(Text, nullable = True)
     
     dosage = Column(Text, nullable=True)
@@ -92,10 +95,7 @@ class Patient(Base):
     user_salt = Column(String, nullable=False)
     network_token = Column(String, nullable=False)
     
-    # Back to original purpose. No more storing names here.
     abha_token = Column(String, nullable=True, default=None)
-    
-    # Notice we removed "city". That belongs to the clinic, not the global record.
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class ClinicPatientRecord(Base):
@@ -105,7 +105,6 @@ class ClinicPatientRecord(Base):
     clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
     local_token = Column(Text, index=True, nullable=False)
     
-    # The Clinic's PII 
     patient_name = Column(Text, nullable=False)
     city = Column(Text, nullable=True)
     
