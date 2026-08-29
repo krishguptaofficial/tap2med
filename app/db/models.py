@@ -1,97 +1,53 @@
-from sqlalchemy import DateTime, ForeignKey, Column,String, Text, Integer, Boolean
-from sqlalchemy.orm import DeclarativeMeta
+from sqlalchemy import DateTime, ForeignKey, Column, String, Text, Integer, Boolean
+from sqlalchemy.orm import DeclarativeMeta, relationship
 from app.db.database import Base
 from sqlalchemy.sql import func
-from sqlalchemy.orm import relationship
 import uuid
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 
 class Clinic(Base):
-
     __tablename__= "clinics"
 
     clinic_id = Column(UUID(as_uuid= True), primary_key=True, default=uuid.uuid4)
     doctor_name = Column(Text, nullable = False)
-
     doctor_email = Column(Text, nullable=True, index=True)
     email_verified = Column(Boolean, nullable=False, default=False)
     password_hash = Column(Text, nullable=True)
-
     clinic_name = Column(Text, nullable= False)
     clinic_salt = Column(Text, nullable = False, unique= True)
-    #qr_code = Column(Text, nullable = True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     events = relationship("Event", back_populates="clinic")
-
-    email_verifications = relationship(
-    "EmailVerification",
-    back_populates="clinic",
-    cascade="all, delete-orphan"
-)
-    # Staff & Pharmacy Credentials (Optional)
+    email_verifications = relationship("EmailVerification", back_populates="clinic", cascade="all, delete-orphan")
+    
     staff_username = Column(Text, nullable=True, unique=True)
     staff_passcode_hash = Column(Text, nullable=True)
-    
     pharmacy_username = Column(Text, nullable=True, unique=True)
     pharmacy_passcode_hash = Column(Text, nullable=True)
-
     
 class EmailVerification(Base):
-
     __tablename__ = "email_verifications"
-
-    verification_id = Column(
-        UUID(as_uuid=True),
-        primary_key=True,
-        default=uuid.uuid4
-    )
-
-    clinic_id = Column(
-        UUID(as_uuid=True),
-        ForeignKey("clinics.clinic_id"),
-        nullable=False,
-        index=True
-    )
-
+    verification_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
     otp_hash = Column(Text, nullable=False)
-
-    expires_at = Column(
-        DateTime(timezone=True),
-        nullable=False
-    )
-
-    attempts = Column(
-        Integer,
-        nullable=False,
-        default=0
-    )
-
-    verified_at = Column(
-        DateTime(timezone=True),                                                                 
-        nullable=True
-    )
-
-    created_at = Column(
-        DateTime(timezone=True),
-        server_default=func.now()
-    )
-
-    clinic = relationship(
-        "Clinic",
-        back_populates="email_verifications"
-    )
-
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    attempts = Column(Integer, nullable=False, default=0)
+    verified_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    clinic = relationship("Clinic", back_populates="email_verifications")
     
 class Event(Base):
     __tablename__ = "events"
 
     event_id = Column(UUID(as_uuid= True), primary_key=True, default=uuid.uuid4)
-    clinic_id = Column(UUID(as_uuid = True), ForeignKey("clinics.clinic_id"),nullable = False )
+    clinic_id = Column(UUID(as_uuid = True), ForeignKey("clinics.clinic_id"), nullable = False )
     network_token = Column(Text, index= True, nullable = False)
     local_token = Column(Text, index = True, nullable = False)
 
     patient_weight = Column(Text, nullable=True)
+    
+
+    vitals = Column(JSONB, nullable=True)
 
     complaints = Column(Text, nullable=True)
     diagnosis = Column(Text, nullable=True)
@@ -100,29 +56,32 @@ class Event(Base):
     daily_token_number = Column(Integer, nullable= False)
     event_type = Column(String, default ="clinic_visit", nullable = False )
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
-
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     status = Column(String, default="waiting", index = True)
+    
     clinic= relationship("Clinic", back_populates="events")
     prescriptions = relationship("Prescription", back_populates="events")
-
 
 class Prescription(Base):
     __tablename__ = "prescriptions"
 
     prescription_id = Column(UUID(as_uuid= True), primary_key= True, default=uuid.uuid4)
-    event_id = Column(UUID(as_uuid= True), ForeignKey("events.event_id"),nullable = False)
+    event_id = Column(UUID(as_uuid= True), ForeignKey("events.event_id"), nullable = False)
     network_token = Column(Text, index= True, nullable = False )
     local_token = Column(Text, index = True, nullable = False)
     
     medicine_name = Column(Text, nullable = False)
+    
     instructions = Column(Text, nullable = True)
+    
+    dosage = Column(Text, nullable=True)
+    duration = Column(Text, nullable=True)
     
     drug_category = Column(Text, nullable = True)
     inferred_symptom= Column(Text, nullable = False)
     timestamp= Column(DateTime(timezone=True), server_default=func.now())
 
-    events = relationship("Event", back_populates="prescriptions" )
+    events = relationship("Event", back_populates="prescriptions")
 
 class Patient(Base):
     __tablename__ = "patients"
@@ -132,13 +91,25 @@ class Patient(Base):
     lookup_version = Column(Integer, nullable=False, default=1)
     user_salt = Column(String, nullable=False)
     network_token = Column(String, nullable=False)
-    abha_token = Column(String, nullable=True, default=None)
-    city = Column(String(100), nullable=True, default=None)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
     
+    # Back to original purpose. No more storing names here.
+    abha_token = Column(String, nullable=True, default=None)
+    
+    # Notice we removed "city". That belongs to the clinic, not the global record.
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class ClinicPatientRecord(Base):
+    __tablename__ = "clinic_patient_records"
 
-# 4. CONSENT_GRANTS (Future Implementation: Tracks purpose-bound data access)
-# 5. PHARMACY_EVENTS (Future Implementation: Compliance and fulfillment logging)
- 
-  
+    record_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    local_token = Column(Text, index=True, nullable=False)
+    
+    # The Clinic's PII 
+    patient_name = Column(Text, nullable=False)
+    city = Column(Text, nullable=True)
+    
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    clinic = relationship("Clinic")
