@@ -61,6 +61,27 @@ class StartVisitRequest(BaseModel):
     city: Optional[str] = None
     is_appointment: bool = False
 
+class CityUpdate(BaseModel):
+    local_token: str
+    city: str
+
+@router.put("/city")
+def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
+    try:
+        event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        if not event:
+            raise HTTPException(status_code=404, detail="Active token not found")
+
+        patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
+        if patient:
+            patient.city = payload.city.strip()
+            db.commit()
+
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/visit/start")
 def start_visit(
     payload: StartVisitRequest, 
@@ -125,7 +146,6 @@ def start_visit(
         payload.phone = "DELETED"
         phone = "DELETED"
 
-        # FIXED TIMEZONE LOGIC
         now_ist = datetime.now(IST)
         today = now_ist.date()
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -364,10 +384,6 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
 
     except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
-
-class WeightUpdate(BaseModel):
-    local_token: str
-    weight: str
 
 @router.put("/weight")
 def update_patient_weight(payload: WeightUpdate, db: Session = Depends(get_db)):

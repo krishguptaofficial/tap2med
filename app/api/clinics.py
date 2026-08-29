@@ -36,7 +36,6 @@ def onboard_clinic(payload: ClinicCreate, db: Session = Depends(get_db)):
 @router.get("/queue/{clinic_id}")
 def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
-        # FIXED TIMEZONE LOGIC
         now_ist = datetime.now(IST)
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
@@ -63,6 +62,9 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             except Exception:
                 patient_name = "Patient"
                 
+            db_patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
+            patient_city = db_patient.city if db_patient and db_patient.city else ""
+
             patient_display_id = event.local_token[:8].upper()
             
             visit_type = event.event_type if event.event_type else "walkin"
@@ -83,6 +85,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "status": event.status,
                 "weight": event.patient_weight,
                 "patient_name": patient_name,
+                "city": patient_city,
                 "display_id": patient_display_id,
                 "timestamp": event.timestamp.isoformat(),
                 "visit_type": visit_type,

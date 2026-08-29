@@ -433,19 +433,16 @@
             const newIndex = index + direction;
             if (newIndex < 0 || newIndex >= tokens.length) return;
             
-            // Swap array positions
             [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
             window.currentWaitingTokens = tokens; 
             
             try {
-                // Send the new order to Redis/Backend
                 await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ local_tokens: tokens })
                 });
                 
-                // Hard refresh to pull the fresh state from the server
                 window.location.reload();
             } catch (err) {
                 console.error("Reorder failed");
@@ -486,7 +483,7 @@
                     const shortCode = getShortCode(patient.daily_token_number);
                     const card = document.createElement("div");
                     
-                    card.dataset.token = patient.local_token; // Tag for instant swap
+                    card.dataset.token = patient.local_token; 
                     card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
                     card.style.cursor = "pointer";
                     
@@ -495,6 +492,8 @@
                     else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
                     else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
                     
+                    let cityText = patient.city ? `<span style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-left: 6px;">📍 ${patient.city}</span>` : "";
+
                     card.innerHTML = `
                         <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">
                             <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▲</button>
@@ -502,7 +501,7 @@
                         </div>
                         <div class="token-number">#${shortCode}</div>
                         <div class="patient-details">
-                            <strong style="font-size: 16px;">${patient.patient_name || 'Patient'} ${typeBadge}</strong>
+                            <strong style="font-size: 16px; ">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
                             <span>ID: ${patient.display_id || '--'} ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
                         </div>
                     `;
@@ -523,7 +522,6 @@
                         clearPrescription();
                         historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
                         
-                        // Fire history fetch in background
                         loadHistory(currentLocalToken);
                         fetchActiveVitals(); 
                     };
