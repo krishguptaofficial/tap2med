@@ -670,55 +670,82 @@
         };
 
         // NEW: Safe Editing Logic for Doctor
+        // NEW: 100% Bulletproof Editing Logic for Doctor
         window.editRx = async function(localToken, tokenNumber, patientName, displayId) {
             try {
                 const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+                if (!response.ok) throw new Error("Server returned HTTP " + response.status);
+                
                 const data = await response.json();
                 if (!data.history || data.history.length === 0) return alert("No history found to edit.");
                 
                 const visit = data.history[0];
                 
                 currentLocalToken = localToken;
-                window.currentPatientName = patientName;
-                window.currentDisplayId = displayId;
+                window.currentPatientName = patientName || 'Patient';
+                window.currentDisplayId = displayId || '--';
                 
                 document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
                 
-                document.getElementById("current-token").innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
-                const headerEyebrow = document.querySelector(".eyebrow");
-                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${patientName}</strong> (ID: ${displayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
-
-                document.getElementById("patient-complaints").value = visit.complaints || "";
-                document.getElementById("patient-diagnosis").value = visit.diagnosis || "";
-                document.getElementById("patient-tests").value = visit.tests_suggested || "";
+                const currentTokenEl = document.getElementById("current-token");
+                if(currentTokenEl) currentTokenEl.innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
                 
-                prescriptionList.innerHTML = "";
-                if (visit.prescriptions && visit.prescriptions.length > 0) {
-                    visit.prescriptions.forEach(med => {
+                const headerEyebrow = document.querySelector(".eyebrow");
+                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
+
+                // Safely inject notes
+                const compEl = document.getElementById("patient-complaints");
+                if(compEl) compEl.value = visit.complaints || "";
+                
+                const diagEl = document.getElementById("patient-diagnosis");
+                if(diagEl) diagEl.value = visit.diagnosis || "";
+                
+                const testEl = document.getElementById("patient-tests");
+                if(testEl) testEl.value = visit.tests_suggested || "";
+                
+                // Safely rebuild medicine list
+                const rxContainer = document.getElementById("rx-container");
+                if (rxContainer) {
+                    rxContainer.innerHTML = "";
+                    if (visit.prescriptions && Array.isArray(visit.prescriptions) && visit.prescriptions.length > 0) {
+                        visit.prescriptions.forEach(med => {
+                            addPrescriptionRow();
+                            const rows = rxContainer.querySelectorAll('.prescription-row');
+                            if (rows.length > 0) {
+                                const lastRow = rows[rows.length - 1];
+                                
+                                const medInput = lastRow.querySelector('.rx-med');
+                                if(medInput) medInput.value = med.name || "";
+                                
+                                let dosage = med.instructions || "";
+                                let days = "";
+                                if (dosage && typeof dosage === 'string' && dosage.includes(' for ')) {
+                                    const parts = dosage.split(' for ');
+                                    dosage = parts[0];
+                                    days = parts[1];
+                                }
+                                
+                                const dosInput = lastRow.querySelector('.rx-dosage');
+                                if(dosInput) dosInput.value = dosage || "";
+                                
+                                const daysInput = lastRow.querySelector('.rx-days');
+                                if(daysInput) daysInput.value = days || "";
+                                
+                                const freqInput = lastRow.querySelector('.rx-freq');
+                                if(freqInput) freqInput.value = med.instructions || "";
+                            }
+                        });
+                    } else {
                         addPrescriptionRow();
-                        const rows = prescriptionList.querySelectorAll('.prescription-row');
-                        const lastRow = rows[rows.length - 1];
-                        lastRow.querySelector('.rx-med').value = med.name;
-                        
-                        let dosage = med.instructions || "";
-                        let days = "";
-                        if (dosage && dosage.includes(' for ')) {
-                            const parts = dosage.split(' for ');
-                            dosage = parts[0];
-                            days = parts[1];
-                        }
-                        lastRow.querySelector('.rx-dosage').value = dosage || "";
-                        lastRow.querySelector('.rx-days').value = days || "";
-                        lastRow.querySelector('.rx-freq').value = med.instructions || "";
-                    });
-                } else {
-                    addPrescriptionRow();
+                    }
                 }
                 
-                fetchActiveVitals(); 
+                if (typeof fetchActiveVitals === 'function') fetchActiveVitals(); 
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+                
             } catch(e) {
-                alert("Failed to pull prescription for editing.");
+                console.error("EditRx Error:", e);
+                alert("Error pulling prescription: " + e.message);
             }
         };
 
