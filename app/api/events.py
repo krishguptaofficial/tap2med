@@ -314,11 +314,12 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
 
+        # 1. FIX: Allow both "waiting" and "completed" patients to be processed
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
-            models.Event.status == "waiting"
+            models.Event.status.in_(["waiting", "completed"]) 
         ).first()
 
         if not event:
@@ -329,6 +330,9 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         event.complaints = payload.complaints.strip() if payload.complaints else None
         event.diagnosis = payload.diagnosis.strip() if payload.diagnosis else None
         event.tests_suggested = payload.tests_suggested.strip() if payload.tests_suggested else None
+
+        # 2. FIX: Delete the old medicines for this event so we don't create duplicates when editing
+        db.query(models.Prescription).filter(models.Prescription.event_id == event.event_id).delete()
 
         for med in payload.medicines:
             if med.name.strip() != "":
