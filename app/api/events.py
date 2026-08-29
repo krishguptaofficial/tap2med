@@ -72,14 +72,16 @@ class WeightUpdate(BaseModel):
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
+        # 1. Save to Redis for instant UI updates
+        redis_client.set(f"city:{payload.local_token}", payload.city.strip(), ex=43200)
+        
+        # 2. Save permanently to DB
         event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
-        if not event:
-            raise HTTPException(status_code=404, detail="Active token not found")
-
-        patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
-        if patient:
-            patient.city = payload.city.strip()
-            db.commit()
+        if event:
+            patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
+            if patient:
+                patient.city = payload.city.strip()
+                db.commit()
 
         return {"status": "success"}
     except Exception as e:
@@ -124,7 +126,7 @@ def start_visit(
                 patient_id_to_return = str(patient.patient_id) 
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
                 
-                # FIXED: Actively save the city if a returning patient types it in during check-in
+                # Actively save the city if a returning patient types it in during check-in
                 if payload.city:
                     patient.city = payload.city.strip()
                     db.commit()
@@ -149,6 +151,8 @@ def start_visit(
 
         try:
             redis_client.set(f"name:{local_token}", payload.name, ex=43200)
+            if payload.city:
+                redis_client.set(f"city:{local_token}", payload.city.strip(), ex=43200)
         except Exception:
             pass 
 

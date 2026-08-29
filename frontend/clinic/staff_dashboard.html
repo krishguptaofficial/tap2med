@@ -304,6 +304,9 @@
           const cityVal = cityInput ? cityInput.value.trim() : '';
           if (!cityVal) return;
           
+          const saveBtn = cityInput.nextElementSibling;
+          saveBtn.textContent = "Saving...";
+          
           try {
               await fetch("/api/events/city", {
                   method: "PUT",
@@ -313,6 +316,7 @@
               loadStaffQueue();
           } catch (e) {
               alert("Failed to update city.");
+              saveBtn.textContent = "Save";
           }
       }
 
@@ -539,7 +543,7 @@
                       `;
 
                       let cityHtml = patient.city 
-                          ? `<span style="font-size: 13px; color: #0284c7; font-weight: 600; margin-left: 6px;">(${patient.city})</span>`
+                          ? `<span style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(${patient.city})</span>`
                           : `<div style="display:flex; gap: 4px; align-items:center; margin-left: 8px;">
                                <input type="text" id="city-input-${patient.local_token}" placeholder="Add City" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 110px;">
                                <button onclick="updatePatientCity('${patient.local_token}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px; min-height: 26px; height: 26px;">Save</button>

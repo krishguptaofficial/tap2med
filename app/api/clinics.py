@@ -62,8 +62,11 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             except Exception:
                 patient_name = "Patient"
                 
-            db_patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
-            patient_city = db_patient.city if db_patient and db_patient.city else ""
+            # Fetch city instantly from Redis, fallback to DB
+            patient_city = redis_client.get(f"city:{event.local_token}")
+            if not patient_city:
+                db_patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
+                patient_city = db_patient.city if db_patient and db_patient.city else ""
 
             patient_display_id = event.local_token[:8].upper()
             

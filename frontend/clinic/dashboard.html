@@ -516,8 +516,9 @@
                         
                         document.getElementById("current-token").textContent = `#${shortCode}`;
                         
+                        const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
                         const headerEyebrow = document.querySelector(".eyebrow");
-                        if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+                        if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})`;
 
                         clearPrescription();
                         historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
@@ -536,8 +537,9 @@
                     window.currentPatientName = firstPatient.patient_name || 'Patient';
                     window.currentDisplayId = firstPatient.display_id || '--';
                     
+                    const activeCityText = firstPatient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>` : "";
                     const headerEyebrow = document.querySelector(".eyebrow");
-                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId})`;
+                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})`;
 
                     clearPrescription();
                     loadHistory(currentLocalToken);
