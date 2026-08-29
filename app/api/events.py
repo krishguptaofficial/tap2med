@@ -42,7 +42,12 @@ class ScanRequest(BaseModel):
     member_id: int = 0
     clinic_id: uuid.UUID
 
-# PHASE 2 FIX: Added structured dosage and duration fields
+class LookupRequest(BaseModel):
+    phone: str
+    member_id: int = 0
+    clinic_id: uuid.UUID
+
+
 class MedicineItem(BaseModel):
     name: str
     instructions: Optional[str] = None
@@ -103,6 +108,32 @@ def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
         return {"status": "success"}
     except Exception as e:
         db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/lookup")
+def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
+    try:
+        clinic = crud.get_clinic(db=db, clinic_id=payload.clinic_id)
+        if not clinic:
+            raise HTTPException(status_code=404, detail="Clinic not found")
+
+        # Generate the hash to look up the local record securely
+        local_token = hashing.generate_local_token(payload.phone, payload.member_id, str(clinic.clinic_salt))
+
+        record = db.query(models.ClinicPatientRecord).filter(
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id,
+            models.ClinicPatientRecord.local_token == local_token
+        ).first()
+
+        if record:
+            return {
+                "found": True,
+                "patient_name": record.patient_name,
+                "city": record.city
+            }
+        
+        return {"found": False}
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/visit/start")

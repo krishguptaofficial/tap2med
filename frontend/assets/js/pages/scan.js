@@ -74,15 +74,50 @@ function renderMemberGrid() {
         btn.type = "button";
         btn.className = "member-btn";
         btn.textContent = member.name;
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
             selectedMemberId = member.id;
             showScreen("screen-details");
-            // Auto focus name input for speed
+            
+            const nameInput = document.getElementById("patient-name-input");
+            const cityInput = document.getElementById("patient-city-input");
+            
+            // Give them a visual cue that we are checking
+            if (nameInput) nameInput.placeholder = "Loading...";
+            
+            try {
+                // Silently query the new lookup endpoint
+                const res = await fetch("/api/events/lookup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        phone: currentSessionPhone,
+                        member_id: selectedMemberId,
+                        clinic_id: scannedClinicId
+                    })
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.found && data.patient_name) {
+                        nameInput.value = data.patient_name;
+                        if (data.city && cityInput) cityInput.value = data.city;
+                        
+                        // Flash green to show it was successfully auto-filled
+                        nameInput.style.borderColor = "var(--success-color)";
+                        setTimeout(() => nameInput.style.borderColor = "var(--border-color)", 1500);
+                    } else {
+                        // Clear it if they are a new patient
+                        nameInput.value = "";
+                        if (cityInput) cityInput.value = "";
+                    }
+                }
+            } catch(e) {
+                console.error("Lookup failed silently", e);
+            }
+            
+            if (nameInput) nameInput.placeholder = "Full Name";
             setTimeout(() => document.getElementById("patient-name-input").focus(), 50);
         });
-        grid.appendChild(btn);
-    });
-}
 
 // ----------------- RESUME SESSION / POLLING -----------------
 
@@ -239,5 +274,5 @@ function startQueuePolling(localToken) {
         } catch (error) {
             console.error("Polling error:", error);
         }
-    }, 3000);
+}, 3000);
 }
