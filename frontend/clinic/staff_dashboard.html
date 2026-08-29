@@ -646,62 +646,67 @@
                   alert("No prescription found.");
                   return;
               }
+              
               const visit = data.history[0]; 
-              const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+              const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+              
               document.getElementById("print-clinic-name").textContent = currentClinicName;
               document.getElementById("print-doctor-name").textContent = currentDoctorName;
               document.getElementById("print-date").textContent = `Date: ${today}`;
-              const printNameEl = document.getElementById("print-patient-name");
-              if (printNameEl) printNameEl.innerHTML = `<strong>Name:</strong> ${data.patient_name || 'Patient'}`;
-              const printIdEl = document.getElementById("print-patient-id");
-              if (printIdEl) printIdEl.innerHTML = `<strong>Patient ID:</strong> ${data.display_id || localToken.slice(0, 8).toUpperCase()}`;
-
-              const printNotesContainer = document.getElementById("print-clinical-notes");
-              const printComplaints = document.getElementById("print-complaints");
-              const printDiagnosis = document.getElementById("print-diagnosis");
-              const printTests = document.getElementById("print-tests");
-
-              const meds = visit.prescriptions.filter(rx => rx.category === "MEDICINE" || !rx.category || rx.category === "Not available in v0");
-              const complaints = visit.prescriptions.find(rx => rx.category === "COMPLAINT");
-              const diagnosis = visit.prescriptions.find(rx => rx.category === "DIAGNOSIS");
-              const advice = visit.prescriptions.find(rx => rx.category === "ADVICE");
-
-              if (complaints || diagnosis) {
-                  printNotesContainer.style.display = "block";
-                  printComplaints.innerHTML = complaints ? `<strong>C/E:</strong> ${complaints.instructions}` : "";
-                  printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis.instructions}` : "";
-              } else {
-                  printNotesContainer.style.display = "none";
-              }
-
-              if (advice) {
-                  printTests.style.display = "block";
-                  printTests.innerHTML = `<strong>Advice:</strong> ${advice.instructions}`;
-              } else {
-                  printTests.style.display = "none";
-              }
-
-              const printMedContainer = document.getElementById("print-medicines");
-              printMedContainer.innerHTML = "";
-              meds.forEach((med, index) => {
-                  printMedContainer.innerHTML += `
-                      <div style="display: flex; gap: 15px; margin-bottom: 24px; align-items: baseline;">
-                          <div style="font-weight: 700; font-size: 16px; color: #0f172a; min-width: 25px;">${index + 1}.</div>
-                          <div>
-                              <strong style="font-size: 18px; color: #0f172a; display: block; letter-spacing: -0.01em;">${med.name}</strong>
-                              <span style="font-size: 15px; color: #475569; display: block; margin-top: 4px; font-style: italic;">${med.instructions}</span>
-                          </div>
-                      </div>
-                  `;
+              document.getElementById("print-vitals-field").textContent = visit.weight ? visit.weight : "N/A";
+              
+              // Smart Parse: Separate Notes from Medicines
+              let ce = [], dx = [], tests = [], advice = [], rx = [];
+              visit.prescriptions.forEach(med => {
+                  if (med.name.startsWith("C/E:")) ce.push(med.name.replace("C/E:", "").trim());
+                  else if (med.name.startsWith("Dx:")) dx.push(med.name.replace("Dx:", "").trim());
+                  else if (med.name.startsWith("Test:")) tests.push(med.name.replace("Test:", "").trim());
+                  else if (med.name.startsWith("Advice:")) advice.push({ name: med.name.replace("Advice:", "").trim(), inst: med.instructions });
+                  else rx.push(med);
               });
-              document.body.classList.add('mode-rx');
+
+              let printHTML = "";
+              
+              // 1. Clinical Notes
+              if (ce.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>C/E:</strong> ${ce.join(", ")}</div>`;
+              if (dx.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>Diagnosis:</strong> ${dx.join(", ")}</div>`;
+
+              // 2. Rx Pad
+              if (rx.length > 0 || advice.length > 0) {
+                  rx.forEach((med, index) => {
+                      printHTML += `
+                          <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: baseline;">
+                              <div style="font-weight: 700; font-size: 15px; color: #0f172a; min-width: 20px;">${index + 1}.</div>
+                              <div>
+                                  <strong style="font-size: 16px; color: #0f172a; display: block;">${med.name}</strong>
+                                  <span style="font-size: 14px; color: #475569; display: block; font-style: italic;">${med.instructions}</span>
+                              </div>
+                          </div>`;
+                  });
+                  advice.forEach((adv) => {
+                      printHTML += `
+                          <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: baseline;">
+                              <div style="font-weight: 700; font-size: 15px; color: #166534; min-width: 20px;">*</div>
+                              <div>
+                                  <strong style="font-size: 15px; color: #166534; display: block;">Advice: ${adv.name}</strong>
+                                  <span style="font-size: 14px; color: #475569; display: block; font-style: italic;">${adv.inst}</span>
+                              </div>
+                          </div>`;
+                  });
+              }
+
+              // 3. Lab Tests
+              if (tests.length > 0) {
+                  printHTML += `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed #cbd5e1; font-size: 15px;"><strong>Advised Tests:</strong> ${tests.join(", ")}</div>`;
+              }
+
+              document.getElementById("print-medicines").innerHTML = printHTML;
               window.print();
-              setTimeout(() => { document.body.classList.remove('mode-rx'); }, 500);
           } catch (e) {
               alert("Failed to load prescription for printing.");
           }
       }
-
+      
       function printBill(patientName, displayId, tokenNum, doctorName, visitType, fee) {
           const now = new Date();
           const dateStr = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });

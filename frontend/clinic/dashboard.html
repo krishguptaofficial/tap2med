@@ -118,6 +118,13 @@
               </div>
             </div>
           </div>
+
+          <!-- NEW: Completed Patients Section for Quick Editing -->
+          <div class="section-header" style="margin-top: 40px; border-top: 2px dashed #e2e8f0; padding-top: 20px;">
+            <h2 style="font-size: 16px; color: var(--text-muted);">Completed Today</h2>
+          </div>
+          <div class="queue-list" id="completed-list"></div>
+
         </div>
 
         <!-- Right Column: The Rx Pad -->
@@ -330,29 +337,7 @@
                     const newAddBtn = addBtn.cloneNode(true);
                     addBtn.parentNode.replaceChild(newAddBtn, addBtn);
                     
-                    newAddBtn.addEventListener('click', () => {
-                        const container = document.getElementById('rx-container');
-                        const row = document.createElement('div');
-                        row.className = 'prescription-row';
-                        row.style.display = 'grid';
-                        row.style.gridTemplateColumns = '2fr 1fr 1fr auto';
-                        row.style.gap = '15px';
-                        row.style.marginBottom = '15px';
-                        row.innerHTML = `
-                            <div class="field">
-                              <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
-                            </div>
-                            <div class="field">
-                              <input type="text" class="input rx-dosage" placeholder="e.g. 1-0-1" autocomplete="off" oninput="updateFreq(this)" />
-                            </div>
-                            <div class="field">
-                              <input type="text" class="input rx-days" placeholder="e.g. 5 days" autocomplete="off" oninput="updateFreq(this)" />
-                            </div>
-                            <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 10px;">✕</button>
-                            <input type="hidden" class="rx-freq" />
-                        `;
-                        container.appendChild(row);
-                    });
+                    newAddBtn.addEventListener('click', addPrescriptionRow);
                 }
             }, 500); 
         });
@@ -406,16 +391,10 @@
             const cEl = document.getElementById("patient-complaints");
             const dEl = document.getElementById("patient-diagnosis");
             const tEl = document.getElementById("patient-tests");
-            const lAdv = document.getElementById("life-adv-ui");
-            const lDur = document.getElementById("life-dur-ui");
-            const lSec = document.getElementById("lifestyle-section");
 
             if(cEl) cEl.value = "";
             if(dEl) dEl.value = "";
             if(tEl) tEl.value = "";
-            if(lAdv) lAdv.value = "";
-            if(lDur) lDur.value = "";
-            if(lSec) lSec.style.display = "none";
         }
 
         function getShortCode(tokenNumber) {
@@ -424,7 +403,6 @@
             return `${letter}-${tokenNumber}`; 
         }
 
-        
         window.moveQueue = async function(localToken, direction, e) {
             if (e) e.stopPropagation();
             let tokens = [...window.currentWaitingTokens];
@@ -473,78 +451,109 @@
                 queueList.innerHTML = ""; 
 
                 if (waitingQueue.length === 0) {
-                    currentToken.textContent = "—";
-                    currentLocalToken = null;
+                    if (!currentLocalToken || !document.getElementById("current-token").innerHTML.includes("EDITING")) {
+                        currentToken.textContent = "—";
+                        currentLocalToken = null;
+                    }
                     queueList.innerHTML = '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
-                    return;
-                }
-
-                waitingQueue.forEach((patient) => {
-                    const shortCode = getShortCode(patient.daily_token_number);
-                    const card = document.createElement("div");
-                    
-                    card.dataset.token = patient.local_token; 
-                    card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
-                    card.style.cursor = "pointer";
-                    
-                    let typeBadge = "";
-                    if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
-                    else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
-                    else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
-                    
-                    let cityText = patient.city ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>` : "";
-
-                    card.innerHTML = `
-                        <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">
-                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▲</button>
-                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▼</button>
-                        </div>
-                        <div class="token-number">#${shortCode}</div>
-                        <div class="patient-details">
-                            <strong style="font-size: 16px; ">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
-                            <span>ID: ${patient.display_id || '--'} ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
-                        </div>
-                    `;
-
-                    card.onclick = () => {
-                        document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-                        card.classList.add('active');
-
-                        currentLocalToken = patient.local_token;
-                        window.currentPatientName = patient.patient_name || 'Patient';
-                        window.currentDisplayId = patient.display_id || '--';
+                } else {
+                    waitingQueue.forEach((patient) => {
+                        const shortCode = getShortCode(patient.daily_token_number);
+                        const card = document.createElement("div");
                         
-                        document.getElementById("current-token").textContent = `#${shortCode}`;
+                        card.dataset.token = patient.local_token; 
+                        card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
+                        card.style.cursor = "pointer";
                         
-                        const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+                        let typeBadge = "";
+                        if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+                        else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+                        else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+                        
+                        let cityText = patient.city ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>` : "";
+
+                        card.innerHTML = `
+                            <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">
+                                <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▲</button>
+                                <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▼</button>
+                            </div>
+                            <div class="token-number">#${shortCode}</div>
+                            <div class="patient-details">
+                                <strong style="font-size: 16px; ">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
+                                <span>ID: ${patient.display_id || '--'} ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
+                            </div>
+                        `;
+
+                        card.onclick = () => {
+                            document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+                            card.classList.add('active');
+
+                            currentLocalToken = patient.local_token;
+                            window.currentPatientName = patient.patient_name || 'Patient';
+                            window.currentDisplayId = patient.display_id || '--';
+                            
+                            document.getElementById("current-token").textContent = `#${shortCode}`;
+                            
+                            const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+                            const headerEyebrow = document.querySelector(".eyebrow");
+                            if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})`;
+
+                            clearPrescription();
+                            historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+                            
+                            loadHistory(currentLocalToken);
+                            fetchActiveVitals(); 
+                        };
+
+                        queueList.appendChild(card);
+                    });
+                    
+                    if (!currentLocalToken && waitingQueue.length > 0) {
+                        const firstPatient = waitingQueue[0];
+                        currentLocalToken = firstPatient.local_token;
+                        currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
+                        window.currentPatientName = firstPatient.patient_name || 'Patient';
+                        window.currentDisplayId = firstPatient.display_id || '--';
+                        
+                        const activeCityText = firstPatient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>` : "";
                         const headerEyebrow = document.querySelector(".eyebrow");
                         if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})`;
 
                         clearPrescription();
-                        historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-                        
                         loadHistory(currentLocalToken);
-                        fetchActiveVitals(); 
-                    };
+                        const firstCard = queueList.firstChild;
+                        if(firstCard) firstCard.classList.add('active');
+                    }
+                }
 
-                    queueList.appendChild(card);
-                });
-                
-                if (!currentLocalToken && waitingQueue.length > 0) {
-                    const firstPatient = waitingQueue[0];
-                    currentLocalToken = firstPatient.local_token;
-                    currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
-                    window.currentPatientName = firstPatient.patient_name || 'Patient';
-                    window.currentDisplayId = firstPatient.display_id || '--';
-                    
-                    const activeCityText = firstPatient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>` : "";
-                    const headerEyebrow = document.querySelector(".eyebrow");
-                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})`;
-
-                    clearPrescription();
-                    loadHistory(currentLocalToken);
-                    const firstCard = queueList.firstChild;
-                    if(firstCard) firstCard.classList.add('active');
+                // NEW: Render Completed Patients List for Editing/Printing
+                const completedQueue = data.queue ? data.queue.filter(p => p.status === 'completed') : [];
+                const completedList = document.getElementById("completed-list");
+                if (completedList) {
+                    completedList.innerHTML = "";
+                    if (completedQueue.length === 0) {
+                        completedList.innerHTML = '<div class="queue-card text-muted" style="padding:16px; font-size:14px;">No completed patients</div>';
+                    } else {
+                        completedQueue.forEach((patient) => {
+                            const shortCode = getShortCode(patient.daily_token_number);
+                            const card = document.createElement("div");
+                            card.className = "queue-card";
+                            card.style.background = "#f8fafc";
+                            card.style.cursor = "default";
+                            card.innerHTML = `
+                                <div class="token-number" style="color: #64748b; font-size: 18px;">#${shortCode}</div>
+                                <div class="patient-details" style="flex: 1;">
+                                    <strong style="font-size: 15px; color: #475569;">${patient.patient_name || 'Patient'}</strong>
+                                    <span style="color: var(--success-color); font-size: 12px;">Completed</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${patient.patient_name || 'Patient'}', '${patient.display_id || '--'}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">✏️ Edit</button>
+                                    <button onclick="rePrintRx('${patient.local_token}', '${patient.patient_name || 'Patient'}', '${patient.display_id || '--'}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">🖨️ Print</button>
+                                </div>
+                            `;
+                            completedList.appendChild(card);
+                        });
+                    }
                 }
 
             } catch (error) {
@@ -605,19 +614,115 @@
             }
         }
 
-        document.getElementById('print-btn').addEventListener('click', () => {
-            document.querySelectorAll('.temp-lifestyle-row').forEach(el => el.remove());
-            const adv = document.getElementById('life-adv-ui')?.value.trim();
-            const dur = document.getElementById('life-dur-ui')?.value.trim();
-            
-            if (adv) {
-                const container = document.getElementById('rx-container');
-                const tempRow = document.createElement('div');
-                tempRow.className = 'prescription-row temp-lifestyle-row';
-                tempRow.style.display = 'none';
-                tempRow.innerHTML = `<input type="hidden" class="rx-med" value="Advice: ${adv}"><input type="hidden" class="rx-freq" value="${dur ? 'Duration: ' + dur : ''}">`;
-                container.appendChild(tempRow);
+        // NEW: Safe Re-Print Logic for Doctor
+        window.rePrintRx = async function(localToken, patientName, displayId) {
+            try {
+                const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+                const data = await response.json();
+                if (!data.history || data.history.length === 0) return alert("No prescription found.");
+                
+                const visit = data.history[0]; 
+                const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
+                
+                document.getElementById("print-clinic-name").textContent = clinicName.textContent;
+                document.getElementById("print-doctor-name").textContent = doctorName.textContent;
+                document.getElementById("print-date").textContent = `Date: ${today}`;
+                
+                document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${patientName}`;
+                document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${displayId}`;
+                
+                const printNotesContainer = document.getElementById("print-clinical-notes");
+                const printComplaints = document.getElementById("print-complaints");
+                const printDiagnosis = document.getElementById("print-diagnosis");
+                const printTests = document.getElementById("print-tests");
+
+                if (visit.complaints || visit.diagnosis) {
+                    printNotesContainer.style.display = "block";
+                    printComplaints.innerHTML = visit.complaints ? `<strong>C/E:</strong> ${visit.complaints}` : "";
+                    printDiagnosis.innerHTML = visit.diagnosis ? `<strong>Diagnosis:</strong> ${visit.diagnosis}` : "";
+                } else {
+                    printNotesContainer.style.display = "none";
+                }
+
+                if (visit.tests_suggested) {
+                    printTests.style.display = "block";
+                    printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
+                } else {
+                    printTests.style.display = "none";
+                }
+
+                const printMedContainer = document.getElementById("print-medicines");
+                printMedContainer.innerHTML = "";
+                if(visit.prescriptions) {
+                    visit.prescriptions.forEach(med => {
+                        printMedContainer.innerHTML += `
+                            <div style="margin-bottom: 20px;">
+                                <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                                <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
+                            </div>
+                        `;
+                    });
+                }
+                window.print();
+            } catch (e) {
+                alert("Failed to load prescription for printing.");
             }
+        };
+
+        // NEW: Safe Editing Logic for Doctor
+        window.editRx = async function(localToken, tokenNumber, patientName, displayId) {
+            try {
+                const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+                const data = await response.json();
+                if (!data.history || data.history.length === 0) return alert("No history found to edit.");
+                
+                const visit = data.history[0];
+                
+                currentLocalToken = localToken;
+                window.currentPatientName = patientName;
+                window.currentDisplayId = displayId;
+                
+                document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+                
+                document.getElementById("current-token").innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
+                const headerEyebrow = document.querySelector(".eyebrow");
+                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${patientName}</strong> (ID: ${displayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
+
+                document.getElementById("patient-complaints").value = visit.complaints || "";
+                document.getElementById("patient-diagnosis").value = visit.diagnosis || "";
+                document.getElementById("patient-tests").value = visit.tests_suggested || "";
+                
+                prescriptionList.innerHTML = "";
+                if (visit.prescriptions && visit.prescriptions.length > 0) {
+                    visit.prescriptions.forEach(med => {
+                        addPrescriptionRow();
+                        const rows = prescriptionList.querySelectorAll('.prescription-row');
+                        const lastRow = rows[rows.length - 1];
+                        lastRow.querySelector('.rx-med').value = med.name;
+                        
+                        let dosage = med.instructions || "";
+                        let days = "";
+                        if (dosage && dosage.includes(' for ')) {
+                            const parts = dosage.split(' for ');
+                            dosage = parts[0];
+                            days = parts[1];
+                        }
+                        lastRow.querySelector('.rx-dosage').value = dosage || "";
+                        lastRow.querySelector('.rx-days').value = days || "";
+                        lastRow.querySelector('.rx-freq').value = med.instructions || "";
+                    });
+                } else {
+                    addPrescriptionRow();
+                }
+                
+                fetchActiveVitals(); 
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch(e) {
+                alert("Failed to pull prescription for editing.");
+            }
+        };
+
+        document.getElementById('print-btn').addEventListener('click', () => {
             completeVisit();
         }, true);
 
@@ -749,7 +854,6 @@
             } catch (error) {}
         }
 
-        document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
         menuToggleBtn.addEventListener("click", toggleSidebar);
         sidebarBackdrop.addEventListener("click", toggleSidebar);
 
@@ -876,5 +980,5 @@
         setInterval(fetchActiveVitals, 3000);
         setInterval(loadQueue, 5000);
     </script>
-    </body>
+  </body>
 </html>
