@@ -41,34 +41,37 @@ function addPrescriptionRow() {
     const number = prescriptionList.querySelectorAll(".prescription-row").length + 1;
     const row = document.createElement("div");
     row.className = "prescription-row";
+    row.style.gridTemplateColumns = "2fr 1fr 1fr 1.5fr";
 
     const medicineField = document.createElement("div");
     medicineField.className = "field";
-    const medicineLabel = document.createElement("label");
-    medicineLabel.htmlFor = `medicine-${number}`;
-    medicineLabel.textContent = "Medicine Name";
-    const medicineInput = document.createElement("input");
-    medicineInput.id = `medicine-${number}`;
-    medicineInput.className = "input rx-med";
-    medicineInput.type = "text";
-    medicineInput.placeholder = "e.g. Paracetamol 500mg";
-    medicineInput.autocomplete = "off";
-    medicineField.append(medicineLabel, medicineInput);
+    medicineField.innerHTML = `
+        <label for="medicine-${number}">Medicine Name</label>
+        <input id="medicine-${number}" class="input rx-med" type="text" placeholder="e.g. Paracetamol 500mg" autocomplete="off">
+    `;
+
+    const dosageField = document.createElement("div");
+    dosageField.className = "field";
+    dosageField.innerHTML = `
+        <label for="dosage-${number}">Dosage</label>
+        <input id="dosage-${number}" class="input rx-dosage" type="text" placeholder="e.g. 1-0-1" autocomplete="off">
+    `;
+
+    const durationField = document.createElement("div");
+    durationField.className = "field";
+    durationField.innerHTML = `
+        <label for="duration-${number}">Duration</label>
+        <input id="duration-${number}" class="input rx-duration" type="text" placeholder="e.g. 5 Days" autocomplete="off">
+    `;
 
     const instructionField = document.createElement("div");
     instructionField.className = "field";
-    const instructionLabel = document.createElement("label");
-    instructionLabel.htmlFor = `instruction-${number}`;
-    instructionLabel.textContent = "Dosage & Instructions";
-    const instructionInput = document.createElement("input");
-    instructionInput.id = `instruction-${number}`;
-    instructionInput.className = "input rx-freq";
-    instructionInput.type = "text";
-    instructionInput.placeholder = "e.g. 1-0-1 After Meals";
-    instructionInput.autocomplete = "off";
-    instructionField.append(instructionLabel, instructionInput);
+    instructionField.innerHTML = `
+        <label for="instruction-${number}">Instructions</label>
+        <input id="instruction-${number}" class="input rx-inst" type="text" placeholder="e.g. After Meals" autocomplete="off">
+    `;
 
-    row.append(medicineField, instructionField);
+    row.append(medicineField, dosageField, durationField, instructionField);
     prescriptionList.appendChild(row);
 }
 
@@ -231,7 +234,11 @@ async function loadHistory(localToken) {
             card.style.marginBottom = "10px";
             card.style.cursor = "pointer";
 
-            const weightBadge = visit.weight ? `<span class="badge badge-info" style="font-size: 11px; margin-left: 10px;">Wt: ${visit.weight}</span>` : "";
+            let weightStr = "";
+            if (visit.vitals && visit.vitals.wt) weightStr = visit.vitals.wt + "kg";
+            else if (visit.weight && visit.weight.includes('Wt:')) weightStr = visit.weight.split('Wt:')[1].split('|')[0].trim();
+            
+            const weightBadge = weightStr ? `<span class="badge badge-info" style="font-size: 11px; margin-left: 10px;">Wt: ${weightStr}</span>` : "";
 
             card.innerHTML = `
                 <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date} ${weightBadge}</summary>
@@ -253,8 +260,10 @@ async function completeVisit() {
 
     prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
         const name = row.querySelector(".rx-med").value.trim();
-        const instructions = row.querySelector(".rx-freq").value.trim();
-        if (name) medicines.push({ name, instructions });
+        const dosage = row.querySelector(".rx-dosage").value.trim();
+        const duration = row.querySelector(".rx-duration").value.trim();
+        const instructions = row.querySelector(".rx-inst").value.trim();
+        if (name) medicines.push({ name, dosage, duration, instructions });
     });
 
     if (!medicines.length) {
@@ -295,10 +304,11 @@ async function completeVisit() {
         const printMedContainer = document.getElementById("print-medicines");
         printMedContainer.innerHTML = "";
         medicines.forEach(med => {
+            const details = [med.dosage, med.duration, med.instructions].filter(Boolean).join(" | ");
             printMedContainer.innerHTML += `
                 <div style="margin-bottom: 20px;">
                     <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                    <span style="font-size: 14px; color: #444;">${med.instructions}</span>
+                    <span style="font-size: 14px; color: #444;">${details}</span>
                 </div>
             `;
         });

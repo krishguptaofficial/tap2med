@@ -380,32 +380,24 @@
           }
       }
 
-      function openVitalsModal(localToken, existingVitals = '') {
+      function openVitalsModal(localToken, vitalsJSON) {
           document.getElementById('vitals-token').value = localToken;
-          document.getElementById('vital-is-paid').value = (existingVitals && existingVitals.includes('Paid:Yes')) ? 'true' : 'false';
+          
+          let vitals = {};
+          try { vitals = JSON.parse(vitalsJSON || '{}'); } catch(e) {}
+          
+          document.getElementById('vital-is-paid').value = vitals.is_paid === true ? 'true' : 'false';
           document.getElementById('vitals-modal').style.display = 'flex';
 
-          ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
-              document.getElementById(`vital-${id}`).value = '';
-          });
-
-          if (existingVitals) {
-              const parts = existingVitals.split('|').map(p => p.trim());
-              parts.forEach(part => {
-                  if (part.startsWith('BP:')) {
-                      const bp = part.replace('BP:', '').split('/');
-                      if (bp[0]) document.getElementById('vital-bp-sys').value = bp[0].trim();
-                      if (bp[1]) document.getElementById('vital-bp-dia').value = bp[1].trim();
-                  }
-                  if (part.startsWith('PR:')) document.getElementById('vital-pr').value = part.replace('PR:', '').trim();
-                  if (part.startsWith('Wt:')) document.getElementById('vital-wt').value = part.replace('Wt:', '').replace('kg', '').trim();
-                  if (part.startsWith('Ht:')) document.getElementById('vital-ht').value = part.replace('Ht:', '').replace('cm', '').trim();
-                  if (part.startsWith('T:')) document.getElementById('vital-temp').value = part.replace('T:', '').replace('F', '').trim();
-                  if (part.startsWith('SpO2:')) document.getElementById('vital-spo2').value = part.replace('SpO2:', '').replace('%', '').trim();
-                  if (part.startsWith('Waist:')) document.getElementById('vital-waist').value = part.replace('Waist:', '').replace('cm', '').trim();
-                  if (part.startsWith('Hip:')) document.getElementById('vital-hip').value = part.replace('Hip:', '').replace('cm', '').trim();
-              });
-          }
+          document.getElementById('vital-bp-sys').value = vitals.bp_sys || '';
+          document.getElementById('vital-bp-dia').value = vitals.bp_dia || '';
+          document.getElementById('vital-pr').value = vitals.pr || '';
+          document.getElementById('vital-wt').value = vitals.wt || '';
+          document.getElementById('vital-ht').value = vitals.ht || '';
+          document.getElementById('vital-temp').value = vitals.temp || '';
+          document.getElementById('vital-spo2').value = vitals.spo2 || '';
+          document.getElementById('vital-waist').value = vitals.waist || '';
+          document.getElementById('vital-hip').value = vitals.hip || '';
       }
 
       function closeVitalsModal() {
@@ -414,41 +406,25 @@
 
       async function submitVitals() {
           const localToken = document.getElementById('vitals-token').value;
-          const sys = document.getElementById('vital-bp-sys').value.trim();
-          const dia = document.getElementById('vital-bp-dia').value.trim();
-          const pr = document.getElementById('vital-pr').value.trim();
-          const wt = document.getElementById('vital-wt').value.trim();
-          const ht = document.getElementById('vital-ht').value.trim();
-          const temp = document.getElementById('vital-temp').value.trim();
-          const spo2 = document.getElementById('vital-spo2').value.trim();
-          const waist = document.getElementById('vital-waist').value.trim();
-          const hip = document.getElementById('vital-hip').value.trim();
-
-          let compiledVitals = [];
-          if (document.getElementById('vital-is-paid').value === 'true') {
-              compiledVitals.push('Paid:Yes');
-          }
-          if (sys && dia) compiledVitals.push(`BP:${sys}/${dia}`);
-          if (pr) compiledVitals.push(`PR:${pr}`);
-          if (wt) compiledVitals.push(`Wt:${wt}kg`);
-          if (ht) compiledVitals.push(`Ht:${ht}cm`);
-          if (temp) compiledVitals.push(`T:${temp}F`);
-          if (spo2) compiledVitals.push(`SpO2:${spo2}%`);
-          if (waist) compiledVitals.push(`Waist:${waist}cm`);
-          if (hip) compiledVitals.push(`Hip:${hip}cm`);
-
-          const finalString = compiledVitals.join(' | ');
-
-          if (!finalString) {
-              closeVitalsModal();
-              return; 
-          }
+          
+          const payload = {
+              is_paid: document.getElementById('vital-is-paid').value === 'true',
+              bp_sys: document.getElementById('vital-bp-sys').value.trim() || null,
+              bp_dia: document.getElementById('vital-bp-dia').value.trim() || null,
+              pr: document.getElementById('vital-pr').value.trim() || null,
+              wt: document.getElementById('vital-wt').value.trim() || null,
+              ht: document.getElementById('vital-ht').value.trim() || null,
+              temp: document.getElementById('vital-temp').value.trim() || null,
+              spo2: document.getElementById('vital-spo2').value.trim() || null,
+              waist: document.getElementById('vital-waist').value.trim() || null,
+              hip: document.getElementById('vital-hip').value.trim() || null
+          };
 
           try {
-              await fetch("/api/events/weight", {
+              await fetch("/api/events/vitals", {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ local_token: localToken, weight: finalString })
+                  body: JSON.stringify({ local_token: localToken, vitals: payload })
               });
               closeVitalsModal();
               loadStaffQueue(); 
@@ -458,7 +434,6 @@
       }
 
       async function loadStaffQueue() {
-          // If the receptionist is actively typing in the city input field, do not refresh the screen
           if (document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('city-input-')) {
               return;
           }
@@ -509,22 +484,24 @@
                       }
                       else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
 
-                      const safeWeight = (patient.weight || '').replace(/'/g, "\\'");
-                      const isPaid = patient.weight && patient.weight.includes('Paid:Yes');
-                      const hasVitals = patient.weight && patient.weight.replace('Paid:Yes', '').replaceAll('|', '').trim() !== '';
+                      const patientVitals = patient.vitals || {};
+                      const isPaid = patientVitals.is_paid === true;
+                      
+                      const hasVitals = Object.keys(patientVitals).some(k => k !== 'is_paid' && patientVitals[k] !== null);
+                      const safeVitals = JSON.stringify(patientVitals).replace(/'/g, "\\'");
                       const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
 
                       let actionButtons = '';
                       let markPaidBtn = '';
                       if (!isPaid) {
-                          markPaidBtn = `<button onclick="markAsPaid('${patient.local_token}', '${safeWeight}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px; background: #ea580c; border-color: #ea580c; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">💰 ${feeText}</button>`;
+                          markPaidBtn = `<button onclick="markAsPaid('${patient.local_token}', '${safeVitals}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px; background: #ea580c; border-color: #ea580c; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">💰 ${feeText}</button>`;
                       } else {
                           markPaidBtn = `<span style="font-size: 13px; color: var(--success-color); font-weight: 800; text-align: center; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">✅ Bill Paid</span>`;
                       }
 
                       let vitalsBtn = '';
                       if (enableVitals) {
-                          vitalsBtn = `<button onclick="openVitalsModal('${patient.local_token}', '${safeWeight}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>`;
+                          vitalsBtn = `<button onclick="openVitalsModal('${patient.local_token}', '${safeVitals}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>`;
                           if (hasVitals) {
                               vitalsBtn += `<span style="font-size: 11px; color: var(--success-color); font-weight: 600; text-align: center;">✓ Vitals Saved</span>`;
                           }
@@ -653,9 +630,13 @@
               document.getElementById("print-clinic-name").textContent = currentClinicName;
               document.getElementById("print-doctor-name").textContent = currentDoctorName;
               document.getElementById("print-date").textContent = `Date: ${today}`;
-              document.getElementById("print-vitals-field").textContent = visit.weight ? visit.weight : "N/A";
               
-              // Smart Parse: Separate Notes from Medicines
+              let weightStr = "";
+              if (visit.vitals && visit.vitals.wt) weightStr = visit.vitals.wt + "kg";
+              else if (visit.weight && visit.weight.includes('Wt:')) weightStr = visit.weight.split('Wt:')[1].split('|')[0].trim();
+              
+              document.getElementById("print-vitals-field").textContent = weightStr ? weightStr : "N/A";
+              
               let ce = [], dx = [], tests = [], advice = [], rx = [];
               visit.prescriptions.forEach(med => {
                   if (med.name.startsWith("C/E:")) ce.push(med.name.replace("C/E:", "").trim());
@@ -667,11 +648,9 @@
 
               let printHTML = "";
               
-              // 1. Clinical Notes
               if (ce.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>C/E:</strong> ${ce.join(", ")}</div>`;
               if (dx.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>Diagnosis:</strong> ${dx.join(", ")}</div>`;
 
-              // 2. Rx Pad
               if (rx.length > 0 || advice.length > 0) {
                   rx.forEach((med, index) => {
                       printHTML += `
@@ -695,7 +674,6 @@
                   });
               }
 
-              // 3. Lab Tests
               if (tests.length > 0) {
                   printHTML += `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed #cbd5e1; font-size: 15px;"><strong>Advised Tests:</strong> ${tests.join(", ")}</div>`;
               }
@@ -731,13 +709,17 @@
       loadStaffQueue();
       setInterval(loadStaffQueue, 5000);
 
-      async function markAsPaid(localToken, currentWeight) {
-          let newWeight = currentWeight ? currentWeight + " | Paid:Yes" : "Paid:Yes";
+      async function markAsPaid(localToken, currentVitalsJSON) {
+          let vitals = {};
+          try { vitals = JSON.parse(currentVitalsJSON || '{}'); } catch(e) {}
+          
+          vitals.is_paid = true;
+          
           try {
-              await fetch("/api/events/weight", {
+              await fetch("/api/events/vitals", {
                   method: "PUT",
                   headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ local_token: localToken, weight: newWeight })
+                  body: JSON.stringify({ local_token: localToken, vitals: vitals })
               });
               loadStaffQueue();
           } catch (e) {
