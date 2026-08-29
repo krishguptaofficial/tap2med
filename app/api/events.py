@@ -42,9 +42,12 @@ class ScanRequest(BaseModel):
     member_id: int = 0
     clinic_id: uuid.UUID
 
+# PHASE 2 FIX: Added structured dosage and duration fields
 class MedicineItem(BaseModel):
     name: str
-    instructions: str
+    instructions: Optional[str] = None
+    dosage: Optional[str] = None
+    duration: Optional[str] = None
 
 class CompleteRequest(BaseModel):
     local_token : str
@@ -65,9 +68,22 @@ class CityUpdate(BaseModel):
     local_token: str
     city: str
 
-class WeightUpdate(BaseModel):
+# PHASE 2 FIX: Structured JSON vitals payload instead of a messy string
+class VitalsPayload(BaseModel):
+    bp_sys: Optional[str] = None
+    bp_dia: Optional[str] = None
+    pr: Optional[str] = None
+    wt: Optional[str] = None
+    ht: Optional[str] = None
+    temp: Optional[str] = None
+    spo2: Optional[str] = None
+    waist: Optional[str] = None
+    hip: Optional[str] = None
+    is_paid: Optional[bool] = False
+
+class VitalsUpdate(BaseModel):
     local_token: str
-    weight: str
+    vitals: VitalsPayload
 
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
@@ -75,13 +91,14 @@ def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
         # 1. Save to Redis for instant UI updates
         redis_client.set(f"city:{payload.local_token}", payload.city.strip(), ex=43200)
         
-        # 2. Save permanently to DB
-        event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
-        if event:
-            patient = db.query(models.Patient).filter(models.Patient.network_token == event.network_token).first()
-            if patient:
-                patient.city = payload.city.strip()
-                db.commit()
+        # 2. PHASE 2 FIX: Save permanently to the new ClinicPatientRecord, NOT the global Patient table
+        record = db.query(models.ClinicPatientRecord).filter(
+            models.ClinicPatientRecord.local_token == payload.local_token
+        ).first()
+        
+        if record:
+            record.city = payload.city.strip()
+            db.commit()
 
         return {"status": "success"}
     except Exception as e:
@@ -125,29 +142,46 @@ def start_visit(
                 user_salt = str(patient.user_salt)
                 patient_id_to_return = str(patient.patient_id) 
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
-                
-                # Actively save the city if a returning patient types it in during check-in
-                if payload.city:
-                    patient.city = payload.city.strip()
-                    db.commit()
             else:
                 user_salt = hashing.generate_user_salt()
                 patient_id_to_return = secrets.token_hex(16)
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
                 
+                # PHASE 2 FIX: Passing city=None to ensure the global Patient table remains Zero-PII
                 crud.create_patient(
                     db=db, 
                     patient_id=patient_id_to_return, 
                     lookup_hash=lookup_hash, 
                     user_salt=user_salt, 
                     network_token=network_token,
-                    city=payload.city
+                    city=None
                 )
 
         if not network_token:
             raise HTTPException(status_code=500, detail="Failed to generate network token")
 
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
+
+        # PHASE 2 FIX: The Legal Firewall. Store PII securely attached only to the Clinic.
+        record = db.query(models.ClinicPatientRecord).filter(
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id,
+            models.ClinicPatientRecord.local_token == local_token
+        ).first()
+
+        if record:
+            record.patient_name = payload.name
+            if payload.city:
+                record.city = payload.city.strip()
+        else:
+            new_record = models.ClinicPatientRecord(
+                clinic_id=payload.clinic_id,
+                local_token=local_token,
+                patient_name=payload.name,
+                city=payload.city.strip() if payload.city else None
+            )
+            db.add(new_record)
+        
+        db.commit()
 
         try:
             redis_client.set(f"name:{local_token}", payload.name, ex=43200)
@@ -273,8 +307,15 @@ def get_patient_status(local_token: str, db: Session = Depends(get_db)):
                 rx_text += "*Rx / MEDICINES:*\n"
                 for idx, rx in enumerate(rx_list, 1):
                     rx_text += f"*{idx}. {rx.medicine_name}*\n"
-                    if rx.instructions:
-                        rx_text += f"↳ _{rx.instructions}_\n"
+                    
+                    # PHASE 2 FIX: Assemble the full instruction set from the structured columns
+                    details = []
+                    if rx.dosage: details.append(rx.dosage)
+                    if rx.duration: details.append(rx.duration)
+                    if rx.instructions: details.append(rx.instructions)
+                    
+                    if details:
+                        rx_text += f"↳ _{' | '.join(details)}_\n"
                 rx_text += "\n"
                 
             if current_visit.tests_suggested:
@@ -314,7 +355,6 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        # 1. FIX: Allow both "waiting" and "completed" patients to be processed
         event = db.query(models.Event).filter(
             models.Event.local_token == payload.local_token,
             models.Event.timestamp >= today_start,
@@ -331,9 +371,9 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         event.diagnosis = payload.diagnosis.strip() if payload.diagnosis else None
         event.tests_suggested = payload.tests_suggested.strip() if payload.tests_suggested else None
 
-        # 2. FIX: Delete the old medicines for this event so we don't create duplicates when editing
         db.query(models.Prescription).filter(models.Prescription.event_id == event.event_id).delete()
 
+        # PHASE 2 FIX: Inserting clean JSON values into the discrete dosage and duration columns
         for med in payload.medicines:
             if med.name.strip() != "":
                 db.add(models.Prescription(
@@ -341,7 +381,9 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
                     network_token=event.network_token, 
                     local_token=event.local_token, 
                     medicine_name=med.name, 
-                    instructions=med.instructions, 
+                    instructions=med.instructions,
+                    dosage=med.dosage,
+                    duration=med.duration,
                     drug_category="MEDICINE", 
                     inferred_symptom="Not available in V0"
                 ))
@@ -375,18 +417,27 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
         formatted_history = []
         for visit in past_visits:
             visit_id_str = str(visit.event_id)
-            matched_rx = [
-                {
-                    "name": rx.medicine_name, 
-                    "instructions": rx.instructions
-                }
-                for rx in all_rx if str(rx.event_id) == visit_id_str 
-            ]
+            
+            matched_rx = []
+            for rx in all_rx:
+                if str(rx.event_id) == visit_id_str:
+                    details = []
+                    if rx.dosage: details.append(rx.dosage)
+                    if rx.duration: details.append(rx.duration)
+                    if rx.instructions: details.append(rx.instructions)
+                    
+                    matched_rx.append({
+                        "name": rx.medicine_name,
+                        "instructions": " | ".join(details) if details else "",
+                        "dosage": rx.dosage,
+                        "duration": rx.duration
+                    })
 
             formatted_history.append({
                 "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
-                "weight": visit.patient_weight, 
+                "weight": visit.patient_weight, # LEGACY: Keeping this just in case old data needs displaying
+                "vitals": visit.vitals, # PHASE 2 FIX: Returning the clean JSONB object
                 "complaints": visit.complaints,
                 "diagnosis": visit.diagnosis,
                 "tests_suggested": visit.tests_suggested,
@@ -402,8 +453,9 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
     except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/weight")
-def update_patient_weight(payload: WeightUpdate, db: Session = Depends(get_db)):
+# PHASE 2 FIX: A clean JSON API endpoint mapping directly to the new JSONB vitals column
+@router.put("/vitals")
+def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
     try:
         now_ist = datetime.now(IST)
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
@@ -419,7 +471,8 @@ def update_patient_weight(payload: WeightUpdate, db: Session = Depends(get_db)):
         if not event:
             raise HTTPException(status_code=404, detail="Active token not found")
 
-        event.patient_weight = payload.weight
+        # Save the clean structured JSON directly into the JSONB column
+        event.vitals = payload.vitals.model_dump(exclude_none=True)
         db.commit()
 
         return {"status": "success"}
