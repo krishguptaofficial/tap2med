@@ -65,6 +65,10 @@ class CityUpdate(BaseModel):
     local_token: str
     city: str
 
+class WeightUpdate(BaseModel):
+    local_token: str
+    weight: str
+
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
