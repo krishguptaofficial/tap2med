@@ -425,6 +425,7 @@ window.saveLabs = async function() {
     }
 };
 
+// Toggle CSS class instead of inline styles
 window.checkRange = function(input, minStr, maxStr) {
     if (!minStr || !maxStr) return;
     const min = parseFloat(minStr);
@@ -433,18 +434,12 @@ window.checkRange = function(input, minStr, maxStr) {
     
     if (!isNaN(val)) {
         if (val < min || val > max) {
-            input.style.backgroundColor = "#fee2e2";
-            input.style.borderColor = "#ef4444";
-            input.style.color = "#b91c1c";
+            input.classList.add("lab-input-abnormal");
         } else {
-            input.style.backgroundColor = "white";
-            input.style.borderColor = "#cbd5e1";
-            input.style.color = "inherit";
+            input.classList.remove("lab-input-abnormal");
         }
     } else {
-        input.style.backgroundColor = "white";
-        input.style.borderColor = "#cbd5e1";
-        input.style.color = "inherit";
+        input.classList.remove("lab-input-abnormal");
     }
 };
 
@@ -504,6 +499,37 @@ window.updateChart = function() {
         }
     });
 };
+
+window.showQRCode = function() {
+    try {
+        const qrContainer = document.getElementById("dashboardQRCode");
+        if (!qrContainer) {
+            console.error("Error: QR Container missing from DOM.");
+            return;
+        }
+        qrContainer.innerHTML = ""; 
+        
+        if (!clinicId || clinicId === "undefined" || clinicId === "null") {
+            console.error("Error: Clinic ID not found.");
+            alert("Clinic ID not found. Please log out and log back in.");
+            return;
+        }
+
+        const targetUrl = window.location.origin + "/scan?clinic=" + clinicId; 
+        
+        new QRCode(qrContainer, {
+            text: targetUrl, 
+            width: 200, 
+            height: 200, 
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        
+        document.getElementById("qrModal").style.display = "flex";
+    } catch (error) {
+        console.error("QR Generation Error:", error);
+        alert("Failed to load QR code. Please check the console.");
+    }
+}
 
 document.getElementById("add-row-btn").addEventListener("click", addPrescriptionRow);
 document.getElementById("print-btn").addEventListener("click", completeVisit);
