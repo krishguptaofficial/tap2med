@@ -74,8 +74,12 @@ window.updateFreq = function(el) {
     const row = el.closest('.prescription-row');
     const dosage = row.querySelector('.rx-dosage').value.trim();
     const days = row.querySelector('.rx-days').value.trim();
+    const remarks = row.querySelector('.rx-remarks').value.trim();
+    
     let inst = dosage;
     if (days) inst += (inst ? ' for ' : '') + days;
+    if (remarks) inst += (inst ? ' | ' : '') + remarks; 
+    
     row.querySelector('.rx-freq').value = inst;
 };
 
@@ -84,20 +88,16 @@ window.addPrescriptionRow = function() {
     const row = document.createElement('div');
     row.className = 'prescription-row';
     row.style.display = 'grid';
-    row.style.gridTemplateColumns = '2fr 1fr 1fr auto';
-    row.style.gap = '15px';
+    // Adjusted grid to fit the new remarks column
+    row.style.gridTemplateColumns = '2fr 1fr 1fr 1.5fr auto';
+    row.style.gap = '10px';
     row.style.marginBottom = '15px';
     row.innerHTML = `
-        <div class="field">
-          <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
-        </div>
-        <div class="field">
-          <input type="text" class="input rx-dosage" placeholder="e.g. 1-0-1" autocomplete="off" oninput="updateFreq(this)" />
-        </div>
-        <div class="field">
-          <input type="text" class="input rx-days" placeholder="e.g. 5 days" autocomplete="off" oninput="updateFreq(this)" />
-        </div>
-        <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 10px;">✕</button>
+        <div class="field"><input type="text" class="input rx-med" placeholder="Medicine" autocomplete="off" /></div>
+        <div class="field"><input type="text" class="input rx-dosage" placeholder="Dosage" autocomplete="off" oninput="updateFreq(this)" /></div>
+        <div class="field"><input type="text" class="input rx-days" placeholder="Days" autocomplete="off" oninput="updateFreq(this)" /></div>
+        <div class="field"><input type="text" class="input rx-remarks" placeholder="Remarks (e.g. after food)" autocomplete="off" oninput="updateFreq(this)" /></div>
+        <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 8px;">✕</button>
         <input type="hidden" class="rx-freq" />
     `;
     container.appendChild(row);
@@ -385,23 +385,31 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
                     const rows = rxContainer.querySelectorAll('.prescription-row');
                     if (rows.length > 0) {
                         const lastRow = rows[rows.length - 1];
-                        const medInput = lastRow.querySelector('.rx-med');
-                        if(medInput) medInput.value = med.name || "";
+                        if (lastRow.querySelector('.rx-med')) lastRow.querySelector('.rx-med').value = med.name || "";
 
-                        let dosage = med.instructions || "";
-                        let days = "";
-                        if (dosage && typeof dosage === 'string' && dosage.includes(' for ')) {
-                            const parts = dosage.split(' for ');
+                        let fullInstructions = med.instructions || "";
+                        let dosage = "", days = "", remarks = "";
+
+                        // Parse out the remarks if they exist
+                        if (fullInstructions.includes(" | ")) {
+                            const parts = fullInstructions.split(" | ");
+                            remarks = parts[1];
+                            fullInstructions = parts[0];
+                        }
+                        
+                        // Parse out the days if they exist
+                        if (fullInstructions.includes(" for ")) {
+                            const parts = fullInstructions.split(" for ");
                             dosage = parts[0];
                             days = parts[1];
+                        } else {
+                            dosage = fullInstructions;
                         }
 
-                        const dosInput = lastRow.querySelector('.rx-dosage');
-                        if(dosInput) dosInput.value = dosage || "";
-                        const daysInput = lastRow.querySelector('.rx-days');
-                        if(daysInput) daysInput.value = days || "";
-                        const freqInput = lastRow.querySelector('.rx-freq');
-                        if(freqInput) freqInput.value = med.instructions || "";
+                        if (lastRow.querySelector('.rx-dosage')) lastRow.querySelector('.rx-dosage').value = dosage || "";
+                        if (lastRow.querySelector('.rx-days')) lastRow.querySelector('.rx-days').value = days || "";
+                        if (lastRow.querySelector('.rx-remarks')) lastRow.querySelector('.rx-remarks').value = remarks || "";
+                        if (lastRow.querySelector('.rx-freq')) lastRow.querySelector('.rx-freq').value = med.instructions || "";
                     }
                 });
             } else {

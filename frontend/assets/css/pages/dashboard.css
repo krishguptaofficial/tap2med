@@ -40,7 +40,18 @@
 .history-data { margin-top: 12px; padding-top: 12px; border-top: 1px dashed #cbd5e1; }
 
 .prescription-builder { display: flex; flex-direction: column; gap: 16px; }
-.prescription-row { display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 15px; margin-bottom: 15px; }
+.prescription-row { 
+    display: grid; 
+    grid-template-columns: 2fr 1fr 1fr 1.5fr auto; /* Added 1.5fr for Remarks */
+    gap: 12px; 
+    margin-bottom: 15px; 
+}
+
+@media (max-width: 768px) {
+    .prescription-row { 
+        grid-template-columns: 1fr; /* Stacks vertically on mobile so it doesn't get crushed */
+    }
+}
 .add-medicine-btn { margin-top: 16px; border: 1px dashed #cbd5e1; color: var(--text-muted); font-weight: 600; }
 .add-medicine-btn:hover { border-color: var(--primary-color); color: var(--primary-color); background: rgba(2, 132, 199, 0.04); }
 .consultation-actions { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border-color); }
@@ -63,14 +74,18 @@
 @media (max-width: 1024px) { .dashboard-layout { grid-template-columns: 1fr; } .queue-list { flex-direction: row; overflow-x: auto; padding-bottom: 10px; } .queue-card { min-width: 250px; } }
 @media (max-width: 640px) { .prescription-row { grid-template-columns: 1fr; } .dashboard-layout { padding: 16px; gap: 20px; } .consultation-card { padding: 20px; } .labs-modal-body { flex-direction: column; } .labs-entry-section { border-right: none; border-bottom: 1px solid var(--color-border); } }
 
-/* PRINT ISOLATION RULES */
-.print-only, #print-rx-layout, #print-qr-layout { display: none; }
+/* PRINT ISOLATION RULES (Fixes Blank Second Page) */
+.print-only, #print-rx-layout, #print-qr-layout, #print-bill-layout { display: none; }
+
 @media print {
-  body * { visibility: hidden !important; }
-  body.mode-rx #print-rx-layout, body.mode-rx #print-rx-layout * { visibility: visible !important; }
-  body.mode-rx #print-rx-layout { display: block !important; position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 20px !important; background: white !important; }
-  
-  body.mode-qr #print-qr-layout, body.mode-qr #print-qr-layout * { visibility: visible !important; }
-  body.mode-qr #print-qr-layout { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 95vh !important; padding: 40px !important; background: white !important; }
-  @page { margin: 1cm; size: auto; }
+    /* Completely remove non-print elements from the document flow */
+    body > :not(.print-only) { display: none !important; }
+    html, body { height: 100%; margin: 0 !important; padding: 0 !important; overflow: hidden !important; background: white !important; }
+    
+    /* Show only the active print layout */
+    body.mode-rx #print-rx-layout { display: block !important; width: 100% !important; padding: 20px !important; }
+    body.mode-qr #print-qr-layout { display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; text-align: center !important; height: 100vh !important; padding: 40px !important; }
+    body.mode-bill #print-bill-layout { display: block !important; width: 100% !important; padding: 20px !important; }
+    
+    @page { margin: 1cm; size: auto; }
 }
