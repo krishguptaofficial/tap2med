@@ -467,17 +467,19 @@ async function loadStaffQueue() {
                 const displayId = patient.display_id || '--';
                 const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
 
-                let typeBadge = "";
-                let visitLabel = "New Consultation";
-                if (patient.visit_type === "followup") {
-                    typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
-                    visitLabel = "Follow-up Consultation";
-                }
-                else if (patient.visit_type === "appointment") {
-                    typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
-                    visitLabel = "Appointment Consultation";
-                }
-                else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+                let typeColors = "";
+                if (patient.visit_type === "followup") typeColors = "background: #fef08a; color: #b45309;";
+                else if (patient.visit_type === "appointment") typeColors = "background: #e0e7ff; color: #0369a1;";
+                else typeColors = "background: #f1f5f9; color: #64748b;";
+
+                const typeBadge = `
+                    <select onchange="changeVisitType('${patient.local_token}', this.value)" 
+                            style="font-size: 11px; padding: 2px 4px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase; border: none; cursor: pointer; ${typeColors}">
+                        <option value="walkin" ${patient.visit_type === 'walkin' || !patient.visit_type ? 'selected' : ''}>WALK-IN</option>
+                        <option value="appointment" ${patient.visit_type === 'appointment' ? 'selected' : ''}>APPOINTMENT</option>
+                        <option value="followup" ${patient.visit_type === 'followup' ? 'selected' : ''}>FOLLOW-UP</option>
+                    </select>
+                `;
 
                 const patientVitals = patient.vitals || {};
                 const isPaid = patientVitals.is_paid === true;
@@ -508,8 +510,14 @@ async function loadStaffQueue() {
 
                 const card = document.createElement("div");
                 card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
+                
+                // Added Up/Down Arrows to the far left
                 card.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: #94a3b8; font-size: 18px; line-height: 1;">▲</button>
+                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: #94a3b8; font-size: 18px; line-height: 1;">▼</button>
+                        </div>
                         <div class="token-badge">#${shortCode}</div>
                         <div>
                             <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
@@ -517,7 +525,7 @@ async function loadStaffQueue() {
                             </strong>
                             <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                         </div>
-                        <div style="display:flex; align-items:center; margin-left: 20px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
+                        <div style="display:flex; align-items:center; margin-left: 10px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
                             <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}</span>
                         </div>
                         ${actionButtons}
@@ -654,6 +662,33 @@ window.checkRange = function(input) {
         input.classList.add("lab-input-abnormal");
     } else {
         input.classList.remove("lab-input-abnormal");
+    }
+};
+
+window.moveQueue = async function(localToken, direction, event) {
+    if (event) event.stopPropagation();
+    try {
+        await fetch('/api/events/queue/move', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: localToken, direction: direction })
+        });
+        loadStaffQueue(); // Instantly visually refresh for staff
+    } catch (e) {
+        console.error("Failed to move queue", e);
+    }
+};
+
+window.changeVisitType = async function(localToken, newType) {
+    try {
+        await fetch('/api/events/visit_type', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: localToken, visit_type: newType })
+        });
+        loadStaffQueue(); 
+    } catch (e) {
+        console.error("Failed to update visit type", e);
     }
 };
 

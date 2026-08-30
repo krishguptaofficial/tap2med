@@ -169,26 +169,37 @@ async function loadQueue() {
                     </div>
                 `;
 
-                card.onclick = () => {
-                    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-                    card.classList.add('active');
+                card.onclick = async () => {
+    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
 
-                    currentLocalToken = patient.local_token;
-                    window.currentPatientName = patient.patient_name || 'Patient';
-                    window.currentDisplayId = patient.display_id || '--';
+    // Visually jump the card to the top of the Doctor's list immediately
+    card.parentNode.prepend(card);
 
-                    document.getElementById("current-token").textContent = `#${shortCode}`;
+    currentLocalToken = patient.local_token;
+    window.currentPatientName = patient.patient_name || 'Patient';
+    window.currentDisplayId = patient.display_id || '--';
 
-                    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
-                    const headerEyebrow = document.querySelector(".eyebrow");
-                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-                    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+    document.getElementById("current-token").textContent = `#${shortCode}`;
 
-                    clearPrescription();
-                    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-                    loadHistory(currentLocalToken);
-                    fetchActiveVitals();
-                };
+    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+    const headerEyebrow = document.querySelector(".eyebrow");
+    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+
+    clearPrescription();
+    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+    loadHistory(currentLocalToken);
+    fetchActiveVitals();
+
+    try {
+        await fetch('/api/events/queue/top', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: patient.local_token })
+        });
+    } catch(e) { console.error(e); }
+};
 
                 queueList.appendChild(card);
             });
