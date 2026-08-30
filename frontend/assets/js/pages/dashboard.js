@@ -624,71 +624,50 @@ window.openVitalsModal = async function() {
         const data = await res.json();
         const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
 
-        if (activePatient && activePatient.weight) {
-            const parts = activePatient.weight.split('|').map(p => p.trim());
-            parts.forEach(part => {
-                if (part.includes('BP:')) {
-                    const bp = part.replace('BP:', '').split('/');
-                    if (bp[0]) document.getElementById('vital-bp-sys').value = bp[0].trim();
-                    if (bp[1]) document.getElementById('vital-bp-dia').value = bp[1].trim();
-                }
-                if (part.includes('PR:')) document.getElementById('vital-pr').value = part.replace('PR:', '').trim();
-                if (part.includes('Wt:')) document.getElementById('vital-wt').value = part.replace('Wt:', '').replace('kg', '').trim();
-                if (part.includes('Ht:')) document.getElementById('vital-ht').value = part.replace('Ht:', '').replace('cm', '').trim();
-                if (part.includes('T:')) document.getElementById('vital-temp').value = part.replace('T:', '').replace('F', '').trim();
-                if (part.includes('SpO2:')) document.getElementById('vital-spo2').value = part.replace('SpO2:', '').replace('%', '').trim();
-                if (part.includes('Waist:')) document.getElementById('vital-waist').value = part.replace('Waist:', '').replace('cm', '').trim();
-                if (part.includes('Hip:')) document.getElementById('vital-hip').value = part.replace('Hip:', '').replace('cm', '').trim();
-            });
+        if (activePatient && activePatient.vitals) {
+            const v = activePatient.vitals;
+            document.getElementById('vital-bp-sys').value = v.bp_sys || '';
+            document.getElementById('vital-bp-dia').value = v.bp_dia || '';
+            document.getElementById('vital-pr').value = v.pr || '';
+            document.getElementById('vital-wt').value = v.wt || '';
+            document.getElementById('vital-ht').value = v.ht || '';
+            document.getElementById('vital-temp').value = v.temp || '';
+            document.getElementById('vital-spo2').value = v.spo2 || '';
+            document.getElementById('vital-waist').value = v.waist || '';
+            document.getElementById('vital-hip').value = v.hip || '';
         }
     } catch (e) {
         console.error("Could not auto-fill vitals:", e);
     }
 }
-
 window.closeVitalsModal = function() {
     document.getElementById('vitals-modal').style.display = 'none';
 }
 
 window.submitVitals = async function() {
-    const sys = document.getElementById('vital-bp-sys').value.trim();
-    const dia = document.getElementById('vital-bp-dia').value.trim();
-    const pr = document.getElementById('vital-pr').value.trim();
-    const wt = document.getElementById('vital-wt').value.trim();
-    const ht = document.getElementById('vital-ht').value.trim();
-    const temp = document.getElementById('vital-temp').value.trim();
-    const spo2 = document.getElementById('vital-spo2').value.trim();
-    const waist = document.getElementById('vital-waist').value.trim();
-    const hip = document.getElementById('vital-hip').value.trim();
-
-    let compiledVitals = [];
+    const payload = {
+        bp_sys: document.getElementById('vital-bp-sys').value.trim() || null,
+        bp_dia: document.getElementById('vital-bp-dia').value.trim() || null,
+        pr: document.getElementById('vital-pr').value.trim() || null,
+        wt: document.getElementById('vital-wt').value.trim() || null,
+        ht: document.getElementById('vital-ht').value.trim() || null,
+        temp: document.getElementById('vital-temp').value.trim() || null,
+        spo2: document.getElementById('vital-spo2').value.trim() || null,
+        waist: document.getElementById('vital-waist').value.trim() || null,
+        hip: document.getElementById('vital-hip').value.trim() || null
+    };
 
     try {
+        // Preserve the payment status
         const res = await fetch(`/api/clinics/queue/${clinicId}`);
         const data = await res.json();
         const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
+        payload.is_paid = (activePatient && activePatient.vitals && activePatient.vitals.is_paid) ? true : false;
 
-        if (!activePatient) return alert("No active patient selected.");
-
-        if (activePatient.weight && activePatient.weight.includes('Paid:Yes')) compiledVitals.push('Paid:Yes');
-
-        if (sys && dia) compiledVitals.push(`BP:${sys}/${dia}`);
-        if (pr) compiledVitals.push(`PR:${pr}`);
-        if (wt) compiledVitals.push(`Wt:${wt}kg`);
-        if (ht) compiledVitals.push(`Ht:${ht}cm`);
-        if (temp) compiledVitals.push(`T:${temp}F`);
-        if (spo2) compiledVitals.push(`SpO2:${spo2}%`);
-        if (waist) compiledVitals.push(`Waist:${waist}cm`);
-        if (hip) compiledVitals.push(`Hip:${hip}cm`);
-
-        const finalString = compiledVitals.join(' | ');
-
-        if (!finalString) return closeVitalsModal();
-
-        await fetch("/api/events/weight", {
+        await fetch("/api/events/vitals", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_token: activePatient.local_token, weight: finalString })
+            body: JSON.stringify({ local_token: currentLocalToken, vitals: payload })
         });
 
         closeVitalsModal();
@@ -704,12 +683,23 @@ async function fetchActiveVitals() {
     try {
         const res = await fetch(`/api/clinics/queue/${clinicId}`);
         const data = await res.json();
-        const activePatient = data.queue.find(p => p.local_token === currentLocalToken && p.weight && p.weight.includes('Paid:Yes'));
+        const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
         const display = document.getElementById('doctor-vitals-display');
 
-        if (activePatient && activePatient.weight) {
-            let displayWeight = activePatient.weight.replace('Paid:Yes', '').replace(/^\||\|$/g, '').replaceAll('| |', '|').trim();
-            if (displayWeight && displayWeight !== '|') {
+        if (activePatient && activePatient.vitals) {
+            const v = activePatient.vitals;
+            let compiled = [];
+            
+            if (v.bp_sys && v.bp_dia) compiled.push(`BP: ${v.bp_sys}/${v.bp_dia}`);
+            if (v.pr) compiled.push(`PR: ${v.pr}`);
+            if (v.wt) compiled.push(`Wt: ${v.wt}kg`);
+            if (v.ht) compiled.push(`Ht: ${v.ht}cm`);
+            if (v.temp) compiled.push(`T: ${v.temp}F`);
+            if (v.spo2) compiled.push(`SpO2: ${v.spo2}%`);
+            
+            const displayWeight = compiled.join(' | ');
+
+            if (displayWeight) {
                 display.style.display = 'block';
                 display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${displayWeight}</span>`;
             } else {

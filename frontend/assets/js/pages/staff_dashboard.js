@@ -455,8 +455,7 @@ async function loadStaffQueue() {
                 const isPaid = patientVitals.is_paid === true;
                 
                 const hasVitals = Object.keys(patientVitals).some(k => k !== 'is_paid' && patientVitals[k] !== null);
-                const safeVitals = JSON.stringify(patientVitals).replace(/'/g, "\\'");
-                const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
+                const safeVitals = JSON.stringify(patientVitals).replace(/'/g, "\\'").replace(/"/g, '&quot;');                const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
 
                 let actionButtons = '';
                 let markPaidBtn = '';
@@ -606,8 +605,11 @@ window.printPrescription = async function(localToken) {
         if (visit.vitals && visit.vitals.wt) weightStr = visit.vitals.wt + "kg";
         else if (visit.weight && visit.weight.includes('Wt:')) weightStr = visit.weight.split('Wt:')[1].split('|')[0].trim();
         
-        document.getElementById("print-vitals-field").textContent = weightStr ? weightStr : "N/A";
-        
+       const vitalsField = document.getElementById("print-vitals-field");
+       if (vitalsField) {
+        vitalsField.textContent = weightStr ? weightStr : "N/A";
+       }    
+
         let ce = [], dx = [], tests = [], advice = [], rx = [];
         visit.prescriptions.forEach(med => {
             if (med.name.startsWith("C/E:")) ce.push(med.name.replace("C/E:", "").trim());
