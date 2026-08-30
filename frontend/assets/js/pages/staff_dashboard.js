@@ -78,8 +78,13 @@ window.manualCheckIn = async function() {
     const btn = document.getElementById("btn-manual-checkin");
     const memberDropdown = document.getElementById("manual-member-id");
     const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
+    
     const nameInput = document.getElementById("walkin-name");
     const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
+    
+    const cityInput = document.getElementById("walkin-city");
+    const patientCity = cityInput ? cityInput.value.trim() : null;
+    
     const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
 
     if (!/^\d{10}$/.test(phone)) {
@@ -106,6 +111,7 @@ window.manualCheckIn = async function() {
                 member_id: selectedMember, 
                 clinic_id: clinicId,
                 name: patientName,
+                city: patientCity,
                 is_appointment: isAppt 
             })
         });
@@ -118,6 +124,7 @@ window.manualCheckIn = async function() {
         statusEl.style.color = "var(--success-color)";
         phoneInput.value = "";
         if (nameInput) nameInput.value = "";
+        if (cityInput) cityInput.value = "";
         if (document.getElementById("walkin-is-appt")) document.getElementById("walkin-is-appt").checked = false;
 
         loadStaffQueue();

@@ -41,13 +41,20 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        # Sort entirely by the reliable daily_token_number
         queue = db.query(models.Event).filter(
             models.Event.clinic_id == clinic_id,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status.in_(["waiting", "completed"]) 
-        ).order_by(models.Event.daily_token_number.asc()).all()
+        ).all()
+
+        # Sort dynamically using a hidden queue_pos in the JSON vitals column
+        def get_sort_key(event):
+            if event.vitals and isinstance(event.vitals, dict):
+                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
+            return event.timestamp.timestamp()
+
+        queue.sort(key=get_sort_key)
 
         # Batch fetch all patient names for this clinic to prevent N+1 database queries
         patient_records = {

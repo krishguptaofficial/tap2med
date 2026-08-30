@@ -571,24 +571,38 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        # Get all waiting patients for today ordered by token number
         waiting = db.query(models.Event).filter(
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
-        ).order_by(models.Event.daily_token_number.asc()).all()
+        ).all()
 
-        # Find the index of the patient we want to move
+        def get_sort_key(event):
+            if event.vitals and isinstance(event.vitals, dict):
+                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
+            return event.timestamp.timestamp()
+
+        waiting.sort(key=get_sort_key)
         idx = next((i for i, e in enumerate(waiting) if e.local_token == payload.local_token), None)
         
         if idx is not None:
             target_idx = idx + payload.direction
-            # Check if the move is within bounds
             if 0 <= target_idx < len(waiting):
-                # Swap their daily_token_number to reorder them securely
-                temp_token = waiting[idx].daily_token_number
-                waiting[idx].daily_token_number = waiting[target_idx].daily_token_number
-                waiting[target_idx].daily_token_number = temp_token
+                event1 = waiting[idx]
+                event2 = waiting[target_idx]
+                
+                pos1 = get_sort_key(event1)
+                pos2 = get_sort_key(event2)
+                
+                v1 = event1.vitals if event1.vitals and isinstance(event1.vitals, dict) else {}
+                v2 = event2.vitals if event2.vitals and isinstance(event2.vitals, dict) else {}
+                
+                v1["queue_pos"] = pos2
+                v2["queue_pos"] = pos1
+                
+                # Reassign as dict to trigger SQLAlchemy JSON update
+                event1.vitals = dict(v1)
+                event2.vitals = dict(v2)
                 db.commit()
                 
         return {"status": "success"}
@@ -607,16 +621,24 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
-        ).order_by(models.Event.daily_token_number.asc()).all()
+        ).all()
+
+        def get_sort_key(event):
+            if event.vitals and isinstance(event.vitals, dict):
+                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
+            return event.timestamp.timestamp()
+
+        waiting.sort(key=get_sort_key)
 
         if not waiting: return {"status": "success"}
-
         target = next((e for e in waiting if e.local_token == payload.local_token), None)
         
-        # If target exists and isn't already first
         if target and waiting[0].local_token != payload.local_token:
-            # Put them one number ahead of the current first person
-            target.daily_token_number = waiting[0].daily_token_number - 1
+            first_pos = get_sort_key(waiting[0])
+            
+            v = target.vitals if target.vitals and isinstance(target.vitals, dict) else {}
+            v["queue_pos"] = first_pos - 1000.0  # Force to front securely
+            target.vitals = dict(v)
             db.commit()
 
         return {"status": "success"}
