@@ -468,13 +468,24 @@ async function loadStaffQueue() {
                 const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
 
                 let typeColors = "";
-                if (patient.visit_type === "followup") typeColors = "background: #fef08a; color: #b45309;";
-                else if (patient.visit_type === "appointment") typeColors = "background: #e0e7ff; color: #0369a1;";
-                else typeColors = "background: #f1f5f9; color: #64748b;";
+                let visitLabel = "New Consultation"; // Fixed: Restored missing variable for billing
+                
+                if (patient.visit_type === "followup") {
+                    typeColors = "background: #fef08a; color: #b45309;";
+                    visitLabel = "Follow-up Consultation";
+                }
+                else if (patient.visit_type === "appointment") {
+                    typeColors = "background: #e0e7ff; color: #0369a1;";
+                    visitLabel = "Appointment Consultation";
+                }
+                else {
+                    typeColors = "background: #f1f5f9; color: #64748b;";
+                    visitLabel = "New Consultation";
+                }
 
                 const typeBadge = `
                     <select onchange="changeVisitType('${patient.local_token}', this.value)" 
-                            style="font-size: 11px; padding: 2px 4px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase; border: none; cursor: pointer; ${typeColors}">
+                            style="font-size: 11px; padding: 4px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase; border: 1px solid #cbd5e1; cursor: pointer; ${typeColors} outline: none;">
                         <option value="walkin" ${patient.visit_type === 'walkin' || !patient.visit_type ? 'selected' : ''}>WALK-IN</option>
                         <option value="appointment" ${patient.visit_type === 'appointment' ? 'selected' : ''}>APPOINTMENT</option>
                         <option value="followup" ${patient.visit_type === 'followup' ? 'selected' : ''}>FOLLOW-UP</option>
@@ -511,16 +522,15 @@ async function loadStaffQueue() {
                 const card = document.createElement("div");
                 card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                 
-                // Added Up/Down Arrows to the far left
                 card.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: #94a3b8; font-size: 18px; line-height: 1;">▲</button>
-                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: #94a3b8; font-size: 18px; line-height: 1;">▼</button>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; cursor:pointer; color: #475569; font-size: 12px; line-height: 1; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">▲</button>
+                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; cursor:pointer; color: #475569; font-size: 12px; line-height: 1; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">▼</button>
                         </div>
                         <div class="token-badge">#${shortCode}</div>
                         <div>
-                            <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
+                            <strong style="display: flex; align-items: center; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
                                 ${isCurrent ? 'Currently with Doctor' : 'Waiting in Queue'} ${typeBadge}
                             </strong>
                             <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
@@ -553,7 +563,10 @@ async function loadStaffQueue() {
                     typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
                     visitLabel = "Appointment Consultation";
                 }
-                else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+                else {
+                    typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+                    visitLabel = "New Consultation";
+                }
 
                 const labsBtn = `<button onclick="openLabsModal('${patient.local_token}', '${displayName.replace(/'/g, "\\'")}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧪 Labs</button>`;
                 const billBtn = `<button onclick="openBillModal('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${patient.fee || 300}', '${visitLabel}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧾 Print Bill</button>`;
