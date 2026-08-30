@@ -423,22 +423,24 @@ async function completeVisit() {
     const medicines = [];
 
     prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
-        const name = row.querySelector(".rx-med").value.trim();
-        const instructions = row.querySelector(".rx-freq").value.trim();
+        const name = row.querySelector(".rx-med")?.value.trim() || "";
+        const instructions = row.querySelector(".rx-freq")?.value.trim() || "";
         if (name) medicines.push({ name, instructions });
     });
 
-    const complaints = document.getElementById("patient-complaints")?.value.trim();
-    const diagnosis = document.getElementById("patient-diagnosis")?.value.trim();
-    const tests_suggested = document.getElementById("patient-tests")?.value.trim();
+    const complaints = document.getElementById("patient-complaints")?.value.trim() || "";
+    const diagnosis = document.getElementById("patient-diagnosis")?.value.trim() || "";
+    const tests_suggested = document.getElementById("patient-tests")?.value.trim() || "";
 
     if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
         if (!confirm("No details have been entered. Complete this visit?")) return;
     }
 
     isSaving = true;
-    prescriptionStatus.textContent = "Saving...";
-    prescriptionStatus.className = "badge badge-warning";
+    if (prescriptionStatus) {
+        prescriptionStatus.textContent = "Saving...";
+        prescriptionStatus.className = "badge badge-warning";
+    }
 
     try {
         const response = await fetch("/api/events/complete", {
@@ -455,15 +457,28 @@ async function completeVisit() {
 
         if (!response.ok) throw new Error("Prescription save failed");
 
-        prescriptionStatus.textContent = "Sent to WhatsApp";
-        prescriptionStatus.className = "badge badge-success";
+        if (prescriptionStatus) {
+            prescriptionStatus.textContent = "Sent to WhatsApp";
+            prescriptionStatus.className = "badge badge-success";
+        }
 
         const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-        document.getElementById("print-clinic-name").textContent = clinicName.textContent;
-        document.getElementById("print-doctor-name").textContent = doctorName.textContent;
-        document.getElementById("print-date").textContent = `Date: ${today}`;
-        document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
-        document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
+        
+        // Safe null-checked DOM assignments
+        const printClinic = document.getElementById("print-clinic-name");
+        if (printClinic) printClinic.textContent = clinicName ? clinicName.textContent : "Clinic";
+
+        const printDoc = document.getElementById("print-doctor-name");
+        if (printDoc) printDoc.textContent = doctorName ? doctorName.textContent : "Doctor";
+
+        const printDate = document.getElementById("print-date");
+        if (printDate) printDate.textContent = `Date: ${today}`;
+
+        const printPatient = document.getElementById("print-patient-name");
+        if (printPatient) printPatient.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
+
+        const printId = document.getElementById("print-patient-id");
+        if (printId) printId.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
 
         const printNotesContainer = document.getElementById("print-clinical-notes");
         const printComplaints = document.getElementById("print-complaints");
@@ -471,30 +486,34 @@ async function completeVisit() {
         const printTests = document.getElementById("print-tests");
 
         if (complaints || diagnosis) {
-            printNotesContainer.style.display = "block";
-            printComplaints.innerHTML = complaints ? `<strong>C/E:</strong> ${complaints}` : "";
-            printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis}` : "";
+            if (printNotesContainer) printNotesContainer.style.display = "block";
+            if (printComplaints) printComplaints.innerHTML = complaints ? `<strong>C/E:</strong> ${complaints}` : "";
+            if (printDiagnosis) printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis}` : "";
         } else {
-            printNotesContainer.style.display = "none";
+            if (printNotesContainer) printNotesContainer.style.display = "none";
         }
 
         if (tests_suggested) {
-            printTests.style.display = "block";
-            printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
+            if (printTests) {
+                printTests.style.display = "block";
+                printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
+            }
         } else {
-            printTests.style.display = "none";
+            if (printTests) printTests.style.display = "none";
         }
 
         const printMedContainer = document.getElementById("print-medicines");
-        printMedContainer.innerHTML = "";
-        medicines.forEach(med => {
-            printMedContainer.innerHTML += `
-                <div style="margin-bottom: 20px;">
-                    <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                    <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
-                </div>
-            `;
-        });
+        if (printMedContainer) {
+            printMedContainer.innerHTML = "";
+            medicines.forEach(med => {
+                printMedContainer.innerHTML += `
+                    <div style="margin-bottom: 20px;">
+                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                        <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
+                    </div>
+                `;
+            });
+        }
 
         if (localStorage.getItem("tap2med_auto_print") === "true") {
             document.body.className = "mode-rx";
@@ -505,13 +524,17 @@ async function completeVisit() {
         currentLocalToken = null;
         clearPrescription();
         const headerEyebrow = document.querySelector(".eyebrow");
-        if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
-        document.getElementById("current-token").textContent = `#--`;
+        if (headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
+        const currentTokenEl = document.getElementById("current-token");
+        if (currentTokenEl) currentTokenEl.textContent = `#--`;
+        
         await loadQueue();
     } catch (error) {
         console.error("Complete visit error:", error);
-        prescriptionStatus.textContent = "Failed to Send";
-        prescriptionStatus.className = "badge badge-danger";
+        if (prescriptionStatus) {
+            prescriptionStatus.textContent = "Failed to Send";
+            prescriptionStatus.className = "badge badge-danger";
+        }
         alert("The prescription could not be saved.");
     } finally {
         isSaving = false;
