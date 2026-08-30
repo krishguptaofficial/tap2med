@@ -89,3 +89,25 @@
     
     @page { margin: 1cm; size: auto; }
 }
+
+/* LAB ABNORMAL HIGHLIGHTING */
+.lab-input-abnormal { 
+    background-color: #ffcdd2 !important;
+    color: #b71c1c !important; 
+    border-color: #ef4444 !important;
+    font-weight: 700;
+}
+
+.lab-grid { 
+    display: grid; grid-template-columns: 1fr; gap: 4px; margin-bottom: 20px; 
+}
+.lab-input-group {
+    display: grid; grid-template-columns: 2fr 1fr; align-items: center; gap: 10px;
+    padding: 4px; border-bottom: 1px solid #f1f5f9;
+}
+.lab-input-group label {
+    font-size: 13px; color: #334155; font-weight: 500; text-align: right; padding-right: 10px;
+}
+.lab-input-group input {
+    width: 100%; max-width: 150px;
+}

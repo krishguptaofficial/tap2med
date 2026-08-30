@@ -284,16 +284,24 @@ window.printQRCode = function() {
 
 // --- EXPANDED STAFF LAB FLOWSHEET INTEGRATION ---
 const ALL_LAB_KEYS = [
-    'hba1c', 'fbs', 'ppbs', 'rbs',
-    'tsh', 'ft3', 'ft4', 't3', 't4', 'anti-tpo',
-    'creat', 'urea', 'uric', 'egfr', 'bun', 'na', 'k', 'cl', 'calcium', 'hco3',
-    'sgot', 'sgpt', 'bili-tot', 'bili-dir', 'alp', 'ggt', 'prot-tot', 'alb',
-    'chol', 'tg', 'hdl', 'ldl',
-    'hb', 'wbc', 'plt', 'esr', 'pcv', 'neut', 'lymph', 'eos', 'mono', 'baso', 'rbc', 'mcv', 'mch', 'mchc',
-    'vit-b12', 'vit-d3', 's-iron', 'ferritin', 'hs-crp',
-    'lh', 'fsh', 'prol', 'testo',
-    'u-alb', 'u-malb', 'u-creat',
-    'ur-pus', 'ur-rbc', 'ur-bact', 'fus', 'ppus'
+    // Diabetes
+    'diab_sap', 'diab_fbs', 'diab_hba1c', 'diab_creat', 'diab_egfr', 'diab_sacr', 'diab_chol', 'diab_tg', 'diab_ldl', 'diab_hdl',
+    // Haematology
+    'haem_aec', 'haem_hb', 'haem_wbc', 'haem_pcv', 'haem_neut', 'haem_lymph', 'haem_eos', 'haem_mono', 'haem_baso', 'haem_rbc', 'haem_esr', 'haem_rbcs', 'haem_wbcs', 'haem_plt', 'haem_para', 'haem_imp', 'haem_mcv', 'haem_mch', 'haem_mchc',
+    // Bio Chemistry
+    'bio_fus', 'bio_ppbs', 'bio_ppus', 'bio_mbg', 'bio_rbs', 'bio_rus', 'bio_ket', 'bio_prot', 'bio_urea', 'bio_na', 'bio_k', 'bio_cl', 'bio_uric', 'bio_bun', 'bio_hco3', 'bio_cal',
+    // LFT
+    'lft_bili_tot', 'lft_bili_dir', 'lft_bili_ind', 'lft_prot_tot', 'lft_prot_alb', 'lft_prot_glob', 'lft_sgot', 'lft_sgpt', 'lft_ggt', 'lft_mg',
+    // UACR
+    'uacr_alb', 'uacr_malb', 'uacr_creat',
+    // Urine Routine
+    'ur_app', 'ur_reac', 'ur_alb', 'ur_pus', 'ur_rbc', 'ur_casts', 'ur_cryst', 'ur_bact',
+    // Thyroid
+    'thy_tsh', 'thy_tsh_ultra', 'thy_t3', 'thy_t4', 'thy_ft3', 'thy_ft4', 'thy_tpo', 'thy_tg_ab', 'thy_anti_tg',
+    // PCOS
+    'pcos_lh', 'pcos_fsh', 'pcos_prol', 'pcos_testo', 'pcos_dheas', 'pcos_shbg', 'pcos_oest', 'pcos_fgw',
+    // Others
+    'oth_ecg', 'oth_usg', 'oth_fnac', 'oth_trop', 'oth_pft', 'oth_vpt', 'oth_vitb12', 'oth_echo', 'oth_iron_prof', 'oth_serum_iron', 'oth_tibc', 'oth_vitd3', 'oth_crp', 'oth_hscrp', 'oth_ferritin', 'oth_mri', 'oth_ct', 'oth_fibro', 'oth_ttg', 'oth_cect', 'oth_mri_brain', 'oth_ige', 'oth_ptinr', 'oth_pth', 'oth_anti_tpo'
 ];
 
 window.openLabsModal = async function(localToken, patientName) {
@@ -625,6 +633,27 @@ window.printPrescription = async function(localToken, patientName, displayId) {
     setTimeout(() => document.body.className = "", 1000);
 } catch (e) {
         alert("Failed to load prescription for printing.");
+    }
+};
+
+window.checkRange = function(input) {
+    const val = parseFloat(input.value);
+    if (isNaN(val)) {
+        input.classList.remove("lab-input-abnormal");
+        return;
+    }
+    
+    const min = parseFloat(input.getAttribute('data-min'));
+    const max = parseFloat(input.getAttribute('data-max'));
+
+    let isAbnormal = false;
+    if (!isNaN(min) && val < min) isAbnormal = true;
+    if (!isNaN(max) && val > max) isAbnormal = true;
+
+    if (isAbnormal) {
+        input.classList.add("lab-input-abnormal");
+    } else {
+        input.classList.remove("lab-input-abnormal");
     }
 };
 

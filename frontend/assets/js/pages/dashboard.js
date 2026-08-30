@@ -814,5 +814,27 @@ window.updateChart = function() {
     });
 };
 
+window.checkRange = function(input) {
+    const val = parseFloat(input.value);
+    if (isNaN(val)) {
+        input.classList.remove("lab-input-abnormal");
+        return;
+    }
+    
+    const min = parseFloat(input.getAttribute('data-min'));
+    const max = parseFloat(input.getAttribute('data-max'));
+
+    let isAbnormal = false;
+    if (!isNaN(min) && val < min) isAbnormal = true;
+    if (!isNaN(max) && val > max) isAbnormal = true;
+
+    if (isAbnormal) {
+        input.classList.add("lab-input-abnormal");
+    } else {
+        input.classList.remove("lab-input-abnormal");
+    }
+};
+
 loadQueue();
 setInterval(loadQueue, 5000);
+
