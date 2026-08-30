@@ -117,15 +117,9 @@
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
-  }
+  0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
 }
 
 /* Dashboard Grid Layout */
@@ -269,9 +263,7 @@
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
-  transition:
-    box-shadow 0.2s,
-    border-color 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s;
 }
 .prescription-row:focus-within {
   border-color: var(--primary-color);
@@ -307,7 +299,7 @@
     padding: 20px;
 }
 
-/* --- NEW: Clean Lab Flowsheet Styles --- */
+/* --- LAB FLOWSHEET STYLES --- */
 .labs-modal-container {
     background: white;
     width: 100%;
@@ -359,9 +351,7 @@
     font-size: 16px;
 }
 
-.lab-category-title:first-of-type {
-    margin-top: 0;
-}
+.lab-category-title:first-of-type { margin-top: 0; }
 
 .lab-grid {
     display: grid;
@@ -377,7 +367,6 @@
     margin-bottom: 4px;
 }
 
-/* HealthPlix style abnormal highlight */
 .lab-input-abnormal {
     background-color: #fee2e2 !important;
     border-color: #ef4444 !important;
@@ -396,60 +385,23 @@
 
 /* Responsive adjustments */
 @media (max-width: 1024px) {
-  .dashboard-layout {
-    grid-template-columns: 1fr;
-  }
-  .queue-list {
-    flex-direction: row;
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-  .queue-card {
-    min-width: 250px;
-  }
+  .dashboard-layout { grid-template-columns: 1fr; }
+  .queue-list { flex-direction: row; overflow-x: auto; padding-bottom: 10px; }
+  .queue-card { min-width: 250px; }
 }
 @media (max-width: 640px) {
-  .prescription-row {
-    grid-template-columns: 1fr;
-  }
-  .dashboard-layout {
-    padding: 16px;
-    gap: 20px;
-  }
-  .consultation-card {
-    padding: 20px;
-  }
-  .labs-modal-body {
-    flex-direction: column;
-  }
-  .labs-entry-section {
-    border-right: none;
-    border-bottom: 1px solid var(--color-border);
-  }
+  .prescription-row { grid-template-columns: 1fr; }
+  .dashboard-layout { padding: 16px; gap: 20px; }
+  .consultation-card { padding: 20px; }
+  .labs-modal-body { flex-direction: column; }
+  .labs-entry-section { border-right: none; border-bottom: 1px solid var(--color-border); }
 }
 
 /* Print Layout Isolation */
-.print-only {
-    display: none;
-}
-
+.print-only { display: none; }
 @media print {
-    body * {
-        visibility: hidden;
-    }
-    .print-only, .print-only * {
-        visibility: visible;
-    }
-    .print-only {
-        display: block;
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 20px;
-        background: white;
-    }
-    @page {
-        margin: 1cm;
-    }
+    body * { visibility: hidden; }
+    .print-only, .print-only * { visibility: visible; }
+    .print-only { display: block; position: absolute; left: 0; top: 0; width: 100%; padding: 20px; background: white; }
+    @page { margin: 1cm; }
 }

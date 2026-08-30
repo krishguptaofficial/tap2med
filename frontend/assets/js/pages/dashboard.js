@@ -346,16 +346,16 @@ window.openLabsModal = async function() {
     const today = new Date().toLocaleDateString('en-CA');
     document.getElementById("lab-date").value = today;
     
-    await fetchLabData();
+    await fetchLabData(currentLocalToken);
 };
 
 window.closeLabsModal = function() {
     document.getElementById("labs-modal").style.display = "none";
 };
 
-async function fetchLabData() {
+async function fetchLabData(token) {
     try {
-        const res = await fetch(`/api/events/labs/${currentLocalToken}`);
+        const res = await fetch(`/api/events/labs/${token}`);
         const data = await res.json();
         patientLabData = data.labs || [];
         
@@ -417,7 +417,7 @@ window.saveLabs = async function() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
         });
-        await fetchLabData();
+        await fetchLabData(currentLocalToken);
         btn.textContent = "Saved ✓";
         setTimeout(() => btn.textContent = "Save Values", 2000);
     } catch(e) {
@@ -425,7 +425,6 @@ window.saveLabs = async function() {
     }
 };
 
-// Toggle CSS class instead of inline styles
 window.checkRange = function(input, minStr, maxStr) {
     if (!minStr || !maxStr) return;
     const min = parseFloat(minStr);
