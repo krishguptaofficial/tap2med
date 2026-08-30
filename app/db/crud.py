@@ -158,7 +158,6 @@ def create_patient(db: Session, patient_id: str, lookup_hash: str, user_salt:str
         lookup_hash=lookup_hash,
         user_salt=user_salt,
         network_token=network_token,
-        city=city
     )
     db.add(db_patient)
     db.commit()
