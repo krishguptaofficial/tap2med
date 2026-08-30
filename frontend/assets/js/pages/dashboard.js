@@ -1,13 +1,13 @@
+// Intercept fetch to enforce financial gatekeeper (only show paid patients in queue)
 const originalFetch = window.fetch;
 window.fetch = async function() {
     const response = await originalFetch.apply(this, arguments);
-    if (arguments[0].includes('/api/clinics/queue/')) {
+    if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('/api/clinics/queue/')) {
         const clone = response.clone();
         const data = await clone.json();
         if (data.queue) {
             data.queue = data.queue.filter(p => {
                 if (p.status === 'waiting') {
-                    // NEW LOGIC: Look for the clean is_paid flag from the database
                     return p.vitals && p.vitals.is_paid === true;
                 }
                 return true;
@@ -46,23 +46,9 @@ window.currentWaitingTokens = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     const savedState = localStorage.getItem('tap2med_sidebar_state');
-    if (savedState === 'closed') {
+    if (savedState === 'closed' && sidebar) {
         sidebar.classList.add('sidebar-closed');
-        document.querySelector('.main-content').classList.add('sidebar-closed');
-    }
-
-    const enableVitals = localStorage.getItem("tap2med_enable_vitals") !== "false";
-    const enableNotes = localStorage.getItem("tap2med_enable_clinical_notes") !== "false";
-
-    if (!enableVitals) {
-        const vitalsBtn = document.getElementById('btn-vitals-header');
-        if(vitalsBtn) vitalsBtn.style.display = 'none';
-    }
-    if (!enableNotes) {
-        const notesSec = document.getElementById('clinical-notes-section');
-        const lifestyleSec = document.getElementById('lifestyle-notes-section');
-        if(notesSec) notesSec.style.display = 'none';
-        if(lifestyleSec) lifestyleSec.style.display = 'none';
+        document.querySelector('.main-content')?.classList.add('sidebar-closed');
     }
 
     setTimeout(() => {
@@ -77,9 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function toggleSidebar() {
     sidebar.classList.toggle("sidebar-closed");
-    document.querySelector('.main-content').classList.toggle('sidebar-closed');
-    sidebarBackdrop.classList.toggle("open");
-
+    document.querySelector('.main-content')?.classList.toggle('sidebar-closed');
+    sidebarBackdrop?.classList.toggle("open");
     const isClosed = sidebar.classList.contains("sidebar-closed");
     if(menuToggleBtn) menuToggleBtn.setAttribute("aria-expanded", !isClosed);
     localStorage.setItem('tap2med_sidebar_state', isClosed ? 'closed' : 'open');
@@ -104,13 +89,13 @@ window.addPrescriptionRow = function() {
     row.style.marginBottom = '15px';
     row.innerHTML = `
         <div class="field">
-        <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
+          <input type="text" class="input rx-med" placeholder="e.g. Paracetamol 500mg" autocomplete="off" />
         </div>
         <div class="field">
-        <input type="text" class="input rx-dosage" placeholder="e.g. 1-0-1" autocomplete="off" oninput="updateFreq(this)" />
+          <input type="text" class="input rx-dosage" placeholder="e.g. 1-0-1" autocomplete="off" oninput="updateFreq(this)" />
         </div>
         <div class="field">
-        <input type="text" class="input rx-days" placeholder="e.g. 5 days" autocomplete="off" oninput="updateFreq(this)" />
+          <input type="text" class="input rx-days" placeholder="e.g. 5 days" autocomplete="off" oninput="updateFreq(this)" />
         </div>
         <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 10px;">✕</button>
         <input type="hidden" class="rx-freq" />
@@ -124,7 +109,6 @@ function clearPrescription() {
     const cEl = document.getElementById("patient-complaints");
     const dEl = document.getElementById("patient-diagnosis");
     const tEl = document.getElementById("patient-tests");
-
     if(cEl) cEl.value = "";
     if(dEl) dEl.value = "";
     if(tEl) tEl.value = "";
@@ -136,29 +120,6 @@ function getShortCode(tokenNumber) {
     return `${letter}-${tokenNumber}`;
 }
 
-window.moveQueue = async function(localToken, direction, e) {
-    if (e) e.stopPropagation();
-    let tokens = [...window.currentWaitingTokens];
-    const index = tokens.indexOf(localToken);
-    if (index < 0) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= tokens.length) return;
-
-    [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
-    window.currentWaitingTokens = tokens;
-
-    try {
-        await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_tokens: tokens })
-        });
-        window.location.reload();
-    } catch (err) {
-        console.error("Reorder failed");
-    }
-};
-
 async function loadQueue() {
     if (!clinicId) return;
 
@@ -167,7 +128,6 @@ async function loadQueue() {
         if (!response.ok) throw new Error("Queue request failed");
 
         const data = await response.json();
-
         doctorName.textContent = data.doctor_name || "Doctor";
         clinicName.textContent = data.clinic_name || "Clinic";
 
@@ -175,9 +135,7 @@ async function loadQueue() {
         window.currentWaitingTokens = waitingQueue.map(p => p.local_token);
 
         const queueCountBadge = document.getElementById("queue-count");
-        if (queueCountBadge) {
-            queueCountBadge.textContent = `${waitingQueue.length} Waiting`;
-        }
+        if (queueCountBadge) queueCountBadge.textContent = `${waitingQueue.length} Waiting`;
 
         const queueList = document.getElementById("queue-list");
         queueList.innerHTML = "";
@@ -192,7 +150,6 @@ async function loadQueue() {
             waitingQueue.forEach((patient) => {
                 const shortCode = getShortCode(patient.daily_token_number);
                 const card = document.createElement("div");
-
                 card.dataset.token = patient.local_token;
                 card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
                 card.style.cursor = "pointer";
@@ -205,14 +162,10 @@ async function loadQueue() {
                 let cityText = patient.city ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>` : "";
 
                 card.innerHTML = `
-                    <div style="display: flex; flex-direction: column; margin-right: 12px; gap: 4px; justify-content: center;">
-                        <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▲</button>
-                        <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:none; border:none; padding:0; cursor:pointer; color: var(--text-muted); font-size: 14px;">▼</button>
-                    </div>
                     <div class="token-number">#${shortCode}</div>
                     <div class="patient-details">
-                        <strong style="font-size: 16px; ">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
-                        <span>ID: ${patient.display_id || '--'} ${patient.weight ? ' | Wt: ' + patient.weight : ''}</span>
+                        <strong style="font-size: 16px;">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
+                        <span>ID: ${patient.display_id || '--'}</span>
                     </div>
                 `;
 
@@ -233,7 +186,6 @@ async function loadQueue() {
 
                     clearPrescription();
                     historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-
                     loadHistory(currentLocalToken);
                     fetchActiveVitals();
                 };
@@ -288,7 +240,6 @@ async function loadQueue() {
                 });
             }
         }
-
     } catch (error) {
         console.error("Queue error:", error);
     }
@@ -308,7 +259,6 @@ async function loadHistory(localToken) {
         historyContent.innerHTML = "";
         data.history.forEach((visit) => {
             const date = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
             let historyHTML = "";
 
             if(visit.complaints) historyHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>C/E:</strong> ${visit.complaints}</div>`;
@@ -331,15 +281,12 @@ async function loadHistory(localToken) {
             card.style.marginBottom = "10px";
             card.style.cursor = "pointer";
 
-            const weightBadge = visit.weight ? `<span class="badge badge-info" style="font-size: 11px; margin-left: 10px;">Wt: ${visit.weight}</span>` : "";
-
             card.innerHTML = `
-                <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date} ${weightBadge}</summary>
+                <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date}</summary>
                 <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; margin-top: 10px;">
                     ${historyHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
                 </div>
             `;
-
             historyContent.appendChild(card);
         });
     } catch (error) {
@@ -359,7 +306,6 @@ window.rePrintRx = async function(localToken, patientName, displayId) {
         document.getElementById("print-clinic-name").textContent = clinicName.textContent;
         document.getElementById("print-doctor-name").textContent = doctorName.textContent;
         document.getElementById("print-date").textContent = `Date: ${today}`;
-
         document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${patientName}`;
         document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${displayId}`;
 
@@ -395,7 +341,10 @@ window.rePrintRx = async function(localToken, patientName, displayId) {
                 `;
             });
         }
+
+        document.body.className = "mode-rx";
         window.print();
+        setTimeout(() => document.body.className = "dashboard-body", 1000);
     } catch (e) {
         alert("Failed to load prescription for printing.");
     }
@@ -405,18 +354,15 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
     try {
         const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
         if (!response.ok) throw new Error("Server returned HTTP " + response.status);
-
         const data = await response.json();
         if (!data.history || data.history.length === 0) return alert("No history found to edit.");
 
         const visit = data.history[0];
-
         currentLocalToken = localToken;
         window.currentPatientName = patientName || 'Patient';
         window.currentDisplayId = displayId || '--';
 
         document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-
         const currentTokenEl = document.getElementById("current-token");
         if(currentTokenEl) currentTokenEl.innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
 
@@ -425,10 +371,8 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
 
         const compEl = document.getElementById("patient-complaints");
         if(compEl) compEl.value = visit.complaints || "";
-
         const diagEl = document.getElementById("patient-diagnosis");
         if(diagEl) diagEl.value = visit.diagnosis || "";
-
         const testEl = document.getElementById("patient-tests");
         if(testEl) testEl.value = visit.tests_suggested || "";
 
@@ -441,7 +385,6 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
                     const rows = rxContainer.querySelectorAll('.prescription-row');
                     if (rows.length > 0) {
                         const lastRow = rows[rows.length - 1];
-
                         const medInput = lastRow.querySelector('.rx-med');
                         if(medInput) medInput.value = med.name || "";
 
@@ -455,10 +398,8 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
 
                         const dosInput = lastRow.querySelector('.rx-dosage');
                         if(dosInput) dosInput.value = dosage || "";
-
                         const daysInput = lastRow.querySelector('.rx-days');
                         if(daysInput) daysInput.value = days || "";
-
                         const freqInput = lastRow.querySelector('.rx-freq');
                         if(freqInput) freqInput.value = med.instructions || "";
                     }
@@ -468,19 +409,14 @@ window.editRx = async function(localToken, tokenNumber, patientName, displayId) 
             }
         }
 
-        if (typeof fetchActiveVitals === 'function') fetchActiveVitals();
+        fetchActiveVitals();
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
     } catch(e) {
         console.error("EditRx Error:", e);
-        alert("Error pulling prescription: " + e.message);
     }
 };
 
-const printBtn = document.getElementById('print-btn');
-if (printBtn) {
-    printBtn.addEventListener('click', completeVisit);
-}
+document.getElementById('print-btn')?.addEventListener('click', completeVisit);
 
 async function completeVisit() {
     if (!currentLocalToken || isSaving) return;
@@ -526,12 +462,8 @@ async function completeVisit() {
         document.getElementById("print-clinic-name").textContent = clinicName.textContent;
         document.getElementById("print-doctor-name").textContent = doctorName.textContent;
         document.getElementById("print-date").textContent = `Date: ${today}`;
-
-        const printNameEl = document.getElementById("print-patient-name");
-        if (printNameEl) printNameEl.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
-
-        const printIdEl = document.getElementById("print-patient-id");
-        if (printIdEl) printIdEl.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
+        document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
+        document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
 
         const printNotesContainer = document.getElementById("print-clinical-notes");
         const printComplaints = document.getElementById("print-complaints");
@@ -564,21 +496,18 @@ async function completeVisit() {
             `;
         });
 
-        setTimeout(async () => {
-            if (localStorage.getItem("tap2med_auto_print") === "true") {
-                window.print();
-            }
+        if (localStorage.getItem("tap2med_auto_print") === "true") {
+            document.body.className = "mode-rx";
+            window.print();
+            setTimeout(() => document.body.className = "dashboard-body", 1000);
+        }
 
-            currentLocalToken = null;
-            clearPrescription();
-
-            const headerEyebrow = document.querySelector(".eyebrow");
-            if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
-            document.getElementById("current-token").textContent = `#--`;
-
-            await loadQueue();
-        }, 150);
-
+        currentLocalToken = null;
+        clearPrescription();
+        const headerEyebrow = document.querySelector(".eyebrow");
+        if(headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
+        document.getElementById("current-token").textContent = `#--`;
+        await loadQueue();
     } catch (error) {
         console.error("Complete visit error:", error);
         prescriptionStatus.textContent = "Failed to Send";
@@ -589,30 +518,34 @@ async function completeVisit() {
     }
 }
 
+// QR Code Display & High-Res Standee Printing
 window.showQRCode = function() {
     try {
         const qrContainer = document.getElementById("dashboardQRCode");
+        const printContainer = document.getElementById("print-qr-target");
         if (!qrContainer) return;
         qrContainer.innerHTML = "";
+        if (printContainer) printContainer.innerHTML = "";
 
         if (!clinicId || clinicId === "undefined" || clinicId === "null") return;
-
         const targetUrl = window.location.origin + "/scan?clinic=" + clinicId;
 
-        new QRCode(qrContainer, {
-            text: targetUrl,
-            width: 200,
-            height: 200,
-            correctLevel: QRCode.CorrectLevel.H
-        });
-
+        new QRCode(qrContainer, { text: targetUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.H });
+        if (printContainer) {
+            new QRCode(printContainer, { text: targetUrl, width: 380, height: 380, correctLevel: QRCode.CorrectLevel.H });
+        }
+        document.getElementById("print-qr-clinic-name").textContent = clinicName.textContent;
         document.getElementById("qrModal").style.display = "flex";
     } catch (error) {}
-}
+};
 
-if(menuToggleBtn) menuToggleBtn.addEventListener("click", toggleSidebar);
-if(sidebarBackdrop) sidebarBackdrop.addEventListener("click", toggleSidebar);
+window.printQRCode = function() {
+    document.body.className = "mode-qr";
+    window.print();
+    setTimeout(() => document.body.className = "dashboard-body", 1000);
+};
 
+// Vitals Modal Logic
 window.openVitalsModal = async function() {
     document.getElementById('vitals-modal').style.display = 'flex';
     ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
@@ -636,13 +569,12 @@ window.openVitalsModal = async function() {
             document.getElementById('vital-waist').value = v.waist || '';
             document.getElementById('vital-hip').value = v.hip || '';
         }
-    } catch (e) {
-        console.error("Could not auto-fill vitals:", e);
-    }
-}
+    } catch (e) {}
+};
+
 window.closeVitalsModal = function() {
     document.getElementById('vitals-modal').style.display = 'none';
-}
+};
 
 window.submitVitals = async function() {
     const payload = {
@@ -658,7 +590,6 @@ window.submitVitals = async function() {
     };
 
     try {
-        // Preserve the payment status
         const res = await fetch(`/api/clinics/queue/${clinicId}`);
         const data = await res.json();
         const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
@@ -675,11 +606,10 @@ window.submitVitals = async function() {
     } catch (e) {
         alert("Failed to save vitals.");
     }
-}
+};
 
 async function fetchActiveVitals() {
-    if (localStorage.getItem("tap2med_enable_vitals") === "false" || !currentLocalToken) return;
-
+    if (!currentLocalToken) return;
     try {
         const res = await fetch(`/api/clinics/queue/${clinicId}`);
         const data = await res.json();
@@ -689,16 +619,14 @@ async function fetchActiveVitals() {
         if (activePatient && activePatient.vitals) {
             const v = activePatient.vitals;
             let compiled = [];
-            
             if (v.bp_sys && v.bp_dia) compiled.push(`BP: ${v.bp_sys}/${v.bp_dia}`);
-            if (v.pr) compiled.push(`PR: ${v.pr}`);
-            if (v.wt) compiled.push(`Wt: ${v.wt}kg`);
-            if (v.ht) compiled.push(`Ht: ${v.ht}cm`);
-            if (v.temp) compiled.push(`T: ${v.temp}F`);
+            if (v.pr) compiled.push(`PR: ${v.pr} bpm`);
+            if (v.wt) compiled.push(`Wt: ${v.wt} kg`);
+            if (v.ht) compiled.push(`Ht: ${v.ht} cm`);
+            if (v.temp) compiled.push(`T: ${v.temp} °F`);
             if (v.spo2) compiled.push(`SpO2: ${v.spo2}%`);
             
             const displayWeight = compiled.join(' | ');
-
             if (displayWeight) {
                 display.style.display = 'block';
                 display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${displayWeight}</span>`;
@@ -711,7 +639,17 @@ async function fetchActiveVitals() {
     } catch (e) {}
 }
 
-// --- LAB FLOWSHEET INTEGRATION ---
+// --- EXPANDED LAB FLOWSHEET ENGINE ---
+const ALL_LAB_KEYS = [
+    'hba1c', 'fbs', 'ppbs', 'rbs',
+    'tsh', 'ft3', 'ft4',
+    'creat', 'urea', 'uric', 'egfr',
+    'sgot', 'sgpt', 'bili', 'alp',
+    'chol', 'tg', 'hdl', 'ldl',
+    'hb', 'wbc', 'plt', 'esr',
+    'vitd', 'b12', 'cal'
+];
+
 window.openLabsModal = async function() {
     if (!currentLocalToken) return alert("Please select a patient first.");
     document.getElementById("lab-modal-patient-name").textContent = window.currentPatientName || "Patient";
@@ -720,7 +658,6 @@ window.openLabsModal = async function() {
     
     const today = new Date().toLocaleDateString('en-CA');
     document.getElementById("lab-date").value = today;
-    
     await fetchLabData(currentLocalToken);
 };
 
@@ -741,8 +678,7 @@ async function fetchLabData(token) {
 }
 
 window.populateLabInputsForDate = function(dateStr) {
-    const inputs = ['hba1c', 'fbs', 'ppbs', 'tsh', 'ft3', 'creat', 'hb'];
-    inputs.forEach(id => {
+    ALL_LAB_KEYS.forEach(id => {
         const el = document.getElementById(`lab-${id}`);
         if(el) {
             el.value = "";
@@ -752,7 +688,7 @@ window.populateLabInputsForDate = function(dateStr) {
     
     const record = patientLabData.find(l => l.test_date === dateStr);
     if (record && record.results) {
-        inputs.forEach(id => {
+        ALL_LAB_KEYS.forEach(id => {
             if (record.results[id] !== undefined) {
                 const el = document.getElementById(`lab-${id}`);
                 if(el) {
@@ -769,15 +705,11 @@ window.saveLabs = async function() {
     const dateStr = document.getElementById("lab-date").value;
     if (!dateStr) return alert("Please select a date.");
     
-    const results = {
-        hba1c: document.getElementById("lab-hba1c").value,
-        fbs: document.getElementById("lab-fbs").value,
-        ppbs: document.getElementById("lab-ppbs").value,
-        tsh: document.getElementById("lab-tsh").value,
-        ft3: document.getElementById("lab-ft3").value,
-        creat: document.getElementById("lab-creat").value,
-        hb: document.getElementById("lab-hb").value,
-    };
+    const results = {};
+    ALL_LAB_KEYS.forEach(id => {
+        const el = document.getElementById(`lab-${id}`);
+        if(el && el.value.trim() !== '') results[id] = el.value.trim();
+    });
     
     const payload = { local_token: localToken, lab_record: { test_date: dateStr, results: results } };
     
@@ -813,8 +745,10 @@ window.checkRange = function(input, minStr, maxStr) {
 };
 
 window.updateChart = function() {
-    const param = document.getElementById("chart-parameter").value;
-    const paramLabel = document.getElementById("chart-parameter").options[document.getElementById("chart-parameter").selectedIndex].text;
+    const select = document.getElementById("chart-parameter");
+    const param = select.value;
+    const paramLabel = select.options[select.selectedIndex].text;
+    
     const filteredData = patientLabData.filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "");
     const labels = filteredData.map(l => new Date(l.test_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" }));
     const dataPoints = filteredData.map(l => parseFloat(l.results[param]));
@@ -850,6 +784,4 @@ window.updateChart = function() {
 };
 
 loadQueue();
-fetchActiveVitals();
-setInterval(fetchActiveVitals, 3000);
 setInterval(loadQueue, 5000);

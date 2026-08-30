@@ -5,7 +5,6 @@ let currentClinicName = "Clinic";
 let currentDoctorName = "Doctor";
 window.currentWaitingTokens = [];
 
-// Lab Flowsheet Variables
 let patientLabData = [];
 let labChartInstance = null;
 
@@ -22,61 +21,18 @@ function getShortCode(tokenNumber) {
 }
 
 function numberToWords(num) {
+    num = parseInt(num) || 0;
     const a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
     const b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
-    if ((num = num.toString()).length > 9) return 'overflow';
+    if ((num = num.toString()).length > 9) return 'OVERFLOW';
     let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
-    if (!n) return; let str = '';
+    if (!n) return ''; let str = '';
     str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
     str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
     str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
     str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
     str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
-    return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : '';
-}
-
-window.moveQueue = async function(localToken, direction, e) {
-    if (e) e.stopPropagation();
-    let tokens = [...window.currentWaitingTokens];
-    const index = tokens.indexOf(localToken);
-    if (index < 0) return;
-    const newIndex = index + direction;
-    if (newIndex < 0 || newIndex >= tokens.length) return;
-    
-    [tokens[index], tokens[newIndex]] = [tokens[newIndex], tokens[index]];
-    window.currentWaitingTokens = tokens; 
-    
-    try {
-        await fetch(`/api/clinics/${clinicId}/queue/reorder`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_tokens: tokens })
-        });
-        window.location.reload();
-    } catch (err) {
-        console.error("Reorder failed");
-    }
-}
-
-async function updatePatientCity(localToken) {
-    const cityInput = document.getElementById(`city-input-${localToken}`);
-    const cityVal = cityInput ? cityInput.value.trim() : '';
-    if (!cityVal) return;
-    
-    const saveBtn = cityInput.nextElementSibling;
-    saveBtn.textContent = "Saving...";
-    
-    try {
-        await fetch("/api/events/city", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_token: localToken, city: cityVal })
-        });
-        loadStaffQueue();
-    } catch (e) {
-        alert("Failed to update city.");
-        saveBtn.textContent = "Save";
-    }
+    return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : 'ZERO RUPEES ONLY';
 }
 
 window.attemptManualLookup = async function() {
@@ -90,20 +46,14 @@ window.attemptManualLookup = async function() {
             const res = await fetch("/api/events/lookup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    phone: phone,
-                    member_id: selectedMember,
-                    clinic_id: clinicId
-                })
+                body: JSON.stringify({ phone: phone, member_id: selectedMember, clinic_id: clinicId })
             });
-            
             if (res.ok) {
                 const data = await res.json();
                 if (data.found && data.patient_name) {
                     nameInput.value = data.patient_name;
                     nameInput.style.borderColor = "var(--success-color)";
                     nameInput.style.backgroundColor = "#f0fdf4";
-                    
                     setTimeout(() => {
                         nameInput.style.borderColor = "#cbd5e1";
                         nameInput.style.backgroundColor = "#f8fafc";
@@ -113,13 +63,13 @@ window.attemptManualLookup = async function() {
                 }
             }
         } catch (e) {
-            console.error("Manual lookup failed");
+            console.error("Lookup failed");
         }
     }
 };
 
-document.getElementById("walkin-phone").addEventListener("blur", attemptManualLookup);
-document.getElementById("manual-member-id").addEventListener("change", attemptManualLookup);
+document.getElementById("walkin-phone")?.addEventListener("blur", attemptManualLookup);
+document.getElementById("manual-member-id")?.addEventListener("change", attemptManualLookup);
 
 window.manualCheckIn = async function() {
     const phoneInput = document.getElementById("walkin-phone");
@@ -161,7 +111,6 @@ window.manualCheckIn = async function() {
         });
 
         if (!response.ok) throw new Error("Check-in failed");
-
         const data = await response.json();
         const tokenStr = getShortCode(data.queue_number);
 
@@ -249,7 +198,104 @@ window.markAsPaid = async function(localToken, currentVitalsJSON) {
     }
 };
 
-// --- LAB FLOWSHEET INTEGRATION FOR STAFF ---
+// --- CUSTOM BILLING MODAL & PRINTING ---
+window.openBillModal = function(patientName, displayId, tokenNum, fee, visitType) {
+    document.getElementById("modal-bill-patient-name").value = patientName;
+    document.getElementById("modal-bill-display-id").value = displayId;
+    document.getElementById("modal-bill-token-num").value = tokenNum;
+    
+    document.getElementById("bill-modal-patient-info").textContent = `Patient: ${patientName} | ID: ${displayId} | Token: #${tokenNum}`;
+    document.getElementById("modal-bill-service").value = `Dr. ${currentDoctorName}- ${visitType || 'Consultation'}`;
+    document.getElementById("modal-bill-amount").value = fee || '300';
+    document.getElementById("modal-bill-mode").value = 'CASH';
+    
+    document.getElementById("bill-modal").style.display = "flex";
+};
+
+window.executePrintBill = function() {
+    const patientName = document.getElementById("modal-bill-patient-name").value;
+    const displayId = document.getElementById("modal-bill-display-id").value;
+    const tokenNum = document.getElementById("modal-bill-token-num").value;
+    const serviceName = document.getElementById("modal-bill-service").value.trim() || "Consultation";
+    const amount = document.getElementById("modal-bill-amount").value.trim() || "0";
+    const payMode = document.getElementById("modal-bill-mode").value;
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+    document.getElementById('bill-clinic-name').textContent = currentClinicName;
+    document.getElementById('bill-patient-name').textContent = patientName;
+    document.getElementById('bill-patient-id').textContent = displayId;
+    document.getElementById('bill-date').textContent = `${dateStr} ${timeStr}`;
+    document.getElementById('bill-number').textContent = `#${tokenNum}`;
+    
+    document.getElementById('bill-service-name').textContent = serviceName;
+    document.getElementById('bill-price').textContent = amount;
+    document.getElementById('bill-net-price').textContent = amount;
+    
+    document.getElementById('bill-payment-mode').textContent = payMode;
+    document.getElementById('bill-amount-words').textContent = numberToWords(amount);
+    
+    document.getElementById('bill-total-1').textContent = amount;
+    document.getElementById('bill-total-2').textContent = amount;
+    document.getElementById('bill-total-3').textContent = amount;
+
+    document.getElementById("bill-modal").style.display = "none";
+    
+    // THIS LINE ACTIVATES THE ISOLATION
+    document.body.className = "mode-bill"; 
+    window.print();
+    setTimeout(() => document.body.className = "", 1000);
+};
+
+window.printQRCode = function() {
+    document.body.className = "mode-qr";
+    window.print();
+    setTimeout(() => document.body.className = "", 1000);
+};
+
+// --- QR CODE DISPLAY & POSTER PRINTING ---
+window.showQRCode = function() {
+    try {
+        const qrContainer = document.getElementById("dashboardQRCode");
+        const printContainer = document.getElementById("print-qr-target");
+        if (!qrContainer) return;
+        qrContainer.innerHTML = "";
+        if (printContainer) printContainer.innerHTML = "";
+
+        if (!clinicId) return;
+        const targetUrl = window.location.origin + "/scan?clinic=" + clinicId;
+
+        new QRCode(qrContainer, { text: targetUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.H });
+        if (printContainer) {
+            new QRCode(printContainer, { text: targetUrl, width: 380, height: 380, correctLevel: QRCode.CorrectLevel.H });
+        }
+        document.getElementById("print-qr-clinic-name").textContent = currentClinicName;
+        document.getElementById("qrModal").style.display = "flex";
+    } catch (error) {}
+};
+
+window.printQRCode = function() {
+    document.body.className = "mode-qr";
+    window.print();
+    setTimeout(() => document.body.className = "", 1000);
+};
+
+// --- EXPANDED STAFF LAB FLOWSHEET INTEGRATION ---
+const ALL_LAB_KEYS = [
+    'hba1c', 'fbs', 'ppbs', 'rbs',
+    'tsh', 'ft3', 'ft4', 't3', 't4', 'anti-tpo',
+    'creat', 'urea', 'uric', 'egfr', 'bun', 'na', 'k', 'cl', 'calcium', 'hco3',
+    'sgot', 'sgpt', 'bili-tot', 'bili-dir', 'alp', 'ggt', 'prot-tot', 'alb',
+    'chol', 'tg', 'hdl', 'ldl',
+    'hb', 'wbc', 'plt', 'esr', 'pcv', 'neut', 'lymph', 'eos', 'mono', 'baso', 'rbc', 'mcv', 'mch', 'mchc',
+    'vit-b12', 'vit-d3', 's-iron', 'ferritin', 'hs-crp',
+    'lh', 'fsh', 'prol', 'testo',
+    'u-alb', 'u-malb', 'u-creat',
+    'ur-pus', 'ur-rbc', 'ur-bact', 'fus', 'ppus'
+];
+
 window.openLabsModal = async function(localToken, patientName) {
     document.getElementById("lab-modal-patient-name").textContent = patientName || "Patient";
     document.getElementById("lab-local-token").value = localToken;
@@ -257,7 +303,6 @@ window.openLabsModal = async function(localToken, patientName) {
     
     const today = new Date().toLocaleDateString('en-CA');
     document.getElementById("lab-date").value = today;
-    
     await fetchLabData(localToken);
 };
 
@@ -278,8 +323,7 @@ async function fetchLabData(token) {
 }
 
 window.populateLabInputsForDate = function(dateStr) {
-    const inputs = ['hba1c', 'fbs', 'ppbs', 'tsh', 'ft3', 'creat', 'hb'];
-    inputs.forEach(id => {
+    ALL_LAB_KEYS.forEach(id => {
         const el = document.getElementById(`lab-${id}`);
         if(el) {
             el.value = "";
@@ -289,7 +333,7 @@ window.populateLabInputsForDate = function(dateStr) {
     
     const record = patientLabData.find(l => l.test_date === dateStr);
     if (record && record.results) {
-        inputs.forEach(id => {
+        ALL_LAB_KEYS.forEach(id => {
             if (record.results[id] !== undefined) {
                 const el = document.getElementById(`lab-${id}`);
                 if(el) {
@@ -306,23 +350,17 @@ window.saveLabs = async function() {
     const dateStr = document.getElementById("lab-date").value;
     if (!dateStr) return alert("Please select a date.");
     
-    const results = {
-        hba1c: document.getElementById("lab-hba1c").value,
-        fbs: document.getElementById("lab-fbs").value,
-        ppbs: document.getElementById("lab-ppbs").value,
-        tsh: document.getElementById("lab-tsh").value,
-        ft3: document.getElementById("lab-ft3").value,
-        creat: document.getElementById("lab-creat").value,
-        hb: document.getElementById("lab-hb").value,
-    };
+    const results = {};
+    ALL_LAB_KEYS.forEach(id => {
+        const el = document.getElementById(`lab-${id}`);
+        if(el && el.value.trim() !== '') results[id] = el.value.trim();
+    });
     
-    const payload = {
-        local_token: localToken,
-        lab_record: { test_date: dateStr, results: results }
-    };
+    const payload = { local_token: localToken, lab_record: { test_date: dateStr, results: results } };
     
     try {
         const btn = document.querySelector("#labs-modal .btn-primary");
+        const originalText = btn.textContent;
         btn.textContent = "Saving...";
         await fetch("/api/events/labs", {
             method: "PUT",
@@ -331,7 +369,7 @@ window.saveLabs = async function() {
         });
         await fetchLabData(localToken);
         btn.textContent = "Saved ✓";
-        setTimeout(() => btn.textContent = "Save Values", 2000);
+        setTimeout(() => btn.textContent = originalText, 2000);
     } catch(e) {
         alert("Failed to save labs.");
     }
@@ -352,18 +390,15 @@ window.checkRange = function(input, minStr, maxStr) {
 };
 
 window.updateChart = function() {
-    const param = document.getElementById("chart-parameter").value;
-    const paramLabel = document.getElementById("chart-parameter").options[document.getElementById("chart-parameter").selectedIndex].text;
+    const select = document.getElementById("chart-parameter");
+    const param = select.value;
+    const paramLabel = select.options[select.selectedIndex].text;
     
     const filteredData = patientLabData.filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "");
-    const labels = filteredData.map(l => {
-        const d = new Date(l.test_date);
-        return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" });
-    });
+    const labels = filteredData.map(l => new Date(l.test_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" }));
     const dataPoints = filteredData.map(l => parseFloat(l.results[param]));
     
     if (labChartInstance) labChartInstance.destroy();
-    
     const ctx = document.getElementById('labChart');
     if(!ctx || typeof Chart === 'undefined') return;
 
@@ -386,42 +421,28 @@ window.updateChart = function() {
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: { callbacks: { label: function(context) { return context.parsed.y + " " + paramLabel; } } }
-            },
-            scales: {
-                y: { beginAtZero: false, grid: { borderDash: [4, 4] } },
-                x: { grid: { display: false } }
-            }
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.parsed.y + " " + paramLabel; } } } },
+            scales: { y: { beginAtZero: false, grid: { borderDash: [4, 4] } }, x: { grid: { display: false } } }
         }
     });
 };
 
 async function loadStaffQueue() {
-    if (document.activeElement && document.activeElement.id && document.activeElement.id.startsWith('city-input-')) {
-        return;
-    }
-
     try {
         const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
         if (!response.ok) return;
 
         const data = await response.json();
-        currentClinicName = data.clinic_name;
-        currentDoctorName = data.doctor_name;
+        currentClinicName = data.clinic_name || "Clinic";
+        currentDoctorName = data.doctor_name || "Doctor";
 
         const list = document.getElementById("staff-queue-list");
         const completedList = document.getElementById("staff-completed-list");
-        const enableVitals = localStorage.getItem("tap2med_enable_vitals") !== "false";
-
         const waiting = data.queue.filter(p => p.status === 'waiting');
         const completed = data.queue.filter(p => p.status === 'completed');
         
         window.currentWaitingTokens = waiting.map(p => p.local_token);
-
         document.getElementById("queue-count").textContent = `${waiting.length} Waiting`;
         document.getElementById("completed-count").textContent = `${completed.length} Completed`;
 
@@ -434,7 +455,6 @@ async function loadStaffQueue() {
             waiting.forEach((patient, index) => {
                 const shortCode = getShortCode(patient.daily_token_number);
                 const isCurrent = index === 0; 
-                
                 const displayName = patient.patient_name || 'Patient';
                 const displayId = patient.display_id || '--';
                 const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
@@ -453,11 +473,9 @@ async function loadStaffQueue() {
 
                 const patientVitals = patient.vitals || {};
                 const isPaid = patientVitals.is_paid === true;
-                
-                const hasVitals = Object.keys(patientVitals).some(k => k !== 'is_paid' && patientVitals[k] !== null);
-                const safeVitals = JSON.stringify(patientVitals).replace(/'/g, "\\'").replace(/"/g, '&quot;');                const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
+                const safeVitals = JSON.stringify(patientVitals).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const feeText = patient.fee ? `Collect ₹${patient.fee}` : 'Mark Paid';
 
-                let actionButtons = '';
                 let markPaidBtn = '';
                 if (!isPaid) {
                     markPaidBtn = `<button onclick="markAsPaid('${patient.local_token}', '${safeVitals}')" class="btn btn-primary" style="padding: 6px 12px; font-size: 13px; background: #ea580c; border-color: #ea580c; box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);">💰 ${feeText}</button>`;
@@ -465,18 +483,11 @@ async function loadStaffQueue() {
                     markPaidBtn = `<span style="font-size: 13px; color: var(--success-color); font-weight: 800; text-align: center; background: #dcfce7; padding: 4px 8px; border-radius: 6px;">✅ Bill Paid</span>`;
                 }
 
-                let vitalsBtn = '';
-                if (enableVitals) {
-                    vitalsBtn = `<button onclick="openVitalsModal('${patient.local_token}', '${safeVitals}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>`;
-                    if (hasVitals) {
-                        vitalsBtn += `<span style="font-size: 11px; color: var(--success-color); font-weight: 600; text-align: center;">✓ Vitals Saved</span>`;
-                    }
-                }
-
+                const vitalsBtn = `<button onclick="openVitalsModal('${patient.local_token}', '${safeVitals}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">❤️ Vitals</button>`;
                 const labsBtn = `<button onclick="openLabsModal('${patient.local_token}', '${displayName.replace(/'/g, "\\'")}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">🧪 Labs</button>`;
-                const billBtn = patient.fee ? `<button onclick="printBill('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${currentDoctorName.replace(/'/g, "\\'")}', '${visitLabel}', '${patient.fee}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">🧾 Bill</button>` : '';
+                const billBtn = `<button onclick="openBillModal('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${patient.fee || 300}', '${visitLabel}')" class="btn btn-secondary" style="padding: 6px 12px; font-size: 13px; background: white; border: 1px dashed #cbd5e1; box-shadow: none;">🧾 Bill</button>`;
 
-                actionButtons = `
+                const actionButtons = `
                   <div style="display:flex; flex-direction: column; gap: 8px; margin-left: auto; border-left: 2px solid #f1f5f9; padding-left: 24px; min-width: 140px;">
                       ${markPaidBtn}
                       <div style="display: flex; gap: 8px;">
@@ -487,21 +498,10 @@ async function loadStaffQueue() {
                   </div>
                 `;
 
-                let cityHtml = patient.city 
-                    ? `<span style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-left: 6px;">(${patient.city})</span>`
-                    : `<div style="display:flex; gap: 4px; align-items:center; margin-left: 8px;">
-                         <input type="text" id="city-input-${patient.local_token}" placeholder="Add City" style="padding: 4px 8px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 12px; width: 110px;">
-                         <button onclick="updatePatientCity('${patient.local_token}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 12px; min-height: 26px; height: 26px;">Save</button>
-                       </div>`;
-
                 const card = document.createElement("div");
                 card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
                 card.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap;">
-                        <div style="display: flex; flex-direction: column; margin-right: -10px; gap: 4px;">
-                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:transparent; border:none; padding:0; cursor:pointer; color: var(--primary-color); font-size: 18px; line-height: 1;">▲</button>
-                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:transparent; border:none; padding:0; cursor:pointer; color: var(--primary-color); font-size: 18px; line-height: 1;">▼</button>
-                        </div>
                         <div class="token-badge">#${shortCode}</div>
                         <div>
                             <strong style="display: block; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
@@ -511,11 +511,9 @@ async function loadStaffQueue() {
                         </div>
                         <div style="display:flex; align-items:center; margin-left: 20px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
                             <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}</span>
-                            ${cityHtml}
                         </div>
                         ${actionButtons}
                     </div>
-                    <button onclick="cancelToken('${patient.local_token}')" class="btn btn-ghost" style="color: var(--error-color); padding: 8px 16px; margin-left: 16px;">Remove</button>
                 `;
                 list.appendChild(card);
             });
@@ -542,7 +540,7 @@ async function loadStaffQueue() {
                 else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
 
                 const labsBtn = `<button onclick="openLabsModal('${patient.local_token}', '${displayName.replace(/'/g, "\\'")}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧪 Labs</button>`;
-                const billBtn = patient.fee ? `<button onclick="printBill('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${currentDoctorName.replace(/'/g, "\\'")}', '${visitLabel}', '${patient.fee}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧾 Print Bill</button>` : '';
+                const billBtn = `<button onclick="openBillModal('${displayName.replace(/'/g, "\\'")}', '${displayId}', '${shortCode}', '${patient.fee || 300}', '${visitLabel}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🧾 Print Bill</button>`;
 
                 const card = document.createElement("div");
                 card.className = "queue-card";
@@ -558,7 +556,7 @@ async function loadStaffQueue() {
                         </div>
                     </div>
                     <div style="display: flex; gap: 10px;">
-                        <button onclick="printPrescription('${patient.local_token}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🖨️ Print Rx</button>
+                        <button onclick="printPrescription('${patient.local_token}', '${displayName.replace(/'/g, "\\'")}', '${displayId}')" class="btn btn-secondary" style="padding: 8px 20px; background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">🖨️ Print Rx</button>
                         ${labsBtn}
                         ${billBtn}
                     </div>
@@ -571,21 +569,7 @@ async function loadStaffQueue() {
     }
 }
 
-window.cancelToken = async function(localToken) {
-    if(!confirm("Are you sure you want to remove this patient from the queue?")) return;
-    try {
-        await fetch("/api/events/complete", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_token: localToken, medicines: [] })
-        });
-        loadStaffQueue();
-    } catch (e) {
-        alert("Failed to remove patient.");
-    }
-}
-
-window.printPrescription = async function(localToken) {
+window.printPrescription = async function(localToken, patientName, displayId) {
     try {
         const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
         const data = await response.json();
@@ -600,84 +584,49 @@ window.printPrescription = async function(localToken) {
         document.getElementById("print-clinic-name").textContent = currentClinicName;
         document.getElementById("print-doctor-name").textContent = currentDoctorName;
         document.getElementById("print-date").textContent = `Date: ${today}`;
+        document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${patientName || 'Patient'}`;
+        document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${displayId || '--'}`;
         
-        let weightStr = "";
-        if (visit.vitals && visit.vitals.wt) weightStr = visit.vitals.wt + "kg";
-        else if (visit.weight && visit.weight.includes('Wt:')) weightStr = visit.weight.split('Wt:')[1].split('|')[0].trim();
-        
-       const vitalsField = document.getElementById("print-vitals-field");
-       if (vitalsField) {
-        vitalsField.textContent = weightStr ? weightStr : "N/A";
-       }    
+        const printNotesContainer = document.getElementById("print-clinical-notes");
+        const printComplaints = document.getElementById("print-complaints");
+        const printDiagnosis = document.getElementById("print-diagnosis");
+        const printTests = document.getElementById("print-tests");
 
-        let ce = [], dx = [], tests = [], advice = [], rx = [];
-        visit.prescriptions.forEach(med => {
-            if (med.name.startsWith("C/E:")) ce.push(med.name.replace("C/E:", "").trim());
-            else if (med.name.startsWith("Dx:")) dx.push(med.name.replace("Dx:", "").trim());
-            else if (med.name.startsWith("Test:")) tests.push(med.name.replace("Test:", "").trim());
-            else if (med.name.startsWith("Advice:")) advice.push({ name: med.name.replace("Advice:", "").trim(), inst: med.instructions });
-            else rx.push(med);
-        });
+        if (visit.complaints || visit.diagnosis) {
+            printNotesContainer.style.display = "block";
+            printComplaints.innerHTML = visit.complaints ? `<strong>C/E:</strong> ${visit.complaints}` : "";
+            printDiagnosis.innerHTML = visit.diagnosis ? `<strong>Diagnosis:</strong> ${visit.diagnosis}` : "";
+        } else {
+            printNotesContainer.style.display = "none";
+        }
 
-        let printHTML = "";
-        
-        if (ce.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>C/E:</strong> ${ce.join(", ")}</div>`;
-        if (dx.length > 0) printHTML += `<div style="margin-bottom: 12px; font-size: 15px;"><strong>Diagnosis:</strong> ${dx.join(", ")}</div>`;
+        if (visit.tests_suggested) {
+            printTests.style.display = "block";
+            printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
+        } else {
+            printTests.style.display = "none";
+        }
 
-        if (rx.length > 0 || advice.length > 0) {
-            rx.forEach((med, index) => {
-                printHTML += `
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: baseline;">
-                        <div style="font-weight: 700; font-size: 15px; color: #0f172a; min-width: 20px;">${index + 1}.</div>
-                        <div>
-                            <strong style="font-size: 16px; color: #0f172a; display: block;">${med.name}</strong>
-                            <span style="font-size: 14px; color: #475569; display: block; font-style: italic;">${med.instructions}</span>
-                        </div>
-                    </div>`;
-            });
-            advice.forEach((adv) => {
-                printHTML += `
-                    <div style="display: flex; gap: 15px; margin-bottom: 20px; align-items: baseline;">
-                        <div style="font-weight: 700; font-size: 15px; color: #166534; min-width: 20px;">*</div>
-                        <div>
-                            <strong style="font-size: 15px; color: #166534; display: block;">Advice: ${adv.name}</strong>
-                            <span style="font-size: 14px; color: #475569; display: block; font-style: italic;">${adv.inst}</span>
-                        </div>
-                    </div>`;
+        const printMedContainer = document.getElementById("print-medicines");
+        printMedContainer.innerHTML = "";
+        if (visit.prescriptions) {
+            visit.prescriptions.forEach(med => {
+                printMedContainer.innerHTML += `
+                    <div style="margin-bottom: 20px;">
+                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                        <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
+                    </div>
+                `;
             });
         }
 
-        if (tests.length > 0) {
-            printHTML += `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed #cbd5e1; font-size: 15px;"><strong>Advised Tests:</strong> ${tests.join(", ")}</div>`;
-        }
-
-        document.getElementById("print-medicines").innerHTML = printHTML;
-        window.print();
-    } catch (e) {
+        document.body.className = "mode-rx";
+    window.print();
+    setTimeout(() => document.body.className = "", 1000);
+} catch (e) {
         alert("Failed to load prescription for printing.");
     }
-}
-
-window.printBill = function(patientName, displayId, tokenNum, doctorName, visitType, fee) {
-    const now = new Date();
-    const dateStr = now.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
-    const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    document.getElementById('bill-clinic-name').textContent = currentClinicName;
-    document.getElementById('bill-patient-name').textContent = patientName;
-    document.getElementById('bill-patient-id').textContent = displayId;
-    document.getElementById('bill-date').textContent = `${dateStr} ${timeStr}`;
-    document.getElementById('bill-number').textContent = `#${tokenNum}`;
-    document.getElementById('bill-service-name').textContent = `Dr. ${doctorName} - ${visitType}`;
-    document.getElementById('bill-price').textContent = fee;
-    document.getElementById('bill-net-price').textContent = fee;
-    document.getElementById('bill-total-1').textContent = fee;
-    document.getElementById('bill-total-2').textContent = fee;
-    document.getElementById('bill-total-3').textContent = fee;
-    document.getElementById('bill-amount-words').textContent = numberToWords(fee);
-    document.body.classList.add('mode-bill');
-    window.print();
-    setTimeout(() => { document.body.classList.remove('mode-bill'); }, 500);
-}
+};
 
 loadStaffQueue();
 setInterval(loadStaffQueue, 5000);
