@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
   </head>
   <body class="dashboard-body">
+    <!-- Sidebar -->
     <aside id="clinicSidebar" class="sidebar">
       <div class="sidebar-header">
         <div class="brand">
@@ -48,6 +49,7 @@
       </header>
 
       <div class="dashboard-layout">
+        <!-- Left Column: Queue -->
         <div class="queue-section">
           <div class="section-header">
             <h2>Waiting Room</h2>
@@ -69,6 +71,7 @@
           <div class="queue-list" id="completed-list"></div>
         </div>
 
+        <!-- Right Column: Consultation -->
         <div class="consultation-section">
           <div class="consultation-card">
             <div class="consultation-header">
@@ -323,7 +326,9 @@
                             <option value="oth_vitd3">Vitamin D3</option>
                         </optgroup>
                     </select>
-                    <div class="chart-container"><canvas id="labChart"></canvas></div>
+                    <div class="chart-container">
+                        <canvas id="labChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>

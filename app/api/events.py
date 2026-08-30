@@ -93,6 +93,19 @@ class LabUpdatePayload(BaseModel):
     local_token: str
     lab_record: LabRecordPayload
 
+# --- NEW QUEUE MANIPULATION PAYLOADS ---
+class MoveQueuePayload(BaseModel):
+    local_token: str
+    direction: int 
+
+class TopQueuePayload(BaseModel):
+    local_token: str
+
+class VisitTypePayload(BaseModel):
+    local_token: str
+    visit_type: str
+
+
 @router.put("/city")
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
@@ -544,4 +557,86 @@ def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
             ]
         }
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------
+# NEW ENDPOINTS FOR QUEUE MANIPULATION & VISIT TYPE
+# ---------------------------------------------------------
+
+@router.put("/queue/move")
+def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
+    try:
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        # Get all waiting patients for today ordered by token number
+        waiting = db.query(models.Event).filter(
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
+            models.Event.status == "waiting"
+        ).order_by(models.Event.daily_token_number.asc()).all()
+
+        # Find the index of the patient we want to move
+        idx = next((i for i, e in enumerate(waiting) if e.local_token == payload.local_token), None)
+        
+        if idx is not None:
+            target_idx = idx + payload.direction
+            # Check if the move is within bounds
+            if 0 <= target_idx < len(waiting):
+                # Swap their daily_token_number to reorder them securely
+                temp_token = waiting[idx].daily_token_number
+                waiting[idx].daily_token_number = waiting[target_idx].daily_token_number
+                waiting[target_idx].daily_token_number = temp_token
+                db.commit()
+                
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/queue/top")
+def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
+    try:
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        waiting = db.query(models.Event).filter(
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
+            models.Event.status == "waiting"
+        ).order_by(models.Event.daily_token_number.asc()).all()
+
+        if not waiting: return {"status": "success"}
+
+        target = next((e for e in waiting if e.local_token == payload.local_token), None)
+        
+        # If target exists and isn't already first
+        if target and waiting[0].local_token != payload.local_token:
+            # Put them one number ahead of the current first person
+            target.daily_token_number = waiting[0].daily_token_number - 1
+            db.commit()
+
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/visit_type")
+def update_visit_type(payload: VisitTypePayload, db: Session = Depends(get_db)):
+    try:
+        event = db.query(models.Event).filter(
+            models.Event.local_token == payload.local_token,
+            models.Event.status == "waiting"
+        ).first()
+        
+        if event:
+            event.event_type = payload.visit_type
+            db.commit()
+            
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
