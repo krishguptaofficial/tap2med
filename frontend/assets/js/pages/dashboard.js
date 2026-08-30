@@ -7,7 +7,8 @@ window.fetch = async function() {
         if (data.queue) {
             data.queue = data.queue.filter(p => {
                 if (p.status === 'waiting') {
-                    return p.weight && p.weight.includes('Paid:Yes');
+                    // NEW LOGIC: Look for the clean is_paid flag from the database
+                    return p.vitals && p.vitals.is_paid === true;
                 }
                 return true;
             });
