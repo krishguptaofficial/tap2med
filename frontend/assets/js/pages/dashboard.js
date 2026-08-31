@@ -581,7 +581,28 @@ window.editRx = async function (
   }
 };
 
-document.getElementById("print-btn")?.addEventListener("click", completeVisit);
+window.openSendConfirmModal = function () {
+  const modal = document.getElementById("send-confirm-modal");
+  const patientNameEl = document.getElementById("send-confirm-patient-name");
+  if (patientNameEl) {
+    patientNameEl.textContent = window.currentPatientName || "Current patient";
+  }
+  if (modal) modal.style.display = "flex";
+};
+
+window.closeSendConfirmModal = function () {
+  const modal = document.getElementById("send-confirm-modal");
+  if (modal) modal.style.display = "none";
+};
+
+window.confirmSendPrescription = async function () {
+  closeSendConfirmModal();
+  await completeVisit();
+};
+
+document.getElementById("print-btn")?.addEventListener("click", () => {
+  openSendConfirmModal();
+});
 
 async function completeVisit() {
   if (!currentLocalToken || isSaving) return;
@@ -603,11 +624,6 @@ async function completeVisit() {
   if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
     if (!confirm("No details have been entered. Complete this visit?")) return;
   }
-
-  const wantsToSend = confirm(
-    "This prescription will be sent to the patient on WhatsApp and cannot be sent again afterwards. Do you want to continue?",
-  );
-  if (!wantsToSend) return;
 
   isSaving = true;
   setPrescriptionStatus("Saving...", "warning");
