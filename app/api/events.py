@@ -561,8 +561,18 @@ def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------
-# QUEUE MANIPULATION & VISIT TYPE
+# QUEUE MANIPULATION & VISIT TYPE (FIXED DEEP COPY FOR JSONB)
 # ---------------------------------------------------------
+
+def get_sort_key(event):
+    """Bulletproof sorting fallback function"""
+    try:
+        if event.vitals and isinstance(event.vitals, dict):
+            if "queue_pos" in event.vitals:
+                return float(event.vitals["queue_pos"])
+        return float(event.timestamp.timestamp()) if event.timestamp else 0.0
+    except Exception:
+        return 0.0
 
 @router.put("/queue/move")
 def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
@@ -582,11 +592,6 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
             models.Event.status == "waiting"
         ).all()
 
-        def get_sort_key(event):
-            if event.vitals and isinstance(event.vitals, dict):
-                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
-            return event.timestamp.timestamp()
-
         waiting.sort(key=get_sort_key)
         
         idx = next((i for i, e in enumerate(waiting) if e.local_token == payload.local_token), None)
@@ -600,11 +605,14 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
                 pos1 = get_sort_key(event1)
                 pos2 = get_sort_key(event2)
                 
+                # If positions are identical, artificially spread them
                 if pos1 == pos2:
-                    pos1 += 1.0 
+                    pos1 += 0.1
+                    pos2 -= 0.1
                 
-                v1 = event1.vitals if event1.vitals and isinstance(event1.vitals, dict) else {}
-                v2 = event2.vitals if event2.vitals and isinstance(event2.vitals, dict) else {}
+                # Use dict() to force a new memory reference so Postgres actually saves it
+                v1 = dict(event1.vitals) if event1.vitals and isinstance(event1.vitals, dict) else {}
+                v2 = dict(event2.vitals) if event2.vitals and isinstance(event2.vitals, dict) else {}
                 
                 v1["queue_pos"] = pos2
                 v2["queue_pos"] = pos1
@@ -612,10 +620,8 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
                 event1.vitals = v1
                 event2.vitals = v2
                 
-                # FORCE SQLAlchemy to recognize the JSON dictionary update
                 flag_modified(event1, "vitals")
                 flag_modified(event2, "vitals")
-                
                 db.commit()
                 
         return {"status": "success"}
@@ -630,35 +636,29 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        target_event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
-        if not target_event: 
+        target = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        if not target: 
             return {"status": "error"}
 
         waiting = db.query(models.Event).filter(
-            models.Event.clinic_id == target_event.clinic_id,
+            models.Event.clinic_id == target.clinic_id,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
         ).all()
 
-        def get_sort_key(event):
-            if event.vitals and isinstance(event.vitals, dict):
-                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
-            return event.timestamp.timestamp()
-
         waiting.sort(key=get_sort_key)
 
         if not waiting: return {"status": "success"}
         
-        target = next((e for e in waiting if e.local_token == payload.local_token), None)
-        if target and waiting[0].local_token != payload.local_token:
+        if waiting[0].local_token != payload.local_token:
             first_pos = get_sort_key(waiting[0])
             
-            v = target.vitals if target.vitals and isinstance(target.vitals, dict) else {}
-            v["queue_pos"] = first_pos - 1000.0  # Force to absolute front securely
+            # Use dict() to force a new memory reference
+            v = dict(target.vitals) if target.vitals and isinstance(target.vitals, dict) else {}
+            v["queue_pos"] = first_pos - 1000.0  # Force securely to the front
             target.vitals = v
             
-            # FORCE SQLAlchemy to recognize the JSON update
             flag_modified(target, "vitals")
             db.commit()
 

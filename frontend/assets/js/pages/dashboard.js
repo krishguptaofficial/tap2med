@@ -109,17 +109,17 @@ function clearPrescription() {
     const cEl = document.getElementById("patient-complaints");
     const dEl = document.getElementById("patient-diagnosis");
     const tEl = document.getElementById("patient-tests");
-    if(cEl) { 
-        cEl.value = ""; 
-        cEl.focus(); 
-    }
+    if(cEl) cEl.value = "";
     if(dEl) dEl.value = "";
     if(tEl) tEl.value = "";
 }
 
 function getShortCode(tokenNumber) {
+    if (tokenNumber === undefined || tokenNumber === null) return "--";
     const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    const letter = letters[(tokenNumber - 1) % 24];
+    let idx = (tokenNumber - 1) % 24;
+    if (idx < 0) idx += 24;
+    const letter = letters[idx];
     return `${letter}-${tokenNumber}`;
 }
 
@@ -173,53 +173,62 @@ async function loadQueue() {
                 `;
 
                 card.onclick = async () => {
-                    // 1. VISUAL SNAP & LOCK
+                    // 1. VISUAL LOCK: Create an overlay to physically block typing and show a massive loading state
+                    let overlay = document.getElementById('consultation-overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'consultation-overlay';
+                        overlay.style.cssText = 'position:absolute; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(4px); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:16px; font-size:20px; font-weight:800; color:var(--primary-color);';
+                        
+                        const consultCard = document.querySelector('.consultation-card');
+                        if (consultCard) {
+                            consultCard.style.position = 'relative';
+                            consultCard.appendChild(overlay);
+                        }
+                    }
+                    overlay.innerHTML = '<span style="font-size:32px; margin-bottom:10px;">⚡</span> Loading Patient Data...';
+                    overlay.style.display = 'flex';
+
+                    // Visually update the left queue
                     document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
                     card.classList.add('active');
-
-                    // Visually jump the card to the top of the Doctor's list immediately
-                    card.parentNode.prepend(card);
+                    card.parentNode.prepend(card); 
 
                     currentLocalToken = patient.local_token;
                     window.currentPatientName = patient.patient_name || 'Patient';
                     window.currentDisplayId = patient.display_id || '--';
 
                     document.getElementById("current-token").textContent = `#${shortCode}`;
-                    
-                    // Replace the header instantly to prove switch is happening
+
+                    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
                     const headerEyebrow = document.querySelector(".eyebrow");
                     if(headerEyebrow) {
-                        headerEyebrow.innerHTML = `<span style="color:var(--warning-color); font-weight: 800;">⚡ Switching Patient...</span>`;
+                        headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+                        <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
                     }
 
-                    // Hard clear the prescription pad instantly
+                    // Clear form
                     clearPrescription(); 
-                    historyContent.innerHTML = '<p class="text-muted text-sm" style="color: var(--warning-color); font-weight: 600;">Locking secure records...</p>';
+                    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
 
-                    // Wait 300ms to let the UI breathe and feel like a true reset
-                    setTimeout(async () => {
-                        const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
-                        if(headerEyebrow) {
-                            headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-                            <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
-                        }
-                        
-                        historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-                        loadHistory(currentLocalToken);
-                        fetchActiveVitals();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-
-                        // Silently notify the backend to bump this patient to position 0 
-                        // so the Staff dashboard syncs instantly without blocking the doctor.
-                        try {
-                            await fetch('/api/events/queue/top', {
+                    // Await both backend requests before unlocking the UI
+                    try {
+                        await Promise.all([
+                            fetch('/api/events/queue/top', {
                                 method: 'PUT',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ local_token: patient.local_token })
-                            });
-                            loadQueue(); // Refresh left sidebar silently
-                        } catch(e) { console.error(e); }
-                    }, 300);
+                            }),
+                            loadHistory(currentLocalToken),
+                            fetchActiveVitals()
+                        ]);
+                    } catch(e) { console.error(e); }
+
+                    // Remove lock and set cursor
+                    overlay.style.display = 'none';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    const cEl = document.getElementById("patient-complaints");
+                    if(cEl) cEl.focus();
                 };
 
                 queueList.appendChild(card);
@@ -869,4 +878,3 @@ window.checkRange = function(input) {
 
 loadQueue();
 setInterval(loadQueue, 5000);
-

@@ -50,9 +50,13 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
 
         # Sort dynamically using hidden queue_pos so token numbers remain unchanged
         def get_sort_key(event):
-            if event.vitals and isinstance(event.vitals, dict):
-                return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
-            return event.timestamp.timestamp()
+            try:
+                if event.vitals and isinstance(event.vitals, dict):
+                    if "queue_pos" in event.vitals:
+                        return float(event.vitals["queue_pos"])
+                return float(event.timestamp.timestamp()) if event.timestamp else 0.0
+            except Exception:
+                return 0.0
 
         queue.sort(key=get_sort_key)
 
