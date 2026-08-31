@@ -109,7 +109,10 @@ function clearPrescription() {
     const cEl = document.getElementById("patient-complaints");
     const dEl = document.getElementById("patient-diagnosis");
     const tEl = document.getElementById("patient-tests");
-    if(cEl) cEl.value = "";
+    if(cEl) { 
+        cEl.value = ""; 
+        cEl.focus(); 
+    }
     if(dEl) dEl.value = "";
     if(tEl) tEl.value = "";
 }
@@ -170,36 +173,44 @@ async function loadQueue() {
                 `;
 
                 card.onclick = async () => {
-    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-    card.classList.add('active');
+                    // 1. VISUAL "HARD REFRESH" FLASH EFFECT
+                    const rightPane = document.querySelector('.consultation-card');
+                    if (rightPane) rightPane.style.opacity = '0.3'; 
 
-    // Visually jump the card to the top of the Doctor's list immediately
-    card.parentNode.prepend(card);
+                    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
 
-    currentLocalToken = patient.local_token;
-    window.currentPatientName = patient.patient_name || 'Patient';
-    window.currentDisplayId = patient.display_id || '--';
+                    currentLocalToken = patient.local_token;
+                    window.currentPatientName = patient.patient_name || 'Patient';
+                    window.currentDisplayId = patient.display_id || '--';
 
-    document.getElementById("current-token").textContent = `#${shortCode}`;
+                    document.getElementById("current-token").textContent = `#${shortCode}`;
 
-    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
-    const headerEyebrow = document.querySelector(".eyebrow");
-    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+                    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+                    const headerEyebrow = document.querySelector(".eyebrow");
+                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+                    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
 
-    clearPrescription();
-    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-    loadHistory(currentLocalToken);
-    fetchActiveVitals();
+                    clearPrescription(); 
+                    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+                    loadHistory(currentLocalToken);
+                    fetchActiveVitals();
 
-    try {
-        await fetch('/api/events/queue/top', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ local_token: patient.local_token })
-        });
-    } catch(e) { console.error(e); }
-};
+                    // Flash UI back in to signify successful refresh
+                    setTimeout(() => { if (rightPane) rightPane.style.opacity = '1'; }, 150);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    // 2. BACKGROUND BUMP & REDRAW
+                    try {
+                        await fetch('/api/events/queue/top', {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ local_token: patient.local_token })
+                        });
+                        // Hard-refresh the left queue immediately to show new order
+                        await loadQueue();
+                    } catch(e) { console.error(e); }
+                };
 
                 queueList.appendChild(card);
             });

@@ -15,8 +15,11 @@ function logout() {
 }
 
 function getShortCode(tokenNumber) {
+    if (tokenNumber === undefined || tokenNumber === null) return "--";
     const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
-    const letter = letters[(tokenNumber - 1) % 24]; 
+    let idx = (tokenNumber - 1) % 24;
+    if (idx < 0) idx += 24;
+    const letter = letters[idx]; 
     return `${letter}-${tokenNumber}`; 
 }
 
@@ -205,7 +208,6 @@ window.markAsPaid = async function(localToken, currentVitalsJSON) {
     }
 };
 
-// --- CUSTOM BILLING MODAL & PRINTING ---
 window.openBillModal = function(patientName, displayId, tokenNum, fee, visitType) {
     document.getElementById("modal-bill-patient-name").value = patientName;
     document.getElementById("modal-bill-display-id").value = displayId;
@@ -250,19 +252,11 @@ window.executePrintBill = function() {
 
     document.getElementById("bill-modal").style.display = "none";
     
-    // THIS LINE ACTIVATES THE ISOLATION
     document.body.className = "mode-bill"; 
     window.print();
     setTimeout(() => document.body.className = "", 1000);
 };
 
-window.printQRCode = function() {
-    document.body.className = "mode-qr";
-    window.print();
-    setTimeout(() => document.body.className = "", 1000);
-};
-
-// --- QR CODE DISPLAY & POSTER PRINTING ---
 window.showQRCode = function() {
     try {
         const qrContainer = document.getElementById("dashboardQRCode");
@@ -443,6 +437,54 @@ window.updateChart = function() {
     });
 };
 
+window.checkRange = function(input) {
+    const val = parseFloat(input.value);
+    if (isNaN(val)) {
+        input.classList.remove("lab-input-abnormal");
+        return;
+    }
+    
+    const min = parseFloat(input.getAttribute('data-min'));
+    const max = parseFloat(input.getAttribute('data-max'));
+
+    let isAbnormal = false;
+    if (!isNaN(min) && val < min) isAbnormal = true;
+    if (!isNaN(max) && val > max) isAbnormal = true;
+
+    if (isAbnormal) {
+        input.classList.add("lab-input-abnormal");
+    } else {
+        input.classList.remove("lab-input-abnormal");
+    }
+};
+
+window.moveQueue = async function(localToken, direction, event) {
+    if (event) event.stopPropagation();
+    try {
+        await fetch('/api/events/queue/move', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: localToken, direction: direction })
+        });
+        loadStaffQueue(); 
+    } catch (e) {
+        console.error("Failed to move queue", e);
+    }
+};
+
+window.changeVisitType = async function(localToken, newType) {
+    try {
+        await fetch('/api/events/visit_type', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: localToken, visit_type: newType })
+        });
+        loadStaffQueue(); 
+    } catch (e) {
+        console.error("Failed to update visit type", e);
+    }
+};
+
 async function loadStaffQueue() {
     try {
         const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
@@ -473,9 +515,11 @@ async function loadStaffQueue() {
                 const displayName = patient.patient_name || 'Patient';
                 const displayId = patient.display_id || '--';
                 const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+                
+                const cityText = patient.city ? ` <span style="font-size: 13px; color: var(--primary-color); opacity: 0.8; margin-left: 4px;">(${patient.city})</span>` : "";
 
                 let typeColors = "";
-                let visitLabel = "New Consultation"; // Fixed: Restored missing variable for billing
+                let visitLabel = "New Consultation";
                 
                 if (patient.visit_type === "followup") {
                     typeColors = "background: #fef08a; color: #b45309;";
@@ -543,7 +587,7 @@ async function loadStaffQueue() {
                             <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                         </div>
                         <div style="display:flex; align-items:center; margin-left: 10px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
-                            <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}</span>
+                            <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}${cityText}</span>
                         </div>
                         ${actionButtons}
                     </div>
@@ -559,9 +603,11 @@ async function loadStaffQueue() {
                 const shortCode = getShortCode(patient.daily_token_number);
                 const displayName = patient.patient_name || 'Patient';
                 const displayId = patient.display_id || '--';
+                const cityText = patient.city ? ` <span style="font-size: 13px; color: #64748b; font-weight: 500; margin-left: 4px;">(${patient.city})</span>` : "";
 
                 let typeBadge = "";
                 let visitLabel = "New Consultation";
+                
                 if (patient.visit_type === "followup") {
                     typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
                     visitLabel = "Follow-up Consultation";
@@ -587,7 +633,7 @@ async function loadStaffQueue() {
                     <div style="display: flex; align-items: center; gap: 24px;">
                         <div class="token-badge" style="background: #e2e8f0; color: #94a3b8;">#${shortCode}</div>
                         <div>
-                            <strong style="display: block; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName} (ID: ${displayId}) ${typeBadge}</strong>
+                            <strong style="display: flex; align-items: center; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName}${cityText} (ID: ${displayId}) ${typeBadge}</strong>
                             <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Consultation Completed</span>
                         </div>
                     </div>
@@ -657,58 +703,10 @@ window.printPrescription = async function(localToken, patientName, displayId) {
         }
 
         document.body.className = "mode-rx";
-    window.print();
-    setTimeout(() => document.body.className = "", 1000);
-} catch (e) {
+        window.print();
+        setTimeout(() => document.body.className = "", 1000);
+    } catch (e) {
         alert("Failed to load prescription for printing.");
-    }
-};
-
-window.checkRange = function(input) {
-    const val = parseFloat(input.value);
-    if (isNaN(val)) {
-        input.classList.remove("lab-input-abnormal");
-        return;
-    }
-    
-    const min = parseFloat(input.getAttribute('data-min'));
-    const max = parseFloat(input.getAttribute('data-max'));
-
-    let isAbnormal = false;
-    if (!isNaN(min) && val < min) isAbnormal = true;
-    if (!isNaN(max) && val > max) isAbnormal = true;
-
-    if (isAbnormal) {
-        input.classList.add("lab-input-abnormal");
-    } else {
-        input.classList.remove("lab-input-abnormal");
-    }
-};
-
-window.moveQueue = async function(localToken, direction, event) {
-    if (event) event.stopPropagation();
-    try {
-        await fetch('/api/events/queue/move', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ local_token: localToken, direction: direction })
-        });
-        loadStaffQueue(); // Instantly visually refresh for staff
-    } catch (e) {
-        console.error("Failed to move queue", e);
-    }
-};
-
-window.changeVisitType = async function(localToken, newType) {
-    try {
-        await fetch('/api/events/visit_type', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ local_token: localToken, visit_type: newType })
-        });
-        loadStaffQueue(); 
-    } catch (e) {
-        console.error("Failed to update visit type", e);
     }
 };
 

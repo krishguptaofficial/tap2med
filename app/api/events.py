@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Header, Request
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import uuid
 from datetime import date, datetime
@@ -93,7 +94,6 @@ class LabUpdatePayload(BaseModel):
     local_token: str
     lab_record: LabRecordPayload
 
-# --- NEW QUEUE MANIPULATION PAYLOADS ---
 class MoveQueuePayload(BaseModel):
     local_token: str
     direction: int 
@@ -561,7 +561,7 @@ def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
 
 
 # ---------------------------------------------------------
-# NEW ENDPOINTS FOR QUEUE MANIPULATION & VISIT TYPE
+# QUEUE MANIPULATION & VISIT TYPE
 # ---------------------------------------------------------
 
 @router.put("/queue/move")
@@ -571,7 +571,12 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
+        target_event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        if not target_event:
+            return {"status": "error"}
+
         waiting = db.query(models.Event).filter(
+            models.Event.clinic_id == target_event.clinic_id,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
@@ -583,6 +588,7 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
             return event.timestamp.timestamp()
 
         waiting.sort(key=get_sort_key)
+        
         idx = next((i for i, e in enumerate(waiting) if e.local_token == payload.local_token), None)
         
         if idx is not None:
@@ -594,15 +600,22 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
                 pos1 = get_sort_key(event1)
                 pos2 = get_sort_key(event2)
                 
+                if pos1 == pos2:
+                    pos1 += 1.0 
+                
                 v1 = event1.vitals if event1.vitals and isinstance(event1.vitals, dict) else {}
                 v2 = event2.vitals if event2.vitals and isinstance(event2.vitals, dict) else {}
                 
                 v1["queue_pos"] = pos2
                 v2["queue_pos"] = pos1
                 
-                # Reassign as dict to trigger SQLAlchemy JSON update
-                event1.vitals = dict(v1)
-                event2.vitals = dict(v2)
+                event1.vitals = v1
+                event2.vitals = v2
+                
+                # FORCE SQLAlchemy to recognize the JSON dictionary update
+                flag_modified(event1, "vitals")
+                flag_modified(event2, "vitals")
+                
                 db.commit()
                 
         return {"status": "success"}
@@ -617,7 +630,12 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
+        target_event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        if not target_event: 
+            return {"status": "error"}
+
         waiting = db.query(models.Event).filter(
+            models.Event.clinic_id == target_event.clinic_id,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
@@ -631,14 +649,17 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
         waiting.sort(key=get_sort_key)
 
         if not waiting: return {"status": "success"}
-        target = next((e for e in waiting if e.local_token == payload.local_token), None)
         
+        target = next((e for e in waiting if e.local_token == payload.local_token), None)
         if target and waiting[0].local_token != payload.local_token:
             first_pos = get_sort_key(waiting[0])
             
             v = target.vitals if target.vitals and isinstance(target.vitals, dict) else {}
-            v["queue_pos"] = first_pos - 1000.0  # Force to front securely
-            target.vitals = dict(v)
+            v["queue_pos"] = first_pos - 1000.0  # Force to absolute front securely
+            target.vitals = v
+            
+            # FORCE SQLAlchemy to recognize the JSON update
+            flag_modified(target, "vitals")
             db.commit()
 
         return {"status": "success"}

@@ -48,7 +48,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
             models.Event.status.in_(["waiting", "completed"]) 
         ).all()
 
-        # Sort dynamically using a hidden queue_pos in the JSON vitals column
+        # Sort dynamically using hidden queue_pos so token numbers remain unchanged
         def get_sort_key(event):
             if event.vitals and isinstance(event.vitals, dict):
                 return float(event.vitals.get("queue_pos", event.timestamp.timestamp()))
@@ -56,7 +56,6 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
 
         queue.sort(key=get_sort_key)
 
-        # Batch fetch all patient names for this clinic to prevent N+1 database queries
         patient_records = {
             rec.local_token: rec 
             for rec in db.query(models.ClinicPatientRecord).filter(models.ClinicPatientRecord.clinic_id == clinic_id).all()
@@ -114,8 +113,7 @@ class ReorderPayload(BaseModel):
 
 @router.put("/{clinic_id}/queue/reorder")
 def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload):
-    # Temporarily suspended while we rely strictly on daily_token_number.
-    return {"status": "success", "message": "Manual reordering handled by token numbers"}
+    return {"status": "success", "message": "Manual reordering handled by tokens"}
 
 class RoleUpdate(BaseModel):
     role_type: str 
