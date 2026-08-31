@@ -604,6 +604,11 @@ async function completeVisit() {
     if (!confirm("No details have been entered. Complete this visit?")) return;
   }
 
+  const wantsToSend = confirm(
+    "This prescription will be sent to the patient on WhatsApp and cannot be sent again afterwards. Do you want to continue?",
+  );
+  if (!wantsToSend) return;
+
   isSaving = true;
   setPrescriptionStatus("Saving...", "warning");
 
