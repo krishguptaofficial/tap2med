@@ -221,7 +221,7 @@ async function loadQueue() {
                         <strong style="font-size: 16px;">${patient.patient_name || "Patient"} ${cityText} ${typeBadge}</strong>
                         <span>ID: ${patient.display_id || "--"}</span>
                     </div>
-                    <button onclick="removePatientFromQueue('${patient.local_token}', event)" title="Remove patient from queue" style="position:absolute; right:16px; bottom:16px; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:170px; height:38px; border:none; border-radius:12px; padding:0 14px; background:#fff1f2; color:#be123c; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 8px 18px rgba(190,18,60,0.12); border:1px solid #fecdd3;">🗑 Remove patient from queue</button>
+                    <button onclick="removePatientFromQueue('${patient.local_token}', event)" title="Remove patient from queue" style="position:absolute; right:12px; bottom:12px; width:28px; height:28px; border:none; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#fff1f2; color:#be123c; font-size:14px; cursor:pointer; box-shadow:0 6px 14px rgba(190,18,60,0.12); border:1px solid #fecdd3;">🗑</button>
                 `;
 
         card.onclick = async () => {
