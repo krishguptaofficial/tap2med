@@ -1046,6 +1046,33 @@ async function fetchLabData(token) {
   }
 }
 
+window.filterLabFields = function () {
+  const searchTerm =
+    document.getElementById("lab-search-input")?.value.trim().toLowerCase() ||
+    "";
+
+  document.querySelectorAll(".lab-input-group").forEach((group) => {
+    const input = group.querySelector("input");
+    const label = group.querySelector("label")?.textContent || "";
+    const key = input ? input.id.replace(/^lab-/, "") : "";
+    const match =
+      !searchTerm || `${key} ${label}`.toLowerCase().includes(searchTerm);
+    group.style.display = match ? "" : "none";
+  });
+
+  document.querySelectorAll(".lab-section-header").forEach((heading) => {
+    const grid = heading.nextElementSibling;
+    if (!grid || !grid.classList.contains("lab-grid")) return;
+
+    const hasVisible = [...grid.querySelectorAll(".lab-input-group")].some(
+      (group) => group.style.display !== "none",
+    );
+
+    heading.style.display = !searchTerm || hasVisible ? "" : "none";
+    grid.style.display = !searchTerm || hasVisible ? "" : "none";
+  });
+};
+
 window.populateLabInputsForDate = function (dateStr) {
   ALL_LAB_KEYS.forEach((id) => {
     const el = document.getElementById(`lab-${id}`);
@@ -1120,11 +1147,56 @@ window.checkRange = function (input, minStr, maxStr) {
   }
 };
 
+window.filterChartOptions = function () {
+  const select = document.getElementById("chart-parameter");
+  if (!select) return;
+
+  const searchTerm =
+    document.getElementById("chart-search-input")?.value.trim().toLowerCase() ||
+    "";
+  const groups = select.querySelectorAll("optgroup");
+  const visibleOptions = [];
+
+  groups.forEach((group) => {
+    const options = [...group.querySelectorAll("option")];
+
+    options.forEach((option) => {
+      const match =
+        !searchTerm ||
+        option.textContent.toLowerCase().includes(searchTerm) ||
+        option.value.toLowerCase().includes(searchTerm);
+      option.hidden = Boolean(searchTerm) && !match;
+      if (match) visibleOptions.push(option);
+    });
+
+    const hasVisible = options.some((option) => !option.hidden);
+    group.hidden = Boolean(searchTerm) && !hasVisible;
+  });
+
+  if (
+    visibleOptions.length &&
+    !visibleOptions.some((option) => option.value === select.value)
+  ) {
+    select.value = visibleOptions[0].value;
+  }
+
+  select.disabled = Boolean(searchTerm) && visibleOptions.length === 0;
+  updateChart();
+};
+
 window.updateChart = function () {
   const select = document.getElementById("chart-parameter");
   if (!select) return;
 
   const param = select.value;
+  if (!param) {
+    if (labChartInstance) {
+      labChartInstance.destroy();
+      labChartInstance = null;
+    }
+    return;
+  }
+
   const paramLabel = select.options[select.selectedIndex]?.text || "Lab Value";
 
   const filteredData = patientLabData

@@ -303,9 +303,30 @@
                 Save Values
               </button>
             </div>
+            <div style="margin-bottom: 16px">
+              <label
+                for="lab-search-input"
+                style="
+                  display: block;
+                  margin-bottom: 8px;
+                  font-size: 12px;
+                  font-weight: 700;
+                  color: var(--text-muted);
+                "
+                >Search tests</label
+              >
+              <input
+                type="text"
+                id="lab-search-input"
+                class="input"
+                placeholder="Search by test name or code"
+                oninput="filterLabFields()"
+              />
+            </div>
 
             <!-- DIABETES PROFILE -->
             <div
+              class="lab-section-header"
               style="
                 background: #e2e8f0;
                 padding: 8px 12px;
@@ -1323,6 +1344,14 @@
             >
               Trend Analysis
             </h4>
+            <input
+              type="text"
+              id="chart-search-input"
+              class="input"
+              placeholder="Search trend test"
+              oninput="filterChartOptions()"
+              style="margin-bottom: 12px"
+            />
             <select
               id="chart-parameter"
               class="select"
