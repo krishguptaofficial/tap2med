@@ -846,32 +846,114 @@ async function fetchActiveVitals() {
 
 // --- EXPANDED LAB FLOWSHEET ENGINE ---
 const ALL_LAB_KEYS = [
-  "hba1c",
-  "fbs",
-  "ppbs",
-  "rbs",
-  "tsh",
-  "ft3",
-  "ft4",
-  "creat",
-  "urea",
-  "uric",
-  "egfr",
-  "sgot",
-  "sgpt",
-  "bili",
-  "alp",
-  "chol",
-  "tg",
-  "hdl",
-  "ldl",
-  "hb",
-  "wbc",
-  "plt",
-  "esr",
-  "vitd",
-  "b12",
-  "cal",
+  "diab_sap",
+  "diab_fbs",
+  "diab_hba1c",
+  "diab_creat",
+  "diab_egfr",
+  "diab_sacr",
+  "diab_chol",
+  "diab_tg",
+  "diab_ldl",
+  "diab_hdl",
+  "haem_aec",
+  "haem_hb",
+  "haem_wbc",
+  "haem_pcv",
+  "haem_neut",
+  "haem_lymph",
+  "haem_eos",
+  "haem_mono",
+  "haem_baso",
+  "haem_rbc",
+  "haem_esr",
+  "haem_rbcs",
+  "haem_wbcs",
+  "haem_plt",
+  "haem_para",
+  "haem_imp",
+  "haem_mcv",
+  "haem_mch",
+  "haem_mchc",
+  "bio_fus",
+  "bio_ppbs",
+  "bio_ppus",
+  "bio_mbg",
+  "bio_rbs",
+  "bio_rus",
+  "bio_ket",
+  "bio_prot",
+  "bio_urea",
+  "bio_na",
+  "bio_k",
+  "bio_cl",
+  "bio_uric",
+  "bio_bun",
+  "bio_hco3",
+  "bio_cal",
+  "lft_bili_tot",
+  "lft_bili_dir",
+  "lft_bili_ind",
+  "lft_prot_tot",
+  "lft_prot_alb",
+  "lft_prot_glob",
+  "lft_sgot",
+  "lft_sgpt",
+  "lft_ggt",
+  "lft_mg",
+  "uacr_alb",
+  "uacr_malb",
+  "uacr_creat",
+  "ur_app",
+  "ur_reac",
+  "ur_alb",
+  "ur_pus",
+  "ur_rbc",
+  "ur_casts",
+  "ur_cryst",
+  "ur_bact",
+  "thy_tsh",
+  "thy_tsh_ultra",
+  "thy_t3",
+  "thy_t4",
+  "thy_ft3",
+  "thy_ft4",
+  "thy_tpo",
+  "thy_tg_ab",
+  "thy_anti_tg",
+  "pcos_lh",
+  "pcos_fsh",
+  "pcos_prol",
+  "pcos_testo",
+  "pcos_dheas",
+  "pcos_shbg",
+  "pcos_oest",
+  "pcos_fgw",
+  "oth_ecg",
+  "oth_usg",
+  "oth_fnac",
+  "oth_trop",
+  "oth_pft",
+  "oth_vpt",
+  "oth_vitb12",
+  "oth_echo",
+  "oth_iron_prof",
+  "oth_serum_iron",
+  "oth_tibc",
+  "oth_vitd3",
+  "oth_crp",
+  "oth_hscrp",
+  "oth_ferritin",
+  "oth_mri",
+  "oth_ct",
+  "oth_fibro",
+  "oth_ttg",
+  "oth_cect",
+  "oth_mri_brain",
+  "oth_ige",
+  "oth_ptinr",
+  "oth_pth",
+  "oth_anti_tpo",
 ];
 
 window.openLabsModal = async function () {
@@ -978,13 +1060,21 @@ window.checkRange = function (input, minStr, maxStr) {
 
 window.updateChart = function () {
   const select = document.getElementById("chart-parameter");
-  const param = select.value;
-  const paramLabel = select.options[select.selectedIndex].text;
+  if (!select) return;
 
-  const filteredData = patientLabData.filter(
-    (l) =>
-      l.results && l.results[param] !== undefined && l.results[param] !== "",
-  );
+  const param = select.value;
+  const paramLabel = select.options[select.selectedIndex]?.text || "Lab Value";
+
+  const filteredData = patientLabData
+    .filter(
+      (l) =>
+        l.results &&
+        l.results[param] !== undefined &&
+        l.results[param] !== "" &&
+        !Number.isNaN(parseFloat(l.results[param])),
+    )
+    .sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
+
   const labels = filteredData.map((l) =>
     new Date(l.test_date).toLocaleDateString("en-IN", {
       month: "short",
@@ -1026,7 +1116,7 @@ window.updateChart = function () {
         tooltip: {
           callbacks: {
             label: function (context) {
-              return context.parsed.y + " " + paramLabel;
+              return `${context.parsed.y} ${paramLabel}`;
             },
           },
         },

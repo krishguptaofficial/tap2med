@@ -400,10 +400,14 @@ window.checkRange = function(input, minStr, maxStr) {
 
 window.updateChart = function() {
     const select = document.getElementById("chart-parameter");
+    if (!select) return;
+
     const param = select.value;
-    const paramLabel = select.options[select.selectedIndex].text;
+    const paramLabel = select.options[select.selectedIndex]?.text || "Lab Value";
     
-    const filteredData = patientLabData.filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "");
+    const filteredData = patientLabData
+        .filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "" && !Number.isNaN(parseFloat(l.results[param])))
+        .sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
     const labels = filteredData.map(l => new Date(l.test_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" }));
     const dataPoints = filteredData.map(l => parseFloat(l.results[param]));
     
@@ -431,7 +435,7 @@ window.updateChart = function() {
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.parsed.y + " " + paramLabel; } } } },
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return `${context.parsed.y} ${paramLabel}`; } } } },
             scales: { y: { beginAtZero: false, grid: { borderDash: [4, 4] } }, x: { grid: { display: false } } }
         }
     });
