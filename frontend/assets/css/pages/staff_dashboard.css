@@ -183,9 +183,37 @@ textarea:focus {
   background: white !important;
 }
 
-#manual-status {
-  min-height: 20px;
-  padding-left: 4px;
+.lookup-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 8px 12px;
+  margin-top: 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  border: 1px solid transparent;
+}
+
+.lookup-status-neutral {
+  color: #475569;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.lookup-status-success {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.lookup-status-error {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
 
 .backdrop {

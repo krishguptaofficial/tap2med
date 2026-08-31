@@ -38,41 +38,92 @@ function numberToWords(num) {
     return str ? str.trim().toUpperCase() + ' RUPEES ONLY' : 'ZERO RUPEES ONLY';
 }
 
+function setLookupStatus(message, tone = "neutral") {
+    const statusEl = document.getElementById("manual-status");
+    if (!statusEl) return;
+
+    statusEl.textContent = message;
+    statusEl.className = "lookup-status";
+
+    if (tone === "success") {
+        statusEl.classList.add("lookup-status-success");
+    } else if (tone === "error") {
+        statusEl.classList.add("lookup-status-error");
+    } else {
+        statusEl.classList.add("lookup-status-neutral");
+    }
+
+    statusEl.style.display = message ? "inline-flex" : "none";
+}
+
+function clearLookupStatus() {
+    const nameInput = document.getElementById("walkin-name");
+    if (nameInput) nameInput.value = "";
+    setLookupStatus("", "neutral");
+}
+
 window.attemptManualLookup = async function() {
-    const phone = document.getElementById("walkin-phone").value.trim();
+    const phoneInput = document.getElementById("walkin-phone");
+    const phone = phoneInput ? phoneInput.value.trim() : "";
     const memberDropdown = document.getElementById("manual-member-id");
     const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
     const nameInput = document.getElementById("walkin-name");
 
-    if (/^\d{10}$/.test(phone)) {
-        try {
-            const res = await fetch("/api/events/lookup", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone: phone, member_id: selectedMember, clinic_id: clinicId })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.found && data.patient_name) {
-                    nameInput.value = data.patient_name;
-                    nameInput.style.borderColor = "var(--success-color)";
-                    nameInput.style.backgroundColor = "#f0fdf4";
-                    setTimeout(() => {
-                        nameInput.style.borderColor = "#cbd5e1";
-                        nameInput.style.backgroundColor = "#f8fafc";
-                    }, 1500);
-                } else {
-                    nameInput.value = "";
-                }
-            }
-        } catch (e) {
-            console.error("Lookup failed");
+    if (!/^\d{10}$/.test(phone)) {
+        clearLookupStatus();
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/events/lookup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phone, member_id: selectedMember, clinic_id: clinicId })
+        });
+
+        if (!res.ok) {
+            setLookupStatus("Wrong member or wrong number", "error");
+            if (nameInput) nameInput.value = "";
+            return;
         }
+
+        const data = await res.json();
+        if (data.found && data.patient_name) {
+            if (nameInput) nameInput.value = data.patient_name;
+            nameInput.style.borderColor = "#22c55e";
+            nameInput.style.backgroundColor = "#f0fdf4";
+            setLookupStatus(`Name found: ${data.patient_name}`, "success");
+            setTimeout(() => {
+                if (nameInput) {
+                    nameInput.style.borderColor = "#cbd5e1";
+                    nameInput.style.backgroundColor = "#f8fafc";
+                }
+            }, 1500);
+        } else {
+            if (nameInput) nameInput.value = "";
+            setLookupStatus("Wrong member or wrong number", "error");
+        }
+    } catch (e) {
+        console.error("Lookup failed", e);
+        if (nameInput) nameInput.value = "";
+        setLookupStatus("Wrong member or wrong number", "error");
     }
 };
 
+document.getElementById("walkin-phone")?.addEventListener("input", () => {
+    if (document.getElementById("walkin-phone").value.trim().length < 10) {
+        clearLookupStatus();
+    }
+});
 document.getElementById("walkin-phone")?.addEventListener("blur", attemptManualLookup);
-document.getElementById("manual-member-id")?.addEventListener("change", attemptManualLookup);
+document.getElementById("manual-member-id")?.addEventListener("change", () => {
+    const phone = document.getElementById("walkin-phone")?.value.trim() || "";
+    if (/^\d{10}$/.test(phone)) {
+        attemptManualLookup();
+    } else {
+        clearLookupStatus();
+    }
+});
 
 window.manualCheckIn = async function() {
     const phoneInput = document.getElementById("walkin-phone");
