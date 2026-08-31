@@ -98,6 +98,9 @@ class MoveQueuePayload(BaseModel):
     local_token: str
     direction: int 
 
+class RemoveQueuePayload(BaseModel):
+    local_token: str
+
 class TopQueuePayload(BaseModel):
     local_token: str
 
@@ -624,6 +627,21 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
                 flag_modified(event2, "vitals")
                 db.commit()
                 
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.put("/queue/remove")
+def remove_queue(payload: RemoveQueuePayload, db: Session = Depends(get_db)):
+    try:
+        event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        if not event:
+            return {"status": "error"}
+
+        event.status = "removed"
+        event.updated_at = datetime.now(IST)
+        db.commit()
         return {"status": "success"}
     except Exception as e:
         db.rollback()

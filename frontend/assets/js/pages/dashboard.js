@@ -221,6 +221,7 @@ async function loadQueue() {
                         <strong style="font-size: 16px;">${patient.patient_name || "Patient"} ${cityText} ${typeBadge}</strong>
                         <span>ID: ${patient.display_id || "--"}</span>
                     </div>
+                    <button onclick="removePatientFromQueue('${patient.local_token}', event)" title="Remove patient from queue" style="position:absolute; right:16px; bottom:16px; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:170px; height:38px; border:none; border-radius:12px; padding:0 14px; background:#fff1f2; color:#be123c; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 8px 18px rgba(190,18,60,0.12); border:1px solid #fecdd3;">🗑 Remove patient from queue</button>
                 `;
 
         card.onclick = async () => {
@@ -408,6 +409,25 @@ async function loadHistory(localToken) {
     console.error("History error:", error);
   }
 }
+
+window.removePatientFromQueue = async function (localToken, event) {
+  if (event) event.stopPropagation();
+  if (!confirm("Remove this patient from the queue?")) return;
+
+  try {
+    const response = await fetch("/api/events/queue/remove", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ local_token: localToken }),
+    });
+
+    if (!response.ok) throw new Error("Failed to remove patient from queue");
+    await loadQueue();
+  } catch (e) {
+    console.error("Failed to remove patient from queue", e);
+    alert("Failed to remove patient from queue.");
+  }
+};
 
 window.rePrintRx = async function (localToken, patientName, displayId) {
   try {

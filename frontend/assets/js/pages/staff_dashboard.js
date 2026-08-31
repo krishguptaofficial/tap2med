@@ -540,6 +540,23 @@ window.changeVisitType = async function(localToken, newType) {
     }
 };
 
+window.removePatientFromQueue = async function(localToken, event) {
+    if (event) event.stopPropagation();
+    if (!confirm("Remove this patient from the queue?")) return;
+
+    try {
+        await fetch('/api/events/queue/remove', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ local_token: localToken })
+        });
+        loadStaffQueue();
+    } catch (e) {
+        console.error('Failed to remove patient from queue', e);
+        alert('Failed to remove patient from queue.');
+    }
+};
+
 async function loadStaffQueue() {
     try {
         const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
@@ -627,6 +644,7 @@ async function loadStaffQueue() {
 
                 const card = document.createElement("div");
                 card.className = `queue-card ${isCurrent ? 'active-patient' : ''}`;
+                card.style.position = 'relative';
                 
                 card.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
@@ -646,6 +664,7 @@ async function loadStaffQueue() {
                         </div>
                         ${actionButtons}
                     </div>
+                    <button onclick="removePatientFromQueue('${patient.local_token}', event)" title="Remove patient from queue" style="position:absolute; right:16px; bottom:16px; display:inline-flex; align-items:center; justify-content:center; gap:8px; min-width:170px; height:38px; border:none; border-radius:12px; padding:0 14px; background:#fff1f2; color:#be123c; font-size:12px; font-weight:800; cursor:pointer; box-shadow:0 8px 18px rgba(190,18,60,0.12); border:1px solid #fecdd3;">🗑 Remove patient from queue</button>
                 `;
                 list.appendChild(card);
             });
