@@ -149,7 +149,7 @@
               style="background: #f8fafc; width: 100%"
             />
           </div>
-          <div style="flex: 1; min-width: 150px; margin-bottom: 0">
+          <div style="flex: 1; min-width: 140px">
             <label
               style="
                 font-size: 13px;
@@ -158,11 +158,16 @@
                 display: block;
                 margin-bottom: 8px;
               "
-              >Family Member</label
+              >Member ID</label
             >
-            <select
+            <input
+              type="number"
               id="manual-member-id"
               class="input"
+              min="1"
+              max="100"
+              step="1"
+              value="1"
               style="
                 width: 100%;
                 height: 44px;
@@ -171,19 +176,29 @@
                 border: 1px solid #cbd5e1;
                 background: white;
               "
+            />
+          </div>
+          <div style="flex: 1; min-width: 140px">
+            <label
+              style="
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-muted);
+                display: block;
+                margin-bottom: 8px;
+              "
+              >Age</label
             >
-              <option value="0">Self</option>
-              <option value="1">Spouse</option>
-              <option value="2">Father</option>
-              <option value="3">Mother</option>
-              <option value="4">Eldest Child</option>
-              <option value="5">Middle Child</option>
-              <option value="6">Youngest Child</option>
-              <option value="7">Grandfather</option>
-              <option value="8">Grandmother</option>
-              <option value="9">Other Relative 1</option>
-              <option value="10">Other Relative 2</option>
-            </select>
+            <input
+              type="number"
+              id="walkin-age"
+              class="input"
+              min="0"
+              max="120"
+              step="1"
+              placeholder="Age"
+              style="background: #f8fafc; width: 100%"
+            />
           </div>
           <div
             style="

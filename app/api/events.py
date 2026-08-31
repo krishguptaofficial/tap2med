@@ -64,6 +64,7 @@ class StartVisitRequest(BaseModel):
     clinic_id: uuid.UUID
     name: str = "Walk-in Patient"
     city: Optional[str] = None
+    age: Optional[int] = None
     is_appointment: bool = False
 
 class CityUpdate(BaseModel):
@@ -143,7 +144,8 @@ def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
             return {
                 "found": True,
                 "patient_name": record.patient_name,
-                "city": record.city
+                "city": record.city,
+                "age": record.age
             }
         
         return {"found": False}
@@ -215,12 +217,15 @@ def start_visit(
             record.patient_name = payload.name
             if payload.city:
                 record.city = payload.city.strip()
+            if payload.age is not None:
+                record.age = int(payload.age)
         else:
             new_record = models.ClinicPatientRecord(
                 clinic_id=payload.clinic_id,
                 local_token=local_token,
                 patient_name=payload.name,
-                city=payload.city.strip() if payload.city else None
+                city=payload.city.strip() if payload.city else None,
+                age=int(payload.age) if payload.age is not None else None,
             )
             db.add(new_record)
         

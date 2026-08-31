@@ -106,6 +106,7 @@ class ClinicPatientRecord(Base):
     
     patient_name = Column(Text, nullable=False)
     city = Column(Text, nullable=True)
+    age = Column(Integer, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

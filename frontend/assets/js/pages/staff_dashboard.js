@@ -109,16 +109,22 @@ function setLookupStatus(message, tone = "neutral") {
 
 function clearLookupStatus() {
   const nameInput = document.getElementById("walkin-name");
+  const cityInput = document.getElementById("walkin-city");
+  const ageInput = document.getElementById("walkin-age");
   if (nameInput) nameInput.value = "";
+  if (cityInput) cityInput.value = "";
+  if (ageInput) ageInput.value = "";
   setLookupStatus("", "neutral");
 }
 
 window.attemptManualLookup = async function () {
   const phoneInput = document.getElementById("walkin-phone");
   const phone = phoneInput ? phoneInput.value.trim() : "";
-  const memberDropdown = document.getElementById("manual-member-id");
-  const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
+  const memberInput = document.getElementById("manual-member-id");
+  const selectedMember = memberInput ? clampMemberId(memberInput.value) : 1;
   const nameInput = document.getElementById("walkin-name");
+  const cityInput = document.getElementById("walkin-city");
+  const ageInput = document.getElementById("walkin-age");
 
   if (!/^\d{10}$/.test(phone)) {
     clearLookupStatus();
@@ -139,12 +145,18 @@ window.attemptManualLookup = async function () {
     if (!res.ok) {
       setLookupStatus("Specific patient not found", "error");
       if (nameInput) nameInput.value = "";
+      if (cityInput) cityInput.value = "";
+      if (ageInput) ageInput.value = "";
       return;
     }
 
     const data = await res.json();
     if (data.found && data.patient_name) {
       if (nameInput) nameInput.value = data.patient_name;
+      if (cityInput) cityInput.value = data.city || "";
+      if (ageInput)
+        ageInput.value =
+          data.age !== undefined && data.age !== null ? String(data.age) : "";
       nameInput.style.borderColor = "#22c55e";
       nameInput.style.backgroundColor = "#f0fdf4";
       setLookupStatus(
@@ -159,11 +171,15 @@ window.attemptManualLookup = async function () {
       }, 1500);
     } else {
       if (nameInput) nameInput.value = "";
+      if (cityInput) cityInput.value = "";
+      if (ageInput) ageInput.value = "";
       setLookupStatus("Specific patient not found", "error");
     }
   } catch (e) {
     console.error("Lookup failed", e);
     if (nameInput) nameInput.value = "";
+    if (cityInput) cityInput.value = "";
+    if (ageInput) ageInput.value = "";
     setLookupStatus("Specific patient not found", "error");
   }
 };
@@ -176,7 +192,12 @@ document.getElementById("walkin-phone")?.addEventListener("input", () => {
 document
   .getElementById("walkin-phone")
   ?.addEventListener("blur", attemptManualLookup);
-document.getElementById("manual-member-id")?.addEventListener("change", () => {
+document.getElementById("manual-member-id")?.addEventListener("input", () => {
+  const memberInput = document.getElementById("manual-member-id");
+  if (!memberInput) return;
+  memberInput.value = String(
+    Math.min(100, Math.max(1, parseInt(memberInput.value || "1", 10) || 1)),
+  );
   const phone = document.getElementById("walkin-phone")?.value.trim() || "";
   if (/^\d{10}$/.test(phone)) {
     attemptManualLookup();
@@ -190,14 +211,17 @@ window.manualCheckIn = async function () {
   const phone = phoneInput.value.trim();
   const statusEl = document.getElementById("manual-status");
   const btn = document.getElementById("btn-manual-checkin");
-  const memberDropdown = document.getElementById("manual-member-id");
-  const selectedMember = memberDropdown ? parseInt(memberDropdown.value) : 0;
+  const memberInput = document.getElementById("manual-member-id");
+  const selectedMember = memberInput ? clampMemberId(memberInput.value) : 1;
 
   const nameInput = document.getElementById("walkin-name");
   const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
 
   const cityInput = document.getElementById("walkin-city");
   const patientCity = cityInput ? cityInput.value.trim() : null;
+
+  const ageInput = document.getElementById("walkin-age");
+  const patientAge = ageInput ? ageInput.value.trim() : "";
 
   const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
 
@@ -226,6 +250,7 @@ window.manualCheckIn = async function () {
         clinic_id: clinicId,
         name: patientName,
         city: patientCity,
+        age: patientAge ? parseInt(patientAge, 10) : null,
         is_appointment: isAppt,
       }),
     });
@@ -239,6 +264,7 @@ window.manualCheckIn = async function () {
     phoneInput.value = "";
     if (nameInput) nameInput.value = "";
     if (cityInput) cityInput.value = "";
+    if (ageInput) ageInput.value = "";
     if (document.getElementById("walkin-is-appt"))
       document.getElementById("walkin-is-appt").checked = false;
 
