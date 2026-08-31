@@ -127,6 +127,26 @@ function getShortCode(tokenNumber) {
   return `${letter}-${tokenNumber}`;
 }
 
+function renderActiveHeader({
+  patientName,
+  displayId,
+  cityText = "",
+  modeLabel = "",
+}) {
+  const headerEyebrow = document.querySelector(".eyebrow");
+  if (!headerEyebrow) return;
+
+  const cityMarkup = cityText
+    ? ` <span style="font-size: 14px; color: var(--text-muted);">(${cityText})</span>`
+    : "";
+  const modeMarkup = modeLabel
+    ? ` - <span style="color:#ef4444;">${modeLabel}</span>`
+    : "";
+
+  headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${patientName}</strong>${cityMarkup} (ID: ${displayId})${modeMarkup}
+    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+}
+
 async function loadQueue() {
   if (!clinicId) return;
 
@@ -225,14 +245,11 @@ async function loadQueue() {
 
           if (currentToken) currentToken.textContent = `#${shortCode}`;
 
-          const activeCityText = patient.city
-            ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>`
-            : "";
-          const headerEyebrow = document.querySelector(".eyebrow");
-          if (headerEyebrow) {
-            headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-                        <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
-          }
+          renderActiveHeader({
+            patientName: window.currentPatientName,
+            displayId: window.currentDisplayId,
+            cityText: patient.city || "",
+          });
 
           // Clear form
           clearPrescription();
@@ -272,13 +289,11 @@ async function loadQueue() {
         window.currentPatientName = firstPatient.patient_name || "Patient";
         window.currentDisplayId = firstPatient.display_id || "--";
 
-        const activeCityText = firstPatient.city
-          ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>`
-          : "";
-        const headerEyebrow = document.querySelector(".eyebrow");
-        if (headerEyebrow)
-          headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-                <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+        renderActiveHeader({
+          patientName: window.currentPatientName,
+          displayId: window.currentDisplayId,
+          cityText: firstPatient.city || "",
+        });
 
         clearPrescription();
         loadHistory(currentLocalToken);
@@ -481,9 +496,11 @@ window.editRx = async function (
     if (currentTokenEl)
       currentTokenEl.innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
 
-    const headerEyebrow = document.querySelector(".eyebrow");
-    if (headerEyebrow)
-      headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
+    renderActiveHeader({
+      patientName: window.currentPatientName,
+      displayId: window.currentDisplayId,
+      modeLabel: "EDIT MODE",
+    });
 
     const compEl = document.getElementById("patient-complaints");
     if (compEl) compEl.value = visit.complaints || "";
