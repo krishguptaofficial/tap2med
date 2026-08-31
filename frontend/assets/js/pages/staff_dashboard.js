@@ -82,7 +82,7 @@ window.attemptManualLookup = async function() {
         });
 
         if (!res.ok) {
-            setLookupStatus("Wrong member or wrong number", "error");
+            setLookupStatus("Specific patient not found", "error");
             if (nameInput) nameInput.value = "";
             return;
         }
@@ -92,7 +92,7 @@ window.attemptManualLookup = async function() {
             if (nameInput) nameInput.value = data.patient_name;
             nameInput.style.borderColor = "#22c55e";
             nameInput.style.backgroundColor = "#f0fdf4";
-            setLookupStatus(`Name found: ${data.patient_name}`, "success");
+            setLookupStatus(`Specific patient found: ${data.patient_name}`, "success");
             setTimeout(() => {
                 if (nameInput) {
                     nameInput.style.borderColor = "#cbd5e1";
@@ -101,12 +101,12 @@ window.attemptManualLookup = async function() {
             }, 1500);
         } else {
             if (nameInput) nameInput.value = "";
-            setLookupStatus("Wrong member or wrong number", "error");
+            setLookupStatus("Specific patient not found", "error");
         }
     } catch (e) {
         console.error("Lookup failed", e);
         if (nameInput) nameInput.value = "";
-        setLookupStatus("Wrong member or wrong number", "error");
+        setLookupStatus("Specific patient not found", "error");
     }
 };
 
