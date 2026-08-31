@@ -123,6 +123,20 @@ function clearLookupStatus() {
   setLookupStatus("", "neutral");
 }
 
+function populateMemberIdOptions(selectEl) {
+  if (!selectEl) return;
+  const currentValue = clampMemberId(selectEl.value || "1");
+  selectEl.innerHTML = "";
+  for (let i = 1; i <= 100; i += 1) {
+    const option = document.createElement("option");
+    option.value = String(i);
+    option.textContent = String(i);
+    if (i === currentValue) option.selected = true;
+    selectEl.appendChild(option);
+  }
+  selectEl.value = String(currentValue);
+}
+
 window.attemptManualLookup = async function () {
   const phoneInput = document.getElementById("walkin-phone");
   const phone = phoneInput ? phoneInput.value.trim() : "";
@@ -198,19 +212,29 @@ document.getElementById("walkin-phone")?.addEventListener("input", () => {
 document
   .getElementById("walkin-phone")
   ?.addEventListener("blur", attemptManualLookup);
-document.getElementById("manual-member-id")?.addEventListener("input", () => {
-  const memberInput = document.getElementById("manual-member-id");
-  if (!memberInput) return;
-  memberInput.value = String(
-    Math.min(100, Math.max(1, parseInt(memberInput.value || "1", 10) || 1)),
-  );
-  const phone = document.getElementById("walkin-phone")?.value.trim() || "";
-  if (/^\d{10}$/.test(phone)) {
-    attemptManualLookup();
-  } else {
-    clearLookupStatus();
-  }
-});
+
+const manualMemberSelect = document.getElementById("manual-member-id");
+if (manualMemberSelect) {
+  populateMemberIdOptions(manualMemberSelect);
+  manualMemberSelect.addEventListener("change", () => {
+    const phone = document.getElementById("walkin-phone")?.value.trim() || "";
+    if (/^\d{10}$/.test(phone)) {
+      attemptManualLookup();
+    } else {
+      clearLookupStatus();
+    }
+  });
+  manualMemberSelect.addEventListener("mouseover", (event) => {
+    const target = event.target;
+    if (target && target.tagName === "OPTION") {
+      manualMemberSelect.value = target.value;
+      const phone = document.getElementById("walkin-phone")?.value.trim() || "";
+      if (/^\d{10}$/.test(phone)) {
+        attemptManualLookup();
+      }
+    }
+  });
+}
 
 window.manualCheckIn = async function () {
   const phoneInput = document.getElementById("walkin-phone");

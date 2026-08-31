@@ -15,6 +15,20 @@ const memberPreviewOptions = Array.from({ length: 100 }, (_, index) => ({
   name: `Member ${index + 1}`,
 }));
 
+function populateMemberIdOptions(selectEl) {
+  if (!selectEl) return;
+  const currentValue = clampMemberId(selectEl.value || "1");
+  selectEl.innerHTML = "";
+  for (let i = 1; i <= 100; i += 1) {
+    const option = document.createElement("option");
+    option.value = String(i);
+    option.textContent = String(i);
+    if (i === currentValue) option.selected = true;
+    selectEl.appendChild(option);
+  }
+  selectEl.value = String(currentValue);
+}
+
 const screens = [
   "screen-phone",
   "screen-member",
@@ -147,17 +161,20 @@ async function applyMemberLookup() {
 
 const memberIdInput = document.getElementById("member-id-input");
 if (memberIdInput) {
-  memberIdInput.addEventListener("input", () => {
-    const value = clampMemberId(memberIdInput.value);
-    memberIdInput.value = String(value);
-    selectedMemberId = value;
-    applyMemberLookup();
-  });
+  populateMemberIdOptions(memberIdInput);
   memberIdInput.addEventListener("change", () => {
     const value = clampMemberId(memberIdInput.value);
     memberIdInput.value = String(value);
     selectedMemberId = value;
     applyMemberLookup();
+  });
+  memberIdInput.addEventListener("mouseover", (event) => {
+    const target = event.target;
+    if (target && target.tagName === "OPTION") {
+      memberIdInput.value = target.value;
+      selectedMemberId = clampMemberId(target.value);
+      applyMemberLookup();
+    }
   });
 }
 
