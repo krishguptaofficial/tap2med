@@ -1,30 +1,34 @@
 // Intercept fetch to enforce financial gatekeeper (only show paid patients in queue)
 const originalFetch = window.fetch;
-window.fetch = async function() {
-    const response = await originalFetch.apply(this, arguments);
-    if (arguments[0] && typeof arguments[0] === 'string' && arguments[0].includes('/api/clinics/queue/')) {
-        const clone = response.clone();
-        const data = await clone.json();
-        if (data.queue) {
-            data.queue = data.queue.filter(p => {
-                if (p.status === 'waiting') {
-                    return p.vitals && p.vitals.is_paid === true;
-                }
-                return true;
-            });
+window.fetch = async function () {
+  const response = await originalFetch.apply(this, arguments);
+  if (
+    arguments[0] &&
+    typeof arguments[0] === "string" &&
+    arguments[0].includes("/api/clinics/queue/")
+  ) {
+    const clone = response.clone();
+    const data = await clone.json();
+    if (data.queue) {
+      data.queue = data.queue.filter((p) => {
+        if (p.status === "waiting") {
+          return p.vitals && p.vitals.is_paid === true;
         }
-        return new Response(JSON.stringify(data), {
-            status: response.status,
-            statusText: response.statusText,
-            headers: response.headers
-        });
+        return true;
+      });
     }
-    return response;
+    return new Response(JSON.stringify(data), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  }
+  return response;
 };
 
 const clinicId = localStorage.getItem("tap2med_clinic_id");
 if (!clinicId || clinicId === "undefined" || clinicId === "null") {
-    window.location.href = "/login";
+  window.location.href = "/login";
 }
 
 let currentLocalToken = null;
@@ -44,55 +48,55 @@ const menuToggleBtn = document.getElementById("sidebarToggle");
 
 window.currentWaitingTokens = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-    const savedState = localStorage.getItem('tap2med_sidebar_state');
-    if (savedState === 'closed' && sidebar) {
-        sidebar.classList.add('sidebar-closed');
-        document.querySelector('.main-content')?.classList.add('sidebar-closed');
-    }
+document.addEventListener("DOMContentLoaded", () => {
+  const savedState = localStorage.getItem("tap2med_sidebar_state");
+  if (savedState === "closed" && sidebar) {
+    sidebar.classList.add("sidebar-closed");
+    document.querySelector(".main-content")?.classList.add("sidebar-closed");
+  }
 
-    setTimeout(() => {
-        const addBtn = document.getElementById('add-row-btn');
-        if (addBtn) {
-            const newAddBtn = addBtn.cloneNode(true);
-            addBtn.parentNode.replaceChild(newAddBtn, addBtn);
-            newAddBtn.addEventListener('click', addPrescriptionRow);
-        }
-    }, 500);
+  setTimeout(() => {
+    const addBtn = document.getElementById("add-row-btn");
+    if (addBtn) {
+      const newAddBtn = addBtn.cloneNode(true);
+      addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+      newAddBtn.addEventListener("click", addPrescriptionRow);
+    }
+  }, 500);
 });
 
 function toggleSidebar() {
-    sidebar.classList.toggle("sidebar-closed");
-    document.querySelector('.main-content')?.classList.toggle('sidebar-closed');
-    sidebarBackdrop?.classList.toggle("open");
-    const isClosed = sidebar.classList.contains("sidebar-closed");
-    if(menuToggleBtn) menuToggleBtn.setAttribute("aria-expanded", !isClosed);
-    localStorage.setItem('tap2med_sidebar_state', isClosed ? 'closed' : 'open');
+  sidebar.classList.toggle("sidebar-closed");
+  document.querySelector(".main-content")?.classList.toggle("sidebar-closed");
+  sidebarBackdrop?.classList.toggle("open");
+  const isClosed = sidebar.classList.contains("sidebar-closed");
+  if (menuToggleBtn) menuToggleBtn.setAttribute("aria-expanded", !isClosed);
+  localStorage.setItem("tap2med_sidebar_state", isClosed ? "closed" : "open");
 }
 
-window.updateFreq = function(el) {
-    const row = el.closest('.prescription-row');
-    const dosage = row.querySelector('.rx-dosage').value.trim();
-    const days = row.querySelector('.rx-days').value.trim();
-    const remarks = row.querySelector('.rx-remarks').value.trim();
-    
-    let inst = dosage;
-    if (days) inst += (inst ? ' for ' : '') + days;
-    if (remarks) inst += (inst ? ' | ' : '') + remarks; 
-    
-    row.querySelector('.rx-freq').value = inst;
+window.updateFreq = function (el) {
+  const row = el.closest(".prescription-row");
+  const dosage = row.querySelector(".rx-dosage").value.trim();
+  const days = row.querySelector(".rx-days").value.trim();
+  const remarks = row.querySelector(".rx-remarks").value.trim();
+
+  let inst = dosage;
+  if (days) inst += (inst ? " for " : "") + days;
+  if (remarks) inst += (inst ? " | " : "") + remarks;
+
+  row.querySelector(".rx-freq").value = inst;
 };
 
-window.addPrescriptionRow = function() {
-    const container = document.getElementById('rx-container');
-    const row = document.createElement('div');
-    row.className = 'prescription-row';
-    row.style.display = 'grid';
-    // Adjusted grid to fit the new remarks column
-    row.style.gridTemplateColumns = '2fr 1fr 1fr 1.5fr auto';
-    row.style.gap = '10px';
-    row.style.marginBottom = '15px';
-    row.innerHTML = `
+window.addPrescriptionRow = function () {
+  const container = document.getElementById("rx-container");
+  const row = document.createElement("div");
+  row.className = "prescription-row";
+  row.style.display = "grid";
+  // Adjusted grid to fit the new remarks column
+  row.style.gridTemplateColumns = "2fr 1fr 1fr 1.5fr auto";
+  row.style.gap = "10px";
+  row.style.marginBottom = "15px";
+  row.innerHTML = `
         <div class="field"><input type="text" class="input rx-med" placeholder="Medicine" autocomplete="off" /></div>
         <div class="field"><input type="text" class="input rx-dosage" placeholder="Dosage" autocomplete="off" oninput="updateFreq(this)" /></div>
         <div class="field"><input type="text" class="input rx-days" placeholder="Days" autocomplete="off" oninput="updateFreq(this)" /></div>
@@ -100,780 +104,960 @@ window.addPrescriptionRow = function() {
         <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 8px;">✕</button>
         <input type="hidden" class="rx-freq" />
     `;
-    container.appendChild(row);
+  container.appendChild(row);
 };
 
 function clearPrescription() {
-    prescriptionList.innerHTML = "";
-    addPrescriptionRow();
-    const cEl = document.getElementById("patient-complaints");
-    const dEl = document.getElementById("patient-diagnosis");
-    const tEl = document.getElementById("patient-tests");
-    if(cEl) cEl.value = "";
-    if(dEl) dEl.value = "";
-    if(tEl) tEl.value = "";
+  prescriptionList.innerHTML = "";
+  addPrescriptionRow();
+  const cEl = document.getElementById("patient-complaints");
+  const dEl = document.getElementById("patient-diagnosis");
+  const tEl = document.getElementById("patient-tests");
+  if (cEl) cEl.value = "";
+  if (dEl) dEl.value = "";
+  if (tEl) tEl.value = "";
 }
 
 function getShortCode(tokenNumber) {
-    if (tokenNumber === undefined || tokenNumber === null) return "--";
-    const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    let idx = (tokenNumber - 1) % 24;
-    if (idx < 0) idx += 24;
-    const letter = letters[idx];
-    return `${letter}-${tokenNumber}`;
+  if (tokenNumber === undefined || tokenNumber === null) return "--";
+  const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  let idx = (tokenNumber - 1) % 24;
+  if (idx < 0) idx += 24;
+  const letter = letters[idx];
+  return `${letter}-${tokenNumber}`;
 }
 
 async function loadQueue() {
-    if (!clinicId) return;
+  if (!clinicId) return;
 
-    try {
-        const response = await fetch(`/api/clinics/queue/${encodeURIComponent(clinicId)}`);
-        if (!response.ok) throw new Error("Queue request failed");
+  try {
+    const response = await fetch(
+      `/api/clinics/queue/${encodeURIComponent(clinicId)}`,
+    );
+    if (!response.ok) throw new Error("Queue request failed");
 
-        const data = await response.json();
-        doctorName.textContent = data.doctor_name || "Doctor";
-        clinicName.textContent = data.clinic_name || "Clinic";
+    const data = await response.json();
+    doctorName.textContent = data.doctor_name || "Doctor";
+    clinicName.textContent = data.clinic_name || "Clinic";
 
-        const waitingQueue = data.queue ? data.queue.filter(p => p.status === 'waiting') : [];
-        window.currentWaitingTokens = waitingQueue.map(p => p.local_token);
+    const waitingQueue = data.queue
+      ? data.queue.filter((p) => p.status === "waiting")
+      : [];
+    window.currentWaitingTokens = waitingQueue.map((p) => p.local_token);
 
-        const queueCountBadge = document.getElementById("queue-count");
-        if (queueCountBadge) queueCountBadge.textContent = `${waitingQueue.length} Waiting`;
+    const queueCountBadge = document.getElementById("queue-count");
+    if (queueCountBadge)
+      queueCountBadge.textContent = `${waitingQueue.length} Waiting`;
 
-        const queueList = document.getElementById("queue-list");
-        queueList.innerHTML = "";
+    const queueList = document.getElementById("queue-list");
+    queueList.innerHTML = "";
 
-        if (waitingQueue.length === 0) {
-            if (!currentLocalToken || !document.getElementById("current-token").innerHTML.includes("EDITING")) {
-                currentToken.textContent = "—";
-                currentLocalToken = null;
-            }
-            queueList.innerHTML = '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
-        } else {
-            waitingQueue.forEach((patient) => {
-                const shortCode = getShortCode(patient.daily_token_number);
-                const card = document.createElement("div");
-                card.dataset.token = patient.local_token;
-                card.className = `queue-card ${currentLocalToken === patient.local_token ? 'active' : ''}`;
-                card.style.cursor = "pointer";
+    if (waitingQueue.length === 0) {
+      const currentTokenElement = document.getElementById("current-token");
+      if (
+        (!currentLocalToken ||
+          !currentTokenElement ||
+          !currentTokenElement.innerHTML.includes("EDITING")) &&
+        currentTokenElement
+      ) {
+        currentTokenElement.textContent = "—";
+        currentLocalToken = null;
+      }
+      queueList.innerHTML =
+        '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
+    } else {
+      waitingQueue.forEach((patient) => {
+        const shortCode = getShortCode(patient.daily_token_number);
+        const card = document.createElement("div");
+        card.dataset.token = patient.local_token;
+        card.className = `queue-card ${currentLocalToken === patient.local_token ? "active" : ""}`;
+        card.style.cursor = "pointer";
 
-                let typeBadge = "";
-                if (patient.visit_type === "followup") typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
-                else if (patient.visit_type === "appointment") typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
-                else typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
+        let typeBadge = "";
+        if (patient.visit_type === "followup")
+          typeBadge = `<span style="font-size: 11px; background: #fef08a; color: #b45309; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Follow-up</span>`;
+        else if (patient.visit_type === "appointment")
+          typeBadge = `<span style="font-size: 11px; background: #e0e7ff; color: #0369a1; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Appointment</span>`;
+        else
+          typeBadge = `<span style="font-size: 11px; background: #f1f5f9; color: #64748b; padding: 2px 6px; border-radius: 4px; margin-left: 8px; font-weight: 800; text-transform: uppercase;">Walk-in</span>`;
 
-                let cityText = patient.city ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>` : "";
+        let cityText = patient.city
+          ? `<span style="font-size: 12px; color: var(--text-muted); font-weight: 500; margin-left: 6px;">(${patient.city})</span>`
+          : "";
 
-                card.innerHTML = `
+        card.innerHTML = `
                     <div class="token-number">#${shortCode}</div>
                     <div class="patient-details">
-                        <strong style="font-size: 16px;">${patient.patient_name || 'Patient'} ${cityText} ${typeBadge}</strong>
-                        <span>ID: ${patient.display_id || '--'}</span>
+                        <strong style="font-size: 16px;">${patient.patient_name || "Patient"} ${cityText} ${typeBadge}</strong>
+                        <span>ID: ${patient.display_id || "--"}</span>
                     </div>
                 `;
 
-                card.onclick = async () => {
-                    // 1. VISUAL LOCK: Create an overlay to physically block typing and show a massive loading state
-                    let overlay = document.getElementById('consultation-overlay');
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.id = 'consultation-overlay';
-                        overlay.style.cssText = 'position:absolute; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(4px); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:16px; font-size:20px; font-weight:800; color:var(--primary-color);';
-                        
-                        const consultCard = document.querySelector('.consultation-card');
-                        if (consultCard) {
-                            consultCard.style.position = 'relative';
-                            consultCard.appendChild(overlay);
-                        }
-                    }
-                    overlay.innerHTML = '<span style="font-size:32px; margin-bottom:10px;">⚡</span> Loading Patient Data...';
-                    overlay.style.display = 'flex';
+        card.onclick = async () => {
+          // 1. VISUAL LOCK: Create an overlay to physically block typing and show a massive loading state
+          let overlay = document.getElementById("consultation-overlay");
+          if (!overlay) {
+            overlay = document.createElement("div");
+            overlay.id = "consultation-overlay";
+            overlay.style.cssText =
+              "position:absolute; inset:0; background:rgba(255,255,255,0.85); backdrop-filter:blur(4px); z-index:50; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:16px; font-size:20px; font-weight:800; color:var(--primary-color);";
 
-                    // Visually update the left queue
-                    document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-                    card.classList.add('active');
-                    card.parentNode.prepend(card); 
+            const consultCard = document.querySelector(".consultation-card");
+            if (consultCard) {
+              consultCard.style.position = "relative";
+              consultCard.appendChild(overlay);
+            }
+          }
+          overlay.innerHTML =
+            '<span style="font-size:32px; margin-bottom:10px;">⚡</span> Loading Patient Data...';
+          overlay.style.display = "flex";
 
-                    currentLocalToken = patient.local_token;
-                    window.currentPatientName = patient.patient_name || 'Patient';
-                    window.currentDisplayId = patient.display_id || '--';
+          // Visually update the left queue
+          document
+            .querySelectorAll(".queue-card")
+            .forEach((c) => c.classList.remove("active"));
+          card.classList.add("active");
+          card.parentNode.prepend(card);
 
-                    document.getElementById("current-token").textContent = `#${shortCode}`;
+          currentLocalToken = patient.local_token;
+          window.currentPatientName = patient.patient_name || "Patient";
+          window.currentDisplayId = patient.display_id || "--";
 
-                    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
-                    const headerEyebrow = document.querySelector(".eyebrow");
-                    if(headerEyebrow) {
-                        headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+          if (currentToken) currentToken.textContent = `#${shortCode}`;
+
+          const activeCityText = patient.city
+            ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>`
+            : "";
+          const headerEyebrow = document.querySelector(".eyebrow");
+          if (headerEyebrow) {
+            headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
                         <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
-                    }
+          }
 
-                    // Clear form
-                    clearPrescription(); 
-                    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+          // Clear form
+          clearPrescription();
+          historyContent.innerHTML =
+            '<p class="text-muted text-sm">Fetching secure records...</p>';
 
-                    // Await both backend requests before unlocking the UI
-                    try {
-                        await Promise.all([
-                            fetch('/api/events/queue/top', {
-                                method: 'PUT',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ local_token: patient.local_token })
-                            }),
-                            loadHistory(currentLocalToken),
-                            fetchActiveVitals()
-                        ]);
-                    } catch(e) { console.error(e); }
+          // Await both backend requests before unlocking the UI
+          try {
+            await Promise.all([
+              fetch("/api/events/queue/top", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ local_token: patient.local_token }),
+              }),
+              loadHistory(currentLocalToken),
+              fetchActiveVitals(),
+            ]);
+          } catch (e) {
+            console.error(e);
+          }
 
-                    // Remove lock and set cursor
-                    overlay.style.display = 'none';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    const cEl = document.getElementById("patient-complaints");
-                    if(cEl) cEl.focus();
-                };
+          // Remove lock and set cursor
+          overlay.style.display = "none";
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          const cEl = document.getElementById("patient-complaints");
+          if (cEl) cEl.focus();
+        };
 
-                queueList.appendChild(card);
-            });
+        queueList.appendChild(card);
+      });
 
-            if (!currentLocalToken && waitingQueue.length > 0) {
-                const firstPatient = waitingQueue[0];
-                currentLocalToken = firstPatient.local_token;
-                currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
-                window.currentPatientName = firstPatient.patient_name || 'Patient';
-                window.currentDisplayId = firstPatient.display_id || '--';
+      if (!currentLocalToken && waitingQueue.length > 0) {
+        const firstPatient = waitingQueue[0];
+        currentLocalToken = firstPatient.local_token;
+        if (currentToken)
+          currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
+        window.currentPatientName = firstPatient.patient_name || "Patient";
+        window.currentDisplayId = firstPatient.display_id || "--";
 
-                const activeCityText = firstPatient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>` : "";
-                const headerEyebrow = document.querySelector(".eyebrow");
-                if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+        const activeCityText = firstPatient.city
+          ? ` <span style="font-size: 14px; color: var(--text-muted);">(${firstPatient.city})</span>`
+          : "";
+        const headerEyebrow = document.querySelector(".eyebrow");
+        if (headerEyebrow)
+          headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
                 <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
 
-                clearPrescription();
-                loadHistory(currentLocalToken);
-                const firstCard = queueList.firstChild;
-                if(firstCard) firstCard.classList.add('active');
-            }
-        }
+        clearPrescription();
+        loadHistory(currentLocalToken);
+        const firstCard = queueList.firstChild;
+        if (firstCard) firstCard.classList.add("active");
+      }
+    }
 
-        const completedQueue = data.queue ? data.queue.filter(p => p.status === 'completed') : [];
-        const completedList = document.getElementById("completed-list");
-        if (completedList) {
-            completedList.innerHTML = "";
-            if (completedQueue.length === 0) {
-                completedList.innerHTML = '<div class="queue-card text-muted" style="padding:16px; font-size:14px;">No completed patients</div>';
-            } else {
-                completedQueue.forEach((patient) => {
-                    const shortCode = getShortCode(patient.daily_token_number);
-                    const card = document.createElement("div");
-                    card.className = "queue-card";
-                    card.style.background = "#f8fafc";
-                    card.style.cursor = "default";
-                    card.innerHTML = `
+    const completedQueue = data.queue
+      ? data.queue.filter((p) => p.status === "completed")
+      : [];
+    const completedList = document.getElementById("completed-list");
+    if (completedList) {
+      completedList.innerHTML = "";
+      if (completedQueue.length === 0) {
+        completedList.innerHTML =
+          '<div class="queue-card text-muted" style="padding:16px; font-size:14px;">No completed patients</div>';
+      } else {
+        completedQueue.forEach((patient) => {
+          const shortCode = getShortCode(patient.daily_token_number);
+          const card = document.createElement("div");
+          card.className = "queue-card";
+          card.style.background = "#f8fafc";
+          card.style.cursor = "default";
+          card.innerHTML = `
                         <div class="token-number" style="color: #64748b; font-size: 18px;">#${shortCode}</div>
                         <div class="patient-details" style="flex: 1;">
-                            <strong style="font-size: 15px; color: #475569;">${patient.patient_name || 'Patient'}</strong>
+                            <strong style="font-size: 15px; color: #475569;">${patient.patient_name || "Patient"}</strong>
                             <span style="color: var(--success-color); font-size: 12px;">Completed</span>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
-                            <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${patient.patient_name || 'Patient'}', '${patient.display_id || '--'}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">✏️ Edit</button>
-                            <button onclick="rePrintRx('${patient.local_token}', '${patient.patient_name || 'Patient'}', '${patient.display_id || '--'}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">🖨️ Print</button>
+                            <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">✏️ Edit</button>
+                            <button onclick="rePrintRx('${patient.local_token}', '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">🖨️ Print</button>
                         </div>
                     `;
-                    completedList.appendChild(card);
-                });
-            }
-        }
-    } catch (error) {
-        console.error("Queue error:", error);
+          completedList.appendChild(card);
+        });
+      }
     }
+  } catch (error) {
+    console.error("Queue error:", error);
+  }
 }
 
 async function loadHistory(localToken) {
-    try {
-        const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
-        if (!response.ok) throw new Error("History request failed");
+  try {
+    const response = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}`,
+    );
+    if (!response.ok) throw new Error("History request failed");
 
-        const data = await response.json();
-        if (!data.history || data.history.length === 0) {
-            historyContent.innerHTML = '<p class="text-muted text-sm">No previous visits recorded.</p>';
-            return;
-        }
+    const data = await response.json();
+    if (!data.history || data.history.length === 0) {
+      historyContent.innerHTML =
+        '<p class="text-muted text-sm">No previous visits recorded.</p>';
+      return;
+    }
 
-        historyContent.innerHTML = "";
-        data.history.forEach((visit) => {
-            const date = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-            let historyHTML = "";
+    historyContent.innerHTML = "";
+    data.history.forEach((visit) => {
+      const date = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+      let historyHTML = "";
 
-            if(visit.complaints) historyHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>C/E:</strong> ${visit.complaints}</div>`;
-            if(visit.diagnosis) historyHTML += `<div style="margin-bottom:12px; font-size:13px; color:#0f172a;"><strong>Dx:</strong> ${visit.diagnosis}</div>`;
+      if (visit.complaints)
+        historyHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>C/E:</strong> ${visit.complaints}</div>`;
+      if (visit.diagnosis)
+        historyHTML += `<div style="margin-bottom:12px; font-size:13px; color:#0f172a;"><strong>Dx:</strong> ${visit.diagnosis}</div>`;
 
-            if(visit.prescriptions && visit.prescriptions.length > 0) {
-                historyHTML += `<div style="margin-top:10px; font-size:13px; color:#0f172a;"><strong>Rx:</strong><ul style="margin:5px 0; padding-left:20px;">`;
-                visit.prescriptions.forEach((rx) => {
-                    historyHTML += `<li style="margin-bottom: 4px;"><strong>${rx.name}</strong> <br><span class="text-muted" style="font-size:12px;">${rx.instructions || ""}</span></li>`;
-                });
-                historyHTML += "</ul></div>";
-            }
-            if(visit.tests_suggested) historyHTML += `<div style="margin-top:12px; font-size:13px; color:#0284c7;"><strong>Tests:</strong> ${visit.tests_suggested}</div>`;
+      if (visit.prescriptions && visit.prescriptions.length > 0) {
+        historyHTML += `<div style="margin-top:10px; font-size:13px; color:#0f172a;"><strong>Rx:</strong><ul style="margin:5px 0; padding-left:20px;">`;
+        visit.prescriptions.forEach((rx) => {
+          historyHTML += `<li style="margin-bottom: 4px;"><strong>${rx.name}</strong> <br><span class="text-muted" style="font-size:12px;">${rx.instructions || ""}</span></li>`;
+        });
+        historyHTML += "</ul></div>";
+      }
+      if (visit.tests_suggested)
+        historyHTML += `<div style="margin-top:12px; font-size:13px; color:#0284c7;"><strong>Tests:</strong> ${visit.tests_suggested}</div>`;
 
-            const card = document.createElement("details");
-            card.style.background = "#fff";
-            card.style.border = "1px solid #e2e8f0";
-            card.style.borderRadius = "8px";
-            card.style.padding = "12px";
-            card.style.marginBottom = "10px";
-            card.style.cursor = "pointer";
+      const card = document.createElement("details");
+      card.style.background = "#fff";
+      card.style.border = "1px solid #e2e8f0";
+      card.style.borderRadius = "8px";
+      card.style.padding = "12px";
+      card.style.marginBottom = "10px";
+      card.style.cursor = "pointer";
 
-            card.innerHTML = `
+      card.innerHTML = `
                 <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date}</summary>
                 <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; margin-top: 10px;">
                     ${historyHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
                 </div>
             `;
-            historyContent.appendChild(card);
-        });
-    } catch (error) {
-        console.error("History error:", error);
-    }
+      historyContent.appendChild(card);
+    });
+  } catch (error) {
+    console.error("History error:", error);
+  }
 }
 
-window.rePrintRx = async function(localToken, patientName, displayId) {
-    try {
-        const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
-        const data = await response.json();
-        if (!data.history || data.history.length === 0) return alert("No prescription found.");
+window.rePrintRx = async function (localToken, patientName, displayId) {
+  try {
+    const response = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}`,
+    );
+    const data = await response.json();
+    if (!data.history || data.history.length === 0)
+      return alert("No prescription found.");
 
-        const visit = data.history[0];
-        const today = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
-        document.getElementById("print-clinic-name").textContent = clinicName.textContent;
-        document.getElementById("print-doctor-name").textContent = doctorName.textContent;
-        document.getElementById("print-date").textContent = `Date: ${today}`;
-        document.getElementById("print-patient-name").innerHTML = `<strong>Name:</strong> ${patientName}`;
-        document.getElementById("print-patient-id").innerHTML = `<strong>Patient ID:</strong> ${displayId}`;
-
-        const printNotesContainer = document.getElementById("print-clinical-notes");
-        const printComplaints = document.getElementById("print-complaints");
-        const printDiagnosis = document.getElementById("print-diagnosis");
-        const printTests = document.getElementById("print-tests");
-
-        if (visit.complaints || visit.diagnosis) {
-            printNotesContainer.style.display = "block";
-            printComplaints.innerHTML = visit.complaints ? `<strong>C/E:</strong> ${visit.complaints}` : "";
-            printDiagnosis.innerHTML = visit.diagnosis ? `<strong>Diagnosis:</strong> ${visit.diagnosis}` : "";
-        } else {
-            printNotesContainer.style.display = "none";
-        }
-
-        if (visit.tests_suggested) {
-            printTests.style.display = "block";
-            printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
-        } else {
-            printTests.style.display = "none";
-        }
-
-        const printMedContainer = document.getElementById("print-medicines");
-        printMedContainer.innerHTML = "";
-        if(visit.prescriptions) {
-            visit.prescriptions.forEach(med => {
-                printMedContainer.innerHTML += `
-                    <div style="margin-bottom: 20px;">
-                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                        <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
-                    </div>
-                `;
-            });
-        }
-
-        document.body.className = "mode-rx";
-        window.print();
-        setTimeout(() => document.body.className = "dashboard-body", 1000);
-    } catch (e) {
-        alert("Failed to load prescription for printing.");
-    }
-};
-
-window.editRx = async function(localToken, tokenNumber, patientName, displayId) {
-    try {
-        const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
-        if (!response.ok) throw new Error("Server returned HTTP " + response.status);
-        const data = await response.json();
-        if (!data.history || data.history.length === 0) return alert("No history found to edit.");
-
-        const visit = data.history[0];
-        currentLocalToken = localToken;
-        window.currentPatientName = patientName || 'Patient';
-        window.currentDisplayId = displayId || '--';
-
-        document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
-        const currentTokenEl = document.getElementById("current-token");
-        if(currentTokenEl) currentTokenEl.innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
-
-        const headerEyebrow = document.querySelector(".eyebrow");
-        if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
-
-        const compEl = document.getElementById("patient-complaints");
-        if(compEl) compEl.value = visit.complaints || "";
-        const diagEl = document.getElementById("patient-diagnosis");
-        if(diagEl) diagEl.value = visit.diagnosis || "";
-        const testEl = document.getElementById("patient-tests");
-        if(testEl) testEl.value = visit.tests_suggested || "";
-
-        const rxContainer = document.getElementById("rx-container");
-        if (rxContainer) {
-            rxContainer.innerHTML = "";
-            if (visit.prescriptions && Array.isArray(visit.prescriptions) && visit.prescriptions.length > 0) {
-                visit.prescriptions.forEach(med => {
-                    addPrescriptionRow();
-                    const rows = rxContainer.querySelectorAll('.prescription-row');
-                    if (rows.length > 0) {
-                        const lastRow = rows[rows.length - 1];
-                        if (lastRow.querySelector('.rx-med')) lastRow.querySelector('.rx-med').value = med.name || "";
-
-                        let fullInstructions = med.instructions || "";
-                        let dosage = "", days = "", remarks = "";
-
-                        // Parse out the remarks if they exist
-                        if (fullInstructions.includes(" | ")) {
-                            const parts = fullInstructions.split(" | ");
-                            remarks = parts[1];
-                            fullInstructions = parts[0];
-                        }
-                        
-                        // Parse out the days if they exist
-                        if (fullInstructions.includes(" for ")) {
-                            const parts = fullInstructions.split(" for ");
-                            dosage = parts[0];
-                            days = parts[1];
-                        } else {
-                            dosage = fullInstructions;
-                        }
-
-                        if (lastRow.querySelector('.rx-dosage')) lastRow.querySelector('.rx-dosage').value = dosage || "";
-                        if (lastRow.querySelector('.rx-days')) lastRow.querySelector('.rx-days').value = days || "";
-                        if (lastRow.querySelector('.rx-remarks')) lastRow.querySelector('.rx-remarks').value = remarks || "";
-                        if (lastRow.querySelector('.rx-freq')) lastRow.querySelector('.rx-freq').value = med.instructions || "";
-                    }
-                });
-            } else {
-                addPrescriptionRow();
-            }
-        }
-
-        fetchActiveVitals();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    } catch(e) {
-        console.error("EditRx Error:", e);
-    }
-};
-
-document.getElementById('print-btn')?.addEventListener('click', completeVisit);
-
-async function completeVisit() {
-    if (!currentLocalToken || isSaving) return;
-    const medicines = [];
-
-    prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
-        const name = row.querySelector(".rx-med")?.value.trim() || "";
-        const instructions = row.querySelector(".rx-freq")?.value.trim() || "";
-        if (name) medicines.push({ name, instructions });
+    const visit = data.history[0];
+    const today = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
 
-    const complaints = document.getElementById("patient-complaints")?.value.trim() || "";
-    const diagnosis = document.getElementById("patient-diagnosis")?.value.trim() || "";
-    const tests_suggested = document.getElementById("patient-tests")?.value.trim() || "";
+    document.getElementById("print-clinic-name").textContent =
+      clinicName.textContent;
+    document.getElementById("print-doctor-name").textContent =
+      doctorName.textContent;
+    document.getElementById("print-date").textContent = `Date: ${today}`;
+    document.getElementById("print-patient-name").innerHTML =
+      `<strong>Name:</strong> ${patientName}`;
+    document.getElementById("print-patient-id").innerHTML =
+      `<strong>Patient ID:</strong> ${displayId}`;
 
-    if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
-        if (!confirm("No details have been entered. Complete this visit?")) return;
+    const printNotesContainer = document.getElementById("print-clinical-notes");
+    const printComplaints = document.getElementById("print-complaints");
+    const printDiagnosis = document.getElementById("print-diagnosis");
+    const printTests = document.getElementById("print-tests");
+
+    if (visit.complaints || visit.diagnosis) {
+      printNotesContainer.style.display = "block";
+      printComplaints.innerHTML = visit.complaints
+        ? `<strong>C/E:</strong> ${visit.complaints}`
+        : "";
+      printDiagnosis.innerHTML = visit.diagnosis
+        ? `<strong>Diagnosis:</strong> ${visit.diagnosis}`
+        : "";
+    } else {
+      printNotesContainer.style.display = "none";
     }
 
-    isSaving = true;
-    if (prescriptionStatus) {
-        prescriptionStatus.textContent = "Saving...";
-        prescriptionStatus.className = "badge badge-warning";
+    if (visit.tests_suggested) {
+      printTests.style.display = "block";
+      printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
+    } else {
+      printTests.style.display = "none";
     }
 
-    try {
-        const response = await fetch("/api/events/complete", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                local_token: currentLocalToken,
-                medicines: medicines,
-                complaints: complaints,
-                diagnosis: diagnosis,
-                tests_suggested: tests_suggested
-            })
-        });
-
-        if (!response.ok) throw new Error("Prescription save failed");
-
-        if (prescriptionStatus) {
-            prescriptionStatus.textContent = "Sent to WhatsApp";
-            prescriptionStatus.className = "badge badge-success";
-        }
-
-        const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-        
-        // Safe null-checked DOM assignments
-        const printClinic = document.getElementById("print-clinic-name");
-        if (printClinic) printClinic.textContent = clinicName ? clinicName.textContent : "Clinic";
-
-        const printDoc = document.getElementById("print-doctor-name");
-        if (printDoc) printDoc.textContent = doctorName ? doctorName.textContent : "Doctor";
-
-        const printDate = document.getElementById("print-date");
-        if (printDate) printDate.textContent = `Date: ${today}`;
-
-        const printPatient = document.getElementById("print-patient-name");
-        if (printPatient) printPatient.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || 'Patient'}`;
-
-        const printId = document.getElementById("print-patient-id");
-        if (printId) printId.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || '--'}`;
-
-        const printNotesContainer = document.getElementById("print-clinical-notes");
-        const printComplaints = document.getElementById("print-complaints");
-        const printDiagnosis = document.getElementById("print-diagnosis");
-        const printTests = document.getElementById("print-tests");
-
-        if (complaints || diagnosis) {
-            if (printNotesContainer) printNotesContainer.style.display = "block";
-            if (printComplaints) printComplaints.innerHTML = complaints ? `<strong>C/E:</strong> ${complaints}` : "";
-            if (printDiagnosis) printDiagnosis.innerHTML = diagnosis ? `<strong>Diagnosis:</strong> ${diagnosis}` : "";
-        } else {
-            if (printNotesContainer) printNotesContainer.style.display = "none";
-        }
-
-        if (tests_suggested) {
-            if (printTests) {
-                printTests.style.display = "block";
-                printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
-            }
-        } else {
-            if (printTests) printTests.style.display = "none";
-        }
-
-        const printMedContainer = document.getElementById("print-medicines");
-        if (printMedContainer) {
-            printMedContainer.innerHTML = "";
-            medicines.forEach(med => {
-                printMedContainer.innerHTML += `
+    const printMedContainer = document.getElementById("print-medicines");
+    printMedContainer.innerHTML = "";
+    if (visit.prescriptions) {
+      visit.prescriptions.forEach((med) => {
+        printMedContainer.innerHTML += `
                     <div style="margin-bottom: 20px;">
                         <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                        <span style="font-size: 14px; color: #444;">${med.instructions || ''}</span>
+                        <span style="font-size: 14px; color: #444;">${med.instructions || ""}</span>
                     </div>
                 `;
-            });
-        }
-
-        if (localStorage.getItem("tap2med_auto_print") === "true") {
-            document.body.className = "mode-rx";
-            window.print();
-            setTimeout(() => document.body.className = "dashboard-body", 1000);
-        }
-
-        currentLocalToken = null;
-        clearPrescription();
-        const headerEyebrow = document.querySelector(".eyebrow");
-        if (headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
-        const currentTokenEl = document.getElementById("current-token");
-        if (currentTokenEl) currentTokenEl.textContent = `#--`;
-        
-        await loadQueue();
-    } catch (error) {
-        console.error("Complete visit error:", error);
-        if (prescriptionStatus) {
-            prescriptionStatus.textContent = "Failed to Send";
-            prescriptionStatus.className = "badge badge-danger";
-        }
-        alert("The prescription could not be saved.");
-    } finally {
-        isSaving = false;
+      });
     }
+
+    document.body.className = "mode-rx";
+    window.print();
+    setTimeout(() => (document.body.className = "dashboard-body"), 1000);
+  } catch (e) {
+    alert("Failed to load prescription for printing.");
+  }
+};
+
+window.editRx = async function (
+  localToken,
+  tokenNumber,
+  patientName,
+  displayId,
+) {
+  try {
+    const response = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}`,
+    );
+    if (!response.ok)
+      throw new Error("Server returned HTTP " + response.status);
+    const data = await response.json();
+    if (!data.history || data.history.length === 0)
+      return alert("No history found to edit.");
+
+    const visit = data.history[0];
+    currentLocalToken = localToken;
+    window.currentPatientName = patientName || "Patient";
+    window.currentDisplayId = displayId || "--";
+
+    document
+      .querySelectorAll(".queue-card")
+      .forEach((c) => c.classList.remove("active"));
+    const currentTokenEl = document.getElementById("current-token");
+    if (currentTokenEl)
+      currentTokenEl.innerHTML = `#${getShortCode(tokenNumber)} <span style="font-size:12px; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">EDITING</span>`;
+
+    const headerEyebrow = document.querySelector(".eyebrow");
+    if (headerEyebrow)
+      headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong> (ID: ${window.currentDisplayId}) - <span style="color:#ef4444;">EDIT MODE</span>`;
+
+    const compEl = document.getElementById("patient-complaints");
+    if (compEl) compEl.value = visit.complaints || "";
+    const diagEl = document.getElementById("patient-diagnosis");
+    if (diagEl) diagEl.value = visit.diagnosis || "";
+    const testEl = document.getElementById("patient-tests");
+    if (testEl) testEl.value = visit.tests_suggested || "";
+
+    const rxContainer = document.getElementById("rx-container");
+    if (rxContainer) {
+      rxContainer.innerHTML = "";
+      if (
+        visit.prescriptions &&
+        Array.isArray(visit.prescriptions) &&
+        visit.prescriptions.length > 0
+      ) {
+        visit.prescriptions.forEach((med) => {
+          addPrescriptionRow();
+          const rows = rxContainer.querySelectorAll(".prescription-row");
+          if (rows.length > 0) {
+            const lastRow = rows[rows.length - 1];
+            if (lastRow.querySelector(".rx-med"))
+              lastRow.querySelector(".rx-med").value = med.name || "";
+
+            let fullInstructions = med.instructions || "";
+            let dosage = "",
+              days = "",
+              remarks = "";
+
+            // Parse out the remarks if they exist
+            if (fullInstructions.includes(" | ")) {
+              const parts = fullInstructions.split(" | ");
+              remarks = parts[1];
+              fullInstructions = parts[0];
+            }
+
+            // Parse out the days if they exist
+            if (fullInstructions.includes(" for ")) {
+              const parts = fullInstructions.split(" for ");
+              dosage = parts[0];
+              days = parts[1];
+            } else {
+              dosage = fullInstructions;
+            }
+
+            if (lastRow.querySelector(".rx-dosage"))
+              lastRow.querySelector(".rx-dosage").value = dosage || "";
+            if (lastRow.querySelector(".rx-days"))
+              lastRow.querySelector(".rx-days").value = days || "";
+            if (lastRow.querySelector(".rx-remarks"))
+              lastRow.querySelector(".rx-remarks").value = remarks || "";
+            if (lastRow.querySelector(".rx-freq"))
+              lastRow.querySelector(".rx-freq").value = med.instructions || "";
+          }
+        });
+      } else {
+        addPrescriptionRow();
+      }
+    }
+
+    fetchActiveVitals();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } catch (e) {
+    console.error("EditRx Error:", e);
+  }
+};
+
+document.getElementById("print-btn")?.addEventListener("click", completeVisit);
+
+async function completeVisit() {
+  if (!currentLocalToken || isSaving) return;
+  const medicines = [];
+
+  prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
+    const name = row.querySelector(".rx-med")?.value.trim() || "";
+    const instructions = row.querySelector(".rx-freq")?.value.trim() || "";
+    if (name) medicines.push({ name, instructions });
+  });
+
+  const complaints =
+    document.getElementById("patient-complaints")?.value.trim() || "";
+  const diagnosis =
+    document.getElementById("patient-diagnosis")?.value.trim() || "";
+  const tests_suggested =
+    document.getElementById("patient-tests")?.value.trim() || "";
+
+  if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
+    if (!confirm("No details have been entered. Complete this visit?")) return;
+  }
+
+  isSaving = true;
+  if (prescriptionStatus) {
+    prescriptionStatus.textContent = "Saving...";
+    prescriptionStatus.className = "badge badge-warning";
+  }
+
+  try {
+    const response = await fetch("/api/events/complete", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        local_token: currentLocalToken,
+        medicines: medicines,
+        complaints: complaints,
+        diagnosis: diagnosis,
+        tests_suggested: tests_suggested,
+      }),
+    });
+
+    if (!response.ok) throw new Error("Prescription save failed");
+
+    if (prescriptionStatus) {
+      prescriptionStatus.textContent = "Sent to WhatsApp";
+      prescriptionStatus.className = "badge badge-success";
+    }
+
+    const today = new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    // Safe null-checked DOM assignments
+    const printClinic = document.getElementById("print-clinic-name");
+    if (printClinic)
+      printClinic.textContent = clinicName ? clinicName.textContent : "Clinic";
+
+    const printDoc = document.getElementById("print-doctor-name");
+    if (printDoc)
+      printDoc.textContent = doctorName ? doctorName.textContent : "Doctor";
+
+    const printDate = document.getElementById("print-date");
+    if (printDate) printDate.textContent = `Date: ${today}`;
+
+    const printPatient = document.getElementById("print-patient-name");
+    if (printPatient)
+      printPatient.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || "Patient"}`;
+
+    const printId = document.getElementById("print-patient-id");
+    if (printId)
+      printId.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || "--"}`;
+
+    const printNotesContainer = document.getElementById("print-clinical-notes");
+    const printComplaints = document.getElementById("print-complaints");
+    const printDiagnosis = document.getElementById("print-diagnosis");
+    const printTests = document.getElementById("print-tests");
+
+    if (complaints || diagnosis) {
+      if (printNotesContainer) printNotesContainer.style.display = "block";
+      if (printComplaints)
+        printComplaints.innerHTML = complaints
+          ? `<strong>C/E:</strong> ${complaints}`
+          : "";
+      if (printDiagnosis)
+        printDiagnosis.innerHTML = diagnosis
+          ? `<strong>Diagnosis:</strong> ${diagnosis}`
+          : "";
+    } else {
+      if (printNotesContainer) printNotesContainer.style.display = "none";
+    }
+
+    if (tests_suggested) {
+      if (printTests) {
+        printTests.style.display = "block";
+        printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
+      }
+    } else {
+      if (printTests) printTests.style.display = "none";
+    }
+
+    const printMedContainer = document.getElementById("print-medicines");
+    if (printMedContainer) {
+      printMedContainer.innerHTML = "";
+      medicines.forEach((med) => {
+        printMedContainer.innerHTML += `
+                    <div style="margin-bottom: 20px;">
+                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
+                        <span style="font-size: 14px; color: #444;">${med.instructions || ""}</span>
+                    </div>
+                `;
+      });
+    }
+
+    if (localStorage.getItem("tap2med_auto_print") === "true") {
+      document.body.className = "mode-rx";
+      window.print();
+      setTimeout(() => (document.body.className = "dashboard-body"), 1000);
+    }
+
+    currentLocalToken = null;
+    clearPrescription();
+    const headerEyebrow = document.querySelector(".eyebrow");
+    if (headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
+    const currentTokenEl = document.getElementById("current-token");
+    if (currentTokenEl) currentTokenEl.textContent = `#--`;
+
+    await loadQueue();
+  } catch (error) {
+    console.error("Complete visit error:", error);
+    if (prescriptionStatus) {
+      prescriptionStatus.textContent = "Failed to Send";
+      prescriptionStatus.className = "badge badge-danger";
+    }
+    alert("The prescription could not be saved.");
+  } finally {
+    isSaving = false;
+  }
 }
 
 // QR Code Display & High-Res Standee Printing
-window.showQRCode = function() {
-    try {
-        const qrContainer = document.getElementById("dashboardQRCode");
-        const printContainer = document.getElementById("print-qr-target");
-        if (!qrContainer) return;
-        qrContainer.innerHTML = "";
-        if (printContainer) printContainer.innerHTML = "";
+window.showQRCode = function () {
+  try {
+    const qrContainer = document.getElementById("dashboardQRCode");
+    const printContainer = document.getElementById("print-qr-target");
+    if (!qrContainer) return;
+    qrContainer.innerHTML = "";
+    if (printContainer) printContainer.innerHTML = "";
 
-        if (!clinicId || clinicId === "undefined" || clinicId === "null") return;
-        const targetUrl = window.location.origin + "/scan?clinic=" + clinicId;
+    if (!clinicId || clinicId === "undefined" || clinicId === "null") return;
+    const targetUrl = window.location.origin + "/scan?clinic=" + clinicId;
 
-        new QRCode(qrContainer, { text: targetUrl, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.H });
-        if (printContainer) {
-            new QRCode(printContainer, { text: targetUrl, width: 380, height: 380, correctLevel: QRCode.CorrectLevel.H });
-        }
-        document.getElementById("print-qr-clinic-name").textContent = clinicName.textContent;
-        document.getElementById("qrModal").style.display = "flex";
-    } catch (error) {}
+    new QRCode(qrContainer, {
+      text: targetUrl,
+      width: 220,
+      height: 220,
+      correctLevel: QRCode.CorrectLevel.H,
+    });
+    if (printContainer) {
+      new QRCode(printContainer, {
+        text: targetUrl,
+        width: 380,
+        height: 380,
+        correctLevel: QRCode.CorrectLevel.H,
+      });
+    }
+    document.getElementById("print-qr-clinic-name").textContent =
+      clinicName.textContent;
+    document.getElementById("qrModal").style.display = "flex";
+  } catch (error) {}
 };
 
-window.printQRCode = function() {
-    document.body.className = "mode-qr";
-    window.print();
-    setTimeout(() => document.body.className = "dashboard-body", 1000);
+window.printQRCode = function () {
+  document.body.className = "mode-qr";
+  window.print();
+  setTimeout(() => (document.body.className = "dashboard-body"), 1000);
 };
 
 // Vitals Modal Logic
-window.openVitalsModal = async function() {
-    document.getElementById('vitals-modal').style.display = 'flex';
-    ['bp-sys', 'bp-dia', 'pr', 'wt', 'ht', 'temp', 'spo2', 'waist', 'hip'].forEach(id => {
-        document.getElementById(`vital-${id}`).value = '';
+window.openVitalsModal = async function () {
+  document.getElementById("vitals-modal").style.display = "flex";
+  [
+    "bp-sys",
+    "bp-dia",
+    "pr",
+    "wt",
+    "ht",
+    "temp",
+    "spo2",
+    "waist",
+    "hip",
+  ].forEach((id) => {
+    document.getElementById(`vital-${id}`).value = "";
+  });
+
+  try {
+    const res = await fetch(`/api/clinics/queue/${clinicId}`);
+    const data = await res.json();
+    const activePatient = data.queue.find(
+      (p) => p.local_token === currentLocalToken,
+    );
+
+    if (activePatient && activePatient.vitals) {
+      const v = activePatient.vitals;
+      document.getElementById("vital-bp-sys").value = v.bp_sys || "";
+      document.getElementById("vital-bp-dia").value = v.bp_dia || "";
+      document.getElementById("vital-pr").value = v.pr || "";
+      document.getElementById("vital-wt").value = v.wt || "";
+      document.getElementById("vital-ht").value = v.ht || "";
+      document.getElementById("vital-temp").value = v.temp || "";
+      document.getElementById("vital-spo2").value = v.spo2 || "";
+      document.getElementById("vital-waist").value = v.waist || "";
+      document.getElementById("vital-hip").value = v.hip || "";
+    }
+  } catch (e) {}
+};
+
+window.closeVitalsModal = function () {
+  document.getElementById("vitals-modal").style.display = "none";
+};
+
+window.submitVitals = async function () {
+  const payload = {
+    bp_sys: document.getElementById("vital-bp-sys").value.trim() || null,
+    bp_dia: document.getElementById("vital-bp-dia").value.trim() || null,
+    pr: document.getElementById("vital-pr").value.trim() || null,
+    wt: document.getElementById("vital-wt").value.trim() || null,
+    ht: document.getElementById("vital-ht").value.trim() || null,
+    temp: document.getElementById("vital-temp").value.trim() || null,
+    spo2: document.getElementById("vital-spo2").value.trim() || null,
+    waist: document.getElementById("vital-waist").value.trim() || null,
+    hip: document.getElementById("vital-hip").value.trim() || null,
+  };
+
+  try {
+    const res = await fetch(`/api/clinics/queue/${clinicId}`);
+    const data = await res.json();
+    const activePatient = data.queue.find(
+      (p) => p.local_token === currentLocalToken,
+    );
+    payload.is_paid =
+      activePatient && activePatient.vitals && activePatient.vitals.is_paid
+        ? true
+        : false;
+
+    await fetch("/api/events/vitals", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ local_token: currentLocalToken, vitals: payload }),
     });
 
-    try {
-        const res = await fetch(`/api/clinics/queue/${clinicId}`);
-        const data = await res.json();
-        const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
-
-        if (activePatient && activePatient.vitals) {
-            const v = activePatient.vitals;
-            document.getElementById('vital-bp-sys').value = v.bp_sys || '';
-            document.getElementById('vital-bp-dia').value = v.bp_dia || '';
-            document.getElementById('vital-pr').value = v.pr || '';
-            document.getElementById('vital-wt').value = v.wt || '';
-            document.getElementById('vital-ht').value = v.ht || '';
-            document.getElementById('vital-temp').value = v.temp || '';
-            document.getElementById('vital-spo2').value = v.spo2 || '';
-            document.getElementById('vital-waist').value = v.waist || '';
-            document.getElementById('vital-hip').value = v.hip || '';
-        }
-    } catch (e) {}
-};
-
-window.closeVitalsModal = function() {
-    document.getElementById('vitals-modal').style.display = 'none';
-};
-
-window.submitVitals = async function() {
-    const payload = {
-        bp_sys: document.getElementById('vital-bp-sys').value.trim() || null,
-        bp_dia: document.getElementById('vital-bp-dia').value.trim() || null,
-        pr: document.getElementById('vital-pr').value.trim() || null,
-        wt: document.getElementById('vital-wt').value.trim() || null,
-        ht: document.getElementById('vital-ht').value.trim() || null,
-        temp: document.getElementById('vital-temp').value.trim() || null,
-        spo2: document.getElementById('vital-spo2').value.trim() || null,
-        waist: document.getElementById('vital-waist').value.trim() || null,
-        hip: document.getElementById('vital-hip').value.trim() || null
-    };
-
-    try {
-        const res = await fetch(`/api/clinics/queue/${clinicId}`);
-        const data = await res.json();
-        const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
-        payload.is_paid = (activePatient && activePatient.vitals && activePatient.vitals.is_paid) ? true : false;
-
-        await fetch("/api/events/vitals", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_token: currentLocalToken, vitals: payload })
-        });
-
-        closeVitalsModal();
-        fetchActiveVitals();
-    } catch (e) {
-        alert("Failed to save vitals.");
-    }
+    closeVitalsModal();
+    fetchActiveVitals();
+  } catch (e) {
+    alert("Failed to save vitals.");
+  }
 };
 
 async function fetchActiveVitals() {
-    if (!currentLocalToken) return;
-    try {
-        const res = await fetch(`/api/clinics/queue/${clinicId}`);
-        const data = await res.json();
-        const activePatient = data.queue.find(p => p.local_token === currentLocalToken);
-        const display = document.getElementById('doctor-vitals-display');
+  if (!currentLocalToken) return;
+  try {
+    const res = await fetch(`/api/clinics/queue/${clinicId}`);
+    const data = await res.json();
+    const activePatient = data.queue.find(
+      (p) => p.local_token === currentLocalToken,
+    );
+    const display = document.getElementById("doctor-vitals-display");
 
-        if (activePatient && activePatient.vitals) {
-            const v = activePatient.vitals;
-            let compiled = [];
-            if (v.bp_sys && v.bp_dia) compiled.push(`BP: ${v.bp_sys}/${v.bp_dia}`);
-            if (v.pr) compiled.push(`PR: ${v.pr} bpm`);
-            if (v.wt) compiled.push(`Wt: ${v.wt} kg`);
-            if (v.ht) compiled.push(`Ht: ${v.ht} cm`);
-            if (v.temp) compiled.push(`T: ${v.temp} °F`);
-            if (v.spo2) compiled.push(`SpO2: ${v.spo2}%`);
-            
-            const displayWeight = compiled.join(' | ');
-            if (displayWeight) {
-                display.style.display = 'block';
-                display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${displayWeight}</span>`;
-            } else {
-                display.style.display = 'none';
-            }
-        } else {
-            display.style.display = 'none';
-        }
-    } catch (e) {}
+    if (activePatient && activePatient.vitals) {
+      const v = activePatient.vitals;
+      let compiled = [];
+      if (v.bp_sys && v.bp_dia) compiled.push(`BP: ${v.bp_sys}/${v.bp_dia}`);
+      if (v.pr) compiled.push(`PR: ${v.pr} bpm`);
+      if (v.wt) compiled.push(`Wt: ${v.wt} kg`);
+      if (v.ht) compiled.push(`Ht: ${v.ht} cm`);
+      if (v.temp) compiled.push(`T: ${v.temp} °F`);
+      if (v.spo2) compiled.push(`SpO2: ${v.spo2}%`);
+
+      const displayWeight = compiled.join(" | ");
+      if (displayWeight) {
+        display.style.display = "block";
+        display.innerHTML = `<strong style="color: #475569;">Recorded Vitals:</strong> <span style="color: var(--primary-color); font-weight: 600;">${displayWeight}</span>`;
+      } else {
+        display.style.display = "none";
+      }
+    } else {
+      display.style.display = "none";
+    }
+  } catch (e) {}
 }
 
 // --- EXPANDED LAB FLOWSHEET ENGINE ---
 const ALL_LAB_KEYS = [
-    'hba1c', 'fbs', 'ppbs', 'rbs',
-    'tsh', 'ft3', 'ft4',
-    'creat', 'urea', 'uric', 'egfr',
-    'sgot', 'sgpt', 'bili', 'alp',
-    'chol', 'tg', 'hdl', 'ldl',
-    'hb', 'wbc', 'plt', 'esr',
-    'vitd', 'b12', 'cal'
+  "hba1c",
+  "fbs",
+  "ppbs",
+  "rbs",
+  "tsh",
+  "ft3",
+  "ft4",
+  "creat",
+  "urea",
+  "uric",
+  "egfr",
+  "sgot",
+  "sgpt",
+  "bili",
+  "alp",
+  "chol",
+  "tg",
+  "hdl",
+  "ldl",
+  "hb",
+  "wbc",
+  "plt",
+  "esr",
+  "vitd",
+  "b12",
+  "cal",
 ];
 
-window.openLabsModal = async function() {
-    if (!currentLocalToken) return alert("Please select a patient first.");
-    document.getElementById("lab-modal-patient-name").textContent = window.currentPatientName || "Patient";
-    document.getElementById("lab-local-token").value = currentLocalToken;
-    document.getElementById("labs-modal").style.display = "flex";
-    
-    const today = new Date().toLocaleDateString('en-CA');
-    document.getElementById("lab-date").value = today;
-    await fetchLabData(currentLocalToken);
+window.openLabsModal = async function () {
+  if (!currentLocalToken) return alert("Please select a patient first.");
+  document.getElementById("lab-modal-patient-name").textContent =
+    window.currentPatientName || "Patient";
+  document.getElementById("lab-local-token").value = currentLocalToken;
+  document.getElementById("labs-modal").style.display = "flex";
+
+  const today = new Date().toLocaleDateString("en-CA");
+  document.getElementById("lab-date").value = today;
+  await fetchLabData(currentLocalToken);
 };
 
-window.closeLabsModal = function() {
-    document.getElementById("labs-modal").style.display = "none";
+window.closeLabsModal = function () {
+  document.getElementById("labs-modal").style.display = "none";
 };
 
 async function fetchLabData(token) {
-    try {
-        const res = await fetch(`/api/events/labs/${token}`);
-        const data = await res.json();
-        patientLabData = data.labs || [];
-        populateLabInputsForDate(document.getElementById("lab-date").value);
-        updateChart();
-    } catch (e) {
-        console.error("Failed to load labs", e);
-    }
+  try {
+    const res = await fetch(`/api/events/labs/${token}`);
+    const data = await res.json();
+    patientLabData = data.labs || [];
+    populateLabInputsForDate(document.getElementById("lab-date").value);
+    updateChart();
+  } catch (e) {
+    console.error("Failed to load labs", e);
+  }
 }
 
-window.populateLabInputsForDate = function(dateStr) {
-    ALL_LAB_KEYS.forEach(id => {
+window.populateLabInputsForDate = function (dateStr) {
+  ALL_LAB_KEYS.forEach((id) => {
+    const el = document.getElementById(`lab-${id}`);
+    if (el) {
+      el.value = "";
+      checkRange(el, el.getAttribute("data-min"), el.getAttribute("data-max"));
+    }
+  });
+
+  const record = patientLabData.find((l) => l.test_date === dateStr);
+  if (record && record.results) {
+    ALL_LAB_KEYS.forEach((id) => {
+      if (record.results[id] !== undefined) {
         const el = document.getElementById(`lab-${id}`);
-        if(el) {
-            el.value = "";
-            checkRange(el, el.getAttribute('data-min'), el.getAttribute('data-max'));
+        if (el) {
+          el.value = record.results[id];
+          checkRange(
+            el,
+            el.getAttribute("data-min"),
+            el.getAttribute("data-max"),
+          );
         }
+      }
     });
-    
-    const record = patientLabData.find(l => l.test_date === dateStr);
-    if (record && record.results) {
-        ALL_LAB_KEYS.forEach(id => {
-            if (record.results[id] !== undefined) {
-                const el = document.getElementById(`lab-${id}`);
-                if(el) {
-                    el.value = record.results[id];
-                    checkRange(el, el.getAttribute('data-min'), el.getAttribute('data-max'));
-                }
-            }
-        });
-    }
+  }
 };
 
-window.saveLabs = async function() {
-    const localToken = document.getElementById("lab-local-token").value;
-    const dateStr = document.getElementById("lab-date").value;
-    if (!dateStr) return alert("Please select a date.");
-    
-    const results = {};
-    ALL_LAB_KEYS.forEach(id => {
-        const el = document.getElementById(`lab-${id}`);
-        if(el && el.value.trim() !== '') results[id] = el.value.trim();
+window.saveLabs = async function () {
+  const localToken = document.getElementById("lab-local-token").value;
+  const dateStr = document.getElementById("lab-date").value;
+  if (!dateStr) return alert("Please select a date.");
+
+  const results = {};
+  ALL_LAB_KEYS.forEach((id) => {
+    const el = document.getElementById(`lab-${id}`);
+    if (el && el.value.trim() !== "") results[id] = el.value.trim();
+  });
+
+  const payload = {
+    local_token: localToken,
+    lab_record: { test_date: dateStr, results: results },
+  };
+
+  try {
+    const btn = document.querySelector("#labs-modal .btn-primary");
+    const originalText = btn.textContent;
+    btn.textContent = "Saving...";
+    await fetch("/api/events/labs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
     });
-    
-    const payload = { local_token: localToken, lab_record: { test_date: dateStr, results: results } };
-    
-    try {
-        const btn = document.querySelector("#labs-modal .btn-primary");
-        const originalText = btn.textContent;
-        btn.textContent = "Saving...";
-        await fetch("/api/events/labs", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-        await fetchLabData(localToken);
-        btn.textContent = "Saved ✓";
-        setTimeout(() => btn.textContent = originalText, 2000);
-    } catch(e) {
-        alert("Failed to save labs.");
-    }
+    await fetchLabData(localToken);
+    btn.textContent = "Saved ✓";
+    setTimeout(() => (btn.textContent = originalText), 2000);
+  } catch (e) {
+    alert("Failed to save labs.");
+  }
 };
 
-window.checkRange = function(input, minStr, maxStr) {
-    if (!minStr || !maxStr) return;
-    const min = parseFloat(minStr);
-    const max = parseFloat(maxStr);
-    const val = parseFloat(input.value);
-    
-    if (!isNaN(val)) {
-        if (val < min || val > max) input.classList.add("lab-input-abnormal");
-        else input.classList.remove("lab-input-abnormal");
-    } else {
-        input.classList.remove("lab-input-abnormal");
-    }
+window.checkRange = function (input, minStr, maxStr) {
+  if (!minStr || !maxStr) return;
+  const min = parseFloat(minStr);
+  const max = parseFloat(maxStr);
+  const val = parseFloat(input.value);
+
+  if (!isNaN(val)) {
+    if (val < min || val > max) input.classList.add("lab-input-abnormal");
+    else input.classList.remove("lab-input-abnormal");
+  } else {
+    input.classList.remove("lab-input-abnormal");
+  }
 };
 
-window.updateChart = function() {
-    const select = document.getElementById("chart-parameter");
-    const param = select.value;
-    const paramLabel = select.options[select.selectedIndex].text;
-    
-    const filteredData = patientLabData.filter(l => l.results && l.results[param] !== undefined && l.results[param] !== "");
-    const labels = filteredData.map(l => new Date(l.test_date).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "2-digit" }));
-    const dataPoints = filteredData.map(l => parseFloat(l.results[param]));
-    
-    if (labChartInstance) labChartInstance.destroy();
-    const ctx = document.getElementById('labChart');
-    if(!ctx || typeof Chart === 'undefined') return;
+window.updateChart = function () {
+  const select = document.getElementById("chart-parameter");
+  const param = select.value;
+  const paramLabel = select.options[select.selectedIndex].text;
 
-    labChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: paramLabel,
-                data: dataPoints,
-                borderColor: '#0284c7', 
-                backgroundColor: 'rgba(2, 132, 199, 0.1)',
-                borderWidth: 3,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#0284c7',
-                pointRadius: 5,
-                pointHoverRadius: 7,
-                fill: true,
-                tension: 0.3
-            }]
+  const filteredData = patientLabData.filter(
+    (l) =>
+      l.results && l.results[param] !== undefined && l.results[param] !== "",
+  );
+  const labels = filteredData.map((l) =>
+    new Date(l.test_date).toLocaleDateString("en-IN", {
+      month: "short",
+      day: "numeric",
+      year: "2-digit",
+    }),
+  );
+  const dataPoints = filteredData.map((l) => parseFloat(l.results[param]));
+
+  if (labChartInstance) labChartInstance.destroy();
+  const ctx = document.getElementById("labChart");
+  if (!ctx || typeof Chart === "undefined") return;
+
+  labChartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: paramLabel,
+          data: dataPoints,
+          borderColor: "#0284c7",
+          backgroundColor: "rgba(2, 132, 199, 0.1)",
+          borderWidth: 3,
+          pointBackgroundColor: "#fff",
+          pointBorderColor: "#0284c7",
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          fill: true,
+          tension: 0.3,
         },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(context) { return context.parsed.y + " " + paramLabel; } } } },
-            scales: { y: { beginAtZero: false, grid: { borderDash: [4, 4] } }, x: { grid: { display: false } } }
-        }
-    });
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return context.parsed.y + " " + paramLabel;
+            },
+          },
+        },
+      },
+      scales: {
+        y: { beginAtZero: false, grid: { borderDash: [4, 4] } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
 };
 
-window.checkRange = function(input) {
-    const val = parseFloat(input.value);
-    if (isNaN(val)) {
-        input.classList.remove("lab-input-abnormal");
-        return;
-    }
-    
-    const min = parseFloat(input.getAttribute('data-min'));
-    const max = parseFloat(input.getAttribute('data-max'));
+window.checkRange = function (input) {
+  const val = parseFloat(input.value);
+  if (isNaN(val)) {
+    input.classList.remove("lab-input-abnormal");
+    return;
+  }
 
-    let isAbnormal = false;
-    if (!isNaN(min) && val < min) isAbnormal = true;
-    if (!isNaN(max) && val > max) isAbnormal = true;
+  const min = parseFloat(input.getAttribute("data-min"));
+  const max = parseFloat(input.getAttribute("data-max"));
 
-    if (isAbnormal) {
-        input.classList.add("lab-input-abnormal");
-    } else {
-        input.classList.remove("lab-input-abnormal");
-    }
+  let isAbnormal = false;
+  if (!isNaN(min) && val < min) isAbnormal = true;
+  if (!isNaN(max) && val > max) isAbnormal = true;
+
+  if (isAbnormal) {
+    input.classList.add("lab-input-abnormal");
+  } else {
+    input.classList.remove("lab-input-abnormal");
+  }
 };
 
 loadQueue();
