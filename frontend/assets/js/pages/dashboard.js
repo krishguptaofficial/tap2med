@@ -173,43 +173,53 @@ async function loadQueue() {
                 `;
 
                 card.onclick = async () => {
-                    // 1. VISUAL "HARD REFRESH" FLASH EFFECT
-                    const rightPane = document.querySelector('.consultation-card');
-                    if (rightPane) rightPane.style.opacity = '0.3'; 
-
+                    // 1. VISUAL SNAP & LOCK
                     document.querySelectorAll('.queue-card').forEach(c => c.classList.remove('active'));
                     card.classList.add('active');
+
+                    // Visually jump the card to the top of the Doctor's list immediately
+                    card.parentNode.prepend(card);
 
                     currentLocalToken = patient.local_token;
                     window.currentPatientName = patient.patient_name || 'Patient';
                     window.currentDisplayId = patient.display_id || '--';
 
                     document.getElementById("current-token").textContent = `#${shortCode}`;
-
-                    const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+                    
+                    // Replace the header instantly to prove switch is happening
                     const headerEyebrow = document.querySelector(".eyebrow");
-                    if(headerEyebrow) headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
-                    <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+                    if(headerEyebrow) {
+                        headerEyebrow.innerHTML = `<span style="color:var(--warning-color); font-weight: 800;">⚡ Switching Patient...</span>`;
+                    }
 
+                    // Hard clear the prescription pad instantly
                     clearPrescription(); 
-                    historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
-                    loadHistory(currentLocalToken);
-                    fetchActiveVitals();
+                    historyContent.innerHTML = '<p class="text-muted text-sm" style="color: var(--warning-color); font-weight: 600;">Locking secure records...</p>';
 
-                    // Flash UI back in to signify successful refresh
-                    setTimeout(() => { if (rightPane) rightPane.style.opacity = '1'; }, 150);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    // Wait 300ms to let the UI breathe and feel like a true reset
+                    setTimeout(async () => {
+                        const activeCityText = patient.city ? ` <span style="font-size: 14px; color: var(--text-muted);">(${patient.city})</span>` : "";
+                        if(headerEyebrow) {
+                            headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${window.currentPatientName}</strong>${activeCityText} (ID: ${window.currentDisplayId})
+                            <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
+                        }
+                        
+                        historyContent.innerHTML = '<p class="text-muted text-sm">Fetching secure records...</p>';
+                        loadHistory(currentLocalToken);
+                        fetchActiveVitals();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
 
-                    // 2. BACKGROUND BUMP & REDRAW
-                    try {
-                        await fetch('/api/events/queue/top', {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ local_token: patient.local_token })
-                        });
-                        // Hard-refresh the left queue immediately to show new order
-                        await loadQueue();
-                    } catch(e) { console.error(e); }
+                        // Silently notify the backend to bump this patient to position 0 
+                        // so the Staff dashboard syncs instantly without blocking the doctor.
+                        try {
+                            await fetch('/api/events/queue/top', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ local_token: patient.local_token })
+                            });
+                            loadQueue(); // Refresh left sidebar silently
+                        } catch(e) { console.error(e); }
+                    }, 300);
                 };
 
                 queueList.appendChild(card);
