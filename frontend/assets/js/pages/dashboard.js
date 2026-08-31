@@ -46,6 +46,14 @@ const sidebar = document.getElementById("clinicSidebar");
 const sidebarBackdrop = document.getElementById("sidebar-backdrop");
 const menuToggleBtn = document.getElementById("sidebarToggle");
 
+function setPrescriptionStatus(message, tone = "warning") {
+  if (!prescriptionStatus) return;
+  const allowedTones = ["warning", "success", "danger", "info"];
+  const safeTone = allowedTones.includes(tone) ? tone : "warning";
+  prescriptionStatus.textContent = message;
+  prescriptionStatus.className = `badge badge-${safeTone}`;
+}
+
 window.currentWaitingTokens = [];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -108,7 +116,7 @@ window.addPrescriptionRow = function () {
 };
 
 function clearPrescription() {
-  prescriptionList.innerHTML = "";
+  if (prescriptionList) prescriptionList.innerHTML = "";
   addPrescriptionRow();
   const cEl = document.getElementById("patient-complaints");
   const dEl = document.getElementById("patient-diagnosis");
@@ -116,6 +124,7 @@ function clearPrescription() {
   if (cEl) cEl.value = "";
   if (dEl) dEl.value = "";
   if (tEl) tEl.value = "";
+  setPrescriptionStatus("Waiting...", "warning");
 }
 
 function getShortCode(tokenNumber) {
@@ -183,6 +192,7 @@ async function loadQueue() {
         currentTokenElement.textContent = "—";
         currentLocalToken = null;
       }
+      setPrescriptionStatus("Waiting...", "warning");
       queueList.innerHTML =
         '<div class="queue-card text-muted" style="padding:16px;">No patients waiting</div>';
     } else {
@@ -242,6 +252,7 @@ async function loadQueue() {
           currentLocalToken = patient.local_token;
           window.currentPatientName = patient.patient_name || "Patient";
           window.currentDisplayId = patient.display_id || "--";
+          setPrescriptionStatus("Loading...", "info");
 
           if (currentToken) currentToken.textContent = `#${shortCode}`;
 
@@ -284,6 +295,7 @@ async function loadQueue() {
       if (!currentLocalToken && waitingQueue.length > 0) {
         const firstPatient = waitingQueue[0];
         currentLocalToken = firstPatient.local_token;
+        setPrescriptionStatus("Waiting...", "warning");
         if (currentToken)
           currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
         window.currentPatientName = firstPatient.patient_name || "Patient";
@@ -488,6 +500,7 @@ window.editRx = async function (
     currentLocalToken = localToken;
     window.currentPatientName = patientName || "Patient";
     window.currentDisplayId = displayId || "--";
+    setPrescriptionStatus("Editing...", "info");
 
     document
       .querySelectorAll(".queue-card")
@@ -592,10 +605,7 @@ async function completeVisit() {
   }
 
   isSaving = true;
-  if (prescriptionStatus) {
-    prescriptionStatus.textContent = "Saving...";
-    prescriptionStatus.className = "badge badge-warning";
-  }
+  setPrescriptionStatus("Saving...", "warning");
 
   try {
     const response = await fetch("/api/events/complete", {
@@ -612,10 +622,7 @@ async function completeVisit() {
 
     if (!response.ok) throw new Error("Prescription save failed");
 
-    if (prescriptionStatus) {
-      prescriptionStatus.textContent = "Sent to WhatsApp";
-      prescriptionStatus.className = "badge badge-success";
-    }
+    setPrescriptionStatus("Sent to WhatsApp", "success");
 
     const today = new Date().toLocaleDateString("en-IN", {
       day: "numeric",
@@ -700,10 +707,7 @@ async function completeVisit() {
     await loadQueue();
   } catch (error) {
     console.error("Complete visit error:", error);
-    if (prescriptionStatus) {
-      prescriptionStatus.textContent = "Failed to Send";
-      prescriptionStatus.className = "badge badge-danger";
-    }
+    setPrescriptionStatus("Failed to Send", "danger");
     alert("The prescription could not be saved.");
   } finally {
     isSaving = false;
