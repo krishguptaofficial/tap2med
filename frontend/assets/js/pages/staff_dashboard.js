@@ -14,6 +14,12 @@ function logout() {
   window.location.href = "/staff-login";
 }
 
+function clampMemberId(value) {
+  const cleaned = Number.parseInt(value, 10);
+  if (Number.isNaN(cleaned)) return 1;
+  return Math.min(100, Math.max(1, cleaned));
+}
+
 function getShortCode(tokenNumber) {
   if (tokenNumber === undefined || tokenNumber === null) return "--";
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
