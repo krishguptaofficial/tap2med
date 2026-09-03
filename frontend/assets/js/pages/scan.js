@@ -77,6 +77,7 @@ function renderMemberList() {
         .querySelectorAll(".member-row")
         .forEach((row) => row.classList.remove("selected"));
       btn.classList.add("selected");
+      loadSelectedMember();
     });
     list.appendChild(btn);
   });
@@ -89,6 +90,50 @@ function renderMemberList() {
     showScreen("screen-add-member");
   });
   list.appendChild(addMember);
+}
+
+async function loadSelectedMember() {
+  const nameInput = document.getElementById("patient-name-input");
+  const cityInput = document.getElementById("patient-city-input");
+  const ageInput = document.getElementById("patient-age-input");
+
+  if (!currentSessionPhone || selectedMemberId === null) return;
+  if (nameInput) {
+    nameInput.value = "";
+    nameInput.placeholder = "Loading...";
+  }
+  if (cityInput) cityInput.value = "";
+  if (ageInput) ageInput.value = "";
+  showScreen("screen-details");
+
+  try {
+    const response = await fetch("/api/events/lookup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        phone: currentSessionPhone,
+        member_id: selectedMemberId,
+        clinic_id: scannedClinicId,
+      }),
+    });
+    if (response.ok) {
+      const data = await response.json();
+      if (data.found) {
+        if (nameInput) nameInput.value = data.patient_name || "";
+        if (cityInput) cityInput.value = data.city || "";
+        if (ageInput)
+          ageInput.value =
+            data.age !== undefined && data.age !== null ? String(data.age) : "";
+      }
+    }
+  } catch (error) {
+    console.error("Patient lookup failed", error);
+  } finally {
+    if (nameInput) {
+      nameInput.placeholder = "Full Name";
+      nameInput.focus();
+    }
+  }
 }
 
 document.getElementById("save-member-btn")?.addEventListener("click", () => {
