@@ -89,6 +89,11 @@ def serve_directory():
     logger.info("Directory Opened")
     return FileResponse("frontend/clinic/directory.html")
 
+@app.get("/staff-directory")
+def serve_staff_directory():
+    logger.info("Staff Directory Opened")
+    return FileResponse("frontend/clinic/directory.html")
+
 @app.get("/scan")
 def serve_patient_scan():
     logger.info("Scan Page Opened")

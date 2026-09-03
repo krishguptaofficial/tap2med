@@ -202,10 +202,69 @@
       </div>
     </div>
 
+    <div
+      id="record-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1100;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      "
+    >
+      <div
+        style="
+          background: white;
+          width: 100%;
+          max-width: 520px;
+          max-height: 90vh;
+          overflow: auto;
+          border-radius: 16px;
+          padding: 24px;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+          "
+        >
+          <h3
+            id="record-modal-title"
+            style="margin: 0; color: var(--primary-color)"
+          >
+            Patient Records
+          </h3>
+          <button
+            type="button"
+            onclick="closeRecordModal()"
+            style="
+              border: 0;
+              background: none;
+              font-size: 24px;
+              cursor: pointer;
+            "
+          >
+            &times;
+          </button>
+        </div>
+        <div id="record-modal-body"></div>
+      </div>
+    </div>
+
     <script>
       const clinicId = localStorage.getItem("tap2med_clinic_id");
       const staffRole = localStorage.getItem("tap2med_staff_role");
-      const isStaff = staffRole === "staff";
+      const isStaffRoute = window.location.pathname === "/staff-directory";
+      if (staffRole === "staff" && !isStaffRoute) {
+        window.location.replace("/staff-directory");
+      }
+      const isStaff = isStaffRoute;
       if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
 
       if (isStaff) {
@@ -219,6 +278,7 @@
       }
 
       let activeHistoryVisits = [];
+      let activeRecordToken = null;
 
       document.getElementById("date-filter").valueAsDate = new Date();
 
@@ -263,7 +323,11 @@
                               <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Visit Logged: ${checkInTime}</span>
                           </div>
                       </div>
-                      <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
+                      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                        <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
+                        <button onclick="openVitalsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">❤️ Vitals</button>
+                        <button onclick="openLabsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">🧪 Labs</button>
+                      </div>
                   `;
             resultsContainer.appendChild(card);
           });
@@ -417,6 +481,111 @@
               <p><span class="label">Status:</span> Paid</p>
             `,
         );
+      };
+
+      function closeRecordModal() {
+        document.getElementById("record-modal").style.display = "none";
+      }
+
+      function showRecordModal(title, body) {
+        document.getElementById("record-modal-title").textContent = title;
+        document.getElementById("record-modal-body").innerHTML = body;
+        document.getElementById("record-modal").style.display = "flex";
+      }
+
+      window.openVitalsEditor = function (localToken, patientName) {
+        activeRecordToken = localToken;
+        const fields = [
+          ["bp_sys", "BP systolic"],
+          ["bp_dia", "BP diastolic"],
+          ["pr", "Pulse"],
+          ["wt", "Weight"],
+          ["ht", "Height"],
+          ["temp", "Temperature"],
+          ["spo2", "SpO2"],
+          ["waist", "Waist"],
+          ["hip", "Hip"],
+        ];
+        showRecordModal(
+          `Vitals | ${escapePrintText(patientName)}`,
+          `
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            ${fields.map(([id, label]) => `<label style="font-size:12px; color:#64748b;">${label}<input id="record-${id}" class="input" style="margin-top:4px;"></label>`).join("")}
+          </div>
+          <button type="button" class="btn btn-primary" onclick="saveDirectoryVitals()" style="margin-top:20px; width:100%;">Save Vitals</button>`,
+        );
+      };
+
+      window.saveDirectoryVitals = async function () {
+        const ids = [
+          "bp_sys",
+          "bp_dia",
+          "pr",
+          "wt",
+          "ht",
+          "temp",
+          "spo2",
+          "waist",
+          "hip",
+        ];
+        const vitals = {};
+        ids.forEach((id) => {
+          const value = document.getElementById(`record-${id}`).value.trim();
+          if (value) vitals[id] = value;
+        });
+        try {
+          const response = await fetch("/api/events/vitals/history", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ local_token: activeRecordToken, vitals }),
+          });
+          if (!response.ok) throw new Error("Vitals save failed");
+          closeRecordModal();
+          openHistory(
+            activeRecordToken,
+            document
+              .getElementById("modal-patient-id")
+              .textContent.replace("Patient ID: ", ""),
+            document.getElementById("modal-patient-name").textContent,
+          );
+        } catch (error) {
+          alert("Unable to save vitals.");
+        }
+      };
+
+      window.openLabsEditor = function (localToken, patientName) {
+        activeRecordToken = localToken;
+        showRecordModal(
+          `Labs | ${escapePrintText(patientName)}`,
+          `
+          <label style="font-size:12px; color:#64748b;">Test date<input id="record-lab-date" type="date" class="input" value="${new Date().toISOString().slice(0, 10)}" style="margin-top:4px;"></label>
+          <label style="display:block; margin-top:14px; font-size:12px; color:#64748b;">Test name<input id="record-lab-name" class="input" placeholder="e.g. HbA1c" style="margin-top:4px;"></label>
+          <label style="display:block; margin-top:14px; font-size:12px; color:#64748b;">Result<input id="record-lab-value" class="input" placeholder="e.g. 7.2" style="margin-top:4px;"></label>
+          <button type="button" class="btn btn-primary" onclick="saveDirectoryLab()" style="margin-top:20px; width:100%;">Save Lab Result</button>`,
+        );
+      };
+
+      window.saveDirectoryLab = async function () {
+        const date = document.getElementById("record-lab-date").value;
+        const name = document.getElementById("record-lab-name").value.trim();
+        const value = document.getElementById("record-lab-value").value.trim();
+        if (!date || !name || !value)
+          return alert("Enter the date, test name, and result.");
+        try {
+          const response = await fetch("/api/events/labs", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              local_token: activeRecordToken,
+              lab_record: { test_date: date, results: { [name]: value } },
+            }),
+          });
+          if (!response.ok) throw new Error("Lab save failed");
+          closeRecordModal();
+          alert("Lab result saved.");
+        } catch (error) {
+          alert("Unable to save lab result.");
+        }
       };
 
       function searchDirectory() {

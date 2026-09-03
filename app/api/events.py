@@ -519,6 +519,27 @@ def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.put("/vitals/history")
+def update_historical_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
+    try:
+        event = db.query(models.Event).filter(
+            models.Event.local_token == payload.local_token,
+            models.Event.status == "completed"
+        ).order_by(models.Event.timestamp.desc()).first()
+        if not event:
+            raise HTTPException(status_code=404, detail="Completed visit not found")
+
+        current_vitals = dict(event.vitals or {})
+        current_vitals.update(payload.vitals.model_dump(exclude_none=True))
+        event.vitals = current_vitals
+        db.commit()
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.put("/labs")
 def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)):
     try:
