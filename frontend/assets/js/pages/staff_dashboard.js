@@ -7,6 +7,10 @@ window.currentWaitingTokens = [];
 
 let patientLabData = [];
 let labChartInstance = null;
+let lookupRequest = null;
+let lookupTimer = null;
+let lookupSequence = 0;
+const lookupCache = new Map();
 
 function logout() {
   localStorage.removeItem("tap2med_clinic_id");
@@ -117,13 +121,16 @@ function clearLookupStatus() {
   setLookupStatus("", "neutral");
 }
 
-window.attemptManualLookup = async function () {
+window.attemptManualLookup = async function (memberId = null) {
   const phoneInput = document.getElementById("walkin-phone");
   const phone = phoneInput ? phoneInput.value.trim() : "";
   const memberInput = document.getElementById("manual-member-id");
-  const selectedMember = memberInput
-    ? Number.parseInt(memberInput.value, 10)
-    : 0;
+  const selectedMember =
+    memberId === null
+      ? memberInput
+        ? Number.parseInt(memberInput.value, 10)
+        : 0
+      : Number.parseInt(memberId, 10);
   const nameInput = document.getElementById("walkin-name");
   const cityInput = document.getElementById("walkin-city");
   const ageInput = document.getElementById("walkin-age");
@@ -133,60 +140,92 @@ window.attemptManualLookup = async function () {
     return;
   }
 
+  const requestKey = `${phone}:${selectedMember}`;
+  const requestId = ++lookupSequence;
+  if (lookupRequest) lookupRequest.abort();
+  if (lookupTimer) clearTimeout(lookupTimer);
+
+  const cachedPatient = lookupCache.get(requestKey);
+  if (cachedPatient) {
+    applyLookupResult(cachedPatient, nameInput, cityInput, ageInput);
+    return;
+  }
+
+  setLookupStatus("Checking patient...", "neutral");
+
   try {
-    const res = await fetch("/api/events/lookup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        phone: phone,
-        member_id: selectedMember,
-        clinic_id: clinicId,
-      }),
+    const controller = new AbortController();
+    lookupRequest = controller;
+    const res = await new Promise((resolve, reject) => {
+      lookupTimer = setTimeout(async () => {
+        try {
+          resolve(
+            await fetch("/api/events/lookup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                phone: phone,
+                member_id: selectedMember,
+                clinic_id: clinicId,
+              }),
+              signal: controller.signal,
+            }),
+          );
+        } catch (error) {
+          reject(error);
+        }
+      }, 75);
     });
 
+    if (requestId !== lookupSequence) return;
+
     if (!res.ok) {
-      setLookupStatus("Specific patient not found", "error");
-      if (nameInput) nameInput.value = "";
-      if (cityInput) cityInput.value = "";
-      if (ageInput) ageInput.value = "";
+      applyLookupResult({ found: false }, nameInput, cityInput, ageInput);
       return;
     }
 
     const data = await res.json();
-    if (data.found && data.patient_name) {
-      if (nameInput) nameInput.value = data.patient_name;
-      if (cityInput) cityInput.value = data.city || "";
-      if (ageInput)
-        ageInput.value =
-          data.age !== undefined && data.age !== null ? String(data.age) : "";
-      nameInput.style.borderColor = "#22c55e";
-      nameInput.style.backgroundColor = "#f0fdf4";
-      setLookupStatus(
-        `Specific patient found: ${data.patient_name}`,
-        "success",
-      );
-      setTimeout(() => {
-        if (nameInput) {
-          nameInput.style.borderColor = "#cbd5e1";
-          nameInput.style.backgroundColor = "#f8fafc";
-        }
-      }, 1500);
-    } else {
-      if (nameInput) nameInput.value = "";
-      if (cityInput) cityInput.value = "";
-      if (ageInput) ageInput.value = "";
-      setLookupStatus("Specific patient not found", "error");
-    }
+    lookupCache.set(requestKey, data);
+    applyLookupResult(data, nameInput, cityInput, ageInput);
   } catch (e) {
+    if (e.name === "AbortError" || requestId !== lookupSequence) return;
     console.error("Lookup failed", e);
-    if (nameInput) nameInput.value = "";
-    if (cityInput) cityInput.value = "";
-    if (ageInput) ageInput.value = "";
     setLookupStatus("Specific patient not found", "error");
+  } finally {
+    if (requestId === lookupSequence) lookupRequest = null;
   }
 };
 
+function applyLookupResult(data, nameInput, cityInput, ageInput) {
+  if (data.found && data.patient_name) {
+    if (nameInput) nameInput.value = data.patient_name;
+    if (cityInput) cityInput.value = data.city || "";
+    if (ageInput)
+      ageInput.value =
+        data.age !== undefined && data.age !== null ? String(data.age) : "";
+    if (nameInput) {
+      nameInput.style.borderColor = "#22c55e";
+      nameInput.style.backgroundColor = "#f0fdf4";
+    }
+    setLookupStatus(`Specific patient found: ${data.patient_name}`, "success");
+  } else {
+    if (nameInput) nameInput.value = "";
+    if (cityInput) cityInput.value = "";
+    if (ageInput) ageInput.value = "";
+    if (nameInput) {
+      nameInput.style.borderColor = "#cbd5e1";
+      nameInput.style.backgroundColor = "#f8fafc";
+    }
+    setLookupStatus("Specific patient not found", "error");
+  }
+}
+
 document.getElementById("walkin-phone")?.addEventListener("input", () => {
+  lookupSequence += 1;
+  if (lookupRequest) lookupRequest.abort();
+  if (lookupTimer) clearTimeout(lookupTimer);
+  lookupRequest = null;
+  lookupCache.clear();
   if (document.getElementById("walkin-phone").value.trim().length < 10) {
     clearLookupStatus();
   }
@@ -211,7 +250,7 @@ if (manualMemberSelect) {
       manualMemberSelect.value = target.value;
       const phone = document.getElementById("walkin-phone")?.value.trim() || "";
       if (/^\d{10}$/.test(phone)) {
-        attemptManualLookup();
+        attemptManualLookup(target.value);
       }
     }
   });
