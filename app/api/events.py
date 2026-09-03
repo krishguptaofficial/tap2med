@@ -460,6 +460,7 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
                     matched_rx.append({
                         "name": rx.medicine_name,
                         "instructions": " | ".join(details) if details else "",
+                        "raw_instructions": rx.instructions,
                         "dosage": rx.dosage,
                         "duration": rx.duration
                     })

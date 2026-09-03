@@ -115,6 +115,48 @@ window.addPrescriptionRow = function () {
   container.appendChild(row);
 };
 
+function populatePrescriptionPad(prescriptions) {
+  const container = document.getElementById("rx-container");
+  if (!container) return;
+
+  container.innerHTML = "";
+  if (!Array.isArray(prescriptions) || prescriptions.length === 0) {
+    addPrescriptionRow();
+    return;
+  }
+
+  prescriptions.forEach((med) => {
+    addPrescriptionRow();
+    const row = container.lastElementChild;
+    const dosage = med.dosage || "";
+    const duration = med.duration || "";
+    let instructions = med.raw_instructions || "";
+
+    if (!instructions) {
+      const parts = (med.instructions || "").split(" | ");
+      if (dosage && parts[0] === dosage) parts.shift();
+      if (duration && parts[0] === duration) parts.shift();
+      instructions = parts.join(" | ");
+    }
+
+    row.querySelector(".rx-med").value = med.name || "";
+    row.querySelector(".rx-dosage").value = dosage;
+    row.querySelector(".rx-days").value = duration;
+    row.querySelector(".rx-remarks").value = instructions;
+    updateFreq(row.querySelector(".rx-remarks"));
+  });
+}
+
+window.copyVisitToPad = function (prescriptions) {
+  if (!Array.isArray(prescriptions) || prescriptions.length === 0) {
+    setPrescriptionStatus("No medicines to copy", "warning");
+    return;
+  }
+
+  populatePrescriptionPad(prescriptions);
+  setPrescriptionStatus("Copied to pad", "success");
+};
+
 function clearPrescription() {
   if (prescriptionList) prescriptionList.innerHTML = "";
   addPrescriptionRow();
@@ -398,11 +440,17 @@ async function loadHistory(localToken) {
       card.style.cursor = "pointer";
 
       card.innerHTML = `
-                <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center;">📅 ${date}</summary>
+                <summary style="font-weight: 600; color: var(--primary-color); outline: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;">📅 ${date}<button type="button" class="btn btn-secondary copy-to-pad-btn" style="height: 30px; padding: 0 10px; font-size: 12px; color: var(--primary-color);">↻ Copy to Pad</button></summary>
                 <div style="padding-top: 10px; border-top: 1px solid #e2e8f0; margin-top: 10px;">
                     ${historyHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
                 </div>
             `;
+      const copyButton = card.querySelector(".copy-to-pad-btn");
+      copyButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        copyVisitToPad(visit.prescriptions);
+      });
       historyContent.appendChild(card);
     });
   } catch (error) {
