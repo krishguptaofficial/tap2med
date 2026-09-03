@@ -266,9 +266,6 @@
       const clinicId = localStorage.getItem("tap2med_clinic_id");
       const staffRole = localStorage.getItem("tap2med_staff_role");
       const isStaffRoute = window.location.pathname === "/staff-directory";
-      if (staffRole === "staff" && !isStaffRoute) {
-        window.location.replace("/staff-directory");
-      }
       const isStaff = isStaffRoute;
       if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
       if (!isStaff) document.getElementById("staff-dashboard-styles")?.remove();

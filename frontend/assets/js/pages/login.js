@@ -36,6 +36,7 @@ btnPasswordLogin.addEventListener("click", async () => {
     showMessage("Login successful");
     // redirect to dashboard with clinic id
     localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+    localStorage.removeItem("tap2med_staff_role");
     window.location = "/dashboard";
   } catch (e) {
     showMessage("Network error", true);
@@ -76,6 +77,8 @@ btnVerifyOtp.addEventListener("click", async () => {
       return;
     }
     showMessage("Login successful");
+    localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+    localStorage.removeItem("tap2med_staff_role");
     window.location = `/dashboard?clinic=${encodeURIComponent(data.clinic_id)}`;
   } catch (e) {
     showMessage("Network error", true);
