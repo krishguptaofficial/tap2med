@@ -35,6 +35,7 @@ let currentLocalToken = null;
 let isSaving = false;
 let patientLabData = [];
 let labChartInstance = null;
+const activePatientStorageKey = "tap2med_active_patient_token";
 
 const currentToken = document.getElementById("current-token");
 const historyContent = document.getElementById("history-content");
@@ -55,6 +56,69 @@ function setPrescriptionStatus(message, tone = "warning") {
 }
 
 window.currentWaitingTokens = [];
+
+function getDraftStorageKey(localToken) {
+  return `tap2med_consultation_draft_${localToken}`;
+}
+
+function savePrescriptionDraft() {
+  if (!currentLocalToken) return;
+
+  const medicines = [
+    ...prescriptionList.querySelectorAll(".prescription-row"),
+  ].map((row) => ({
+    name: row.querySelector(".rx-med")?.value || "",
+    dosage: row.querySelector(".rx-dosage")?.value || "",
+    duration: row.querySelector(".rx-days")?.value || "",
+    remarks: row.querySelector(".rx-remarks")?.value || "",
+    instructions: row.querySelector(".rx-freq")?.value || "",
+  }));
+
+  const draft = {
+    complaints: document.getElementById("patient-complaints")?.value || "",
+    diagnosis: document.getElementById("patient-diagnosis")?.value || "",
+    testsSuggested: document.getElementById("patient-tests")?.value || "",
+    medicines,
+  };
+
+  sessionStorage.setItem(
+    getDraftStorageKey(currentLocalToken),
+    JSON.stringify(draft),
+  );
+  sessionStorage.setItem(activePatientStorageKey, currentLocalToken);
+}
+
+function restorePrescriptionDraft(localToken) {
+  if (!localToken) return false;
+
+  try {
+    const storedDraft = sessionStorage.getItem(getDraftStorageKey(localToken));
+    if (!storedDraft) return false;
+    const draft = JSON.parse(storedDraft);
+
+    const complaints = document.getElementById("patient-complaints");
+    const diagnosis = document.getElementById("patient-diagnosis");
+    const tests = document.getElementById("patient-tests");
+    if (complaints) complaints.value = draft.complaints || "";
+    if (diagnosis) diagnosis.value = draft.diagnosis || "";
+    if (tests) tests.value = draft.testsSuggested || "";
+    populatePrescriptionPad(draft.medicines);
+    return true;
+  } catch (error) {
+    sessionStorage.removeItem(getDraftStorageKey(localToken));
+    return false;
+  }
+}
+
+document.addEventListener("input", (event) => {
+  if (
+    event.target.closest(
+      "#patient-complaints, #patient-diagnosis, #patient-tests, #rx-container",
+    )
+  ) {
+    savePrescriptionDraft();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   const savedState = localStorage.getItem("tap2med_sidebar_state");
@@ -154,6 +218,7 @@ window.copyVisitToPad = function (prescriptions) {
   }
 
   populatePrescriptionPad(prescriptions);
+  savePrescriptionDraft();
   setPrescriptionStatus("Copied to pad", "success");
 };
 
@@ -293,6 +358,8 @@ async function loadQueue() {
           card.parentNode.prepend(card);
 
           currentLocalToken = patient.local_token;
+          const selectedToken = currentLocalToken;
+          sessionStorage.setItem(activePatientStorageKey, currentLocalToken);
           window.currentPatientName = patient.patient_name || "Patient";
           window.currentDisplayId = patient.display_id || "--";
           setPrescriptionStatus("Loading...", "info");
@@ -318,7 +385,9 @@ async function loadQueue() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ local_token: patient.local_token }),
               }),
-              loadHistory(currentLocalToken),
+              loadHistory(selectedToken).then(() =>
+                restorePrescriptionDraft(selectedToken),
+              ),
               fetchActiveVitals(),
             ]);
           } catch (e) {
@@ -336,8 +405,12 @@ async function loadQueue() {
       });
 
       if (!currentLocalToken && waitingQueue.length > 0) {
-        const firstPatient = waitingQueue[0];
+        const savedToken = sessionStorage.getItem(activePatientStorageKey);
+        const firstPatient =
+          waitingQueue.find((patient) => patient.local_token === savedToken) ||
+          waitingQueue[0];
         currentLocalToken = firstPatient.local_token;
+        sessionStorage.setItem(activePatientStorageKey, currentLocalToken);
         setPrescriptionStatus("Waiting...", "warning");
         if (currentToken)
           currentToken.textContent = `#${getShortCode(firstPatient.daily_token_number)}`;
@@ -351,7 +424,9 @@ async function loadQueue() {
         });
 
         clearPrescription();
-        loadHistory(currentLocalToken);
+        loadHistory(currentLocalToken).then(() =>
+          restorePrescriptionDraft(currentLocalToken),
+        );
         const firstCard = queueList.firstChild;
         if (firstCard) firstCard.classList.add("active");
       }
@@ -786,7 +861,10 @@ async function completeVisit() {
       setTimeout(() => (document.body.className = "dashboard-body"), 1000);
     }
 
+    const completedToken = currentLocalToken;
     currentLocalToken = null;
+    sessionStorage.removeItem(activePatientStorageKey);
+    sessionStorage.removeItem(getDraftStorageKey(completedToken));
     clearPrescription();
     const headerEyebrow = document.querySelector(".eyebrow");
     if (headerEyebrow) headerEyebrow.innerHTML = `Active Token`;
