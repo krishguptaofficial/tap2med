@@ -920,6 +920,31 @@ window.printQRCode = function () {
 };
 
 // Vitals Modal Logic
+function calculateBMI(weight, height) {
+  const weightKg = Number.parseFloat(weight);
+  const heightCm = Number.parseFloat(height);
+  if (
+    !Number.isFinite(weightKg) ||
+    !Number.isFinite(heightCm) ||
+    weightKg <= 0 ||
+    heightCm <= 0
+  ) {
+    return null;
+  }
+  const heightMeters = heightCm / 100;
+  return weightKg / (heightMeters * heightMeters);
+}
+
+function updateBMIDisplay() {
+  const bmiDisplay = document.getElementById("vital-bmi");
+  if (!bmiDisplay) return;
+  const bmi = calculateBMI(
+    document.getElementById("vital-wt")?.value,
+    document.getElementById("vital-ht")?.value,
+  );
+  bmiDisplay.textContent = bmi === null ? "--" : bmi.toFixed(1);
+}
+
 window.openVitalsModal = async function () {
   document.getElementById("vitals-modal").style.display = "flex";
   [
@@ -935,6 +960,7 @@ window.openVitalsModal = async function () {
   ].forEach((id) => {
     document.getElementById(`vital-${id}`).value = "";
   });
+  updateBMIDisplay();
 
   try {
     const res = await fetch(`/api/clinics/queue/${clinicId}`);
@@ -950,6 +976,7 @@ window.openVitalsModal = async function () {
       document.getElementById("vital-pr").value = v.pr || "";
       document.getElementById("vital-wt").value = v.wt || "";
       document.getElementById("vital-ht").value = v.ht || "";
+      updateBMIDisplay();
       document.getElementById("vital-temp").value = v.temp || "";
       document.getElementById("vital-spo2").value = v.spo2 || "";
       document.getElementById("vital-waist").value = v.waist || "";
@@ -957,6 +984,13 @@ window.openVitalsModal = async function () {
     }
   } catch (e) {}
 };
+
+document
+  .getElementById("vital-wt")
+  ?.addEventListener("input", updateBMIDisplay);
+document
+  .getElementById("vital-ht")
+  ?.addEventListener("input", updateBMIDisplay);
 
 window.closeVitalsModal = function () {
   document.getElementById("vitals-modal").style.display = "none";
@@ -1016,6 +1050,8 @@ async function fetchActiveVitals() {
       if (v.pr) compiled.push(`PR: ${v.pr} bpm`);
       if (v.wt) compiled.push(`Wt: ${v.wt} kg`);
       if (v.ht) compiled.push(`Ht: ${v.ht} cm`);
+      const bmi = calculateBMI(v.wt, v.ht);
+      if (bmi !== null) compiled.push(`BMI: ${bmi.toFixed(1)}`);
       if (v.temp) compiled.push(`T: ${v.temp} °F`);
       if (v.spo2) compiled.push(`SpO2: ${v.spo2}%`);
 
