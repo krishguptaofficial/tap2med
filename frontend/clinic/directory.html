@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <link rel="stylesheet" href="/assets/css/forms.css" />
     <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+    <link
+      id="staff-dashboard-styles"
+      rel="stylesheet"
+      href="/assets/css/pages/staff_dashboard.css"
+    />
   </head>
   <body class="dashboard-body">
     <!-- Sidebar -->
@@ -266,6 +271,7 @@
       }
       const isStaff = isStaffRoute;
       if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
+      if (!isStaff) document.getElementById("staff-dashboard-styles")?.remove();
 
       if (isStaff) {
         document.title = "Patient Directory | Tap2Med Reception";
@@ -279,6 +285,103 @@
 
       let activeHistoryVisits = [];
       let activeRecordToken = null;
+      let dashboardLayoutsPromise = null;
+      let clinicDetailsPromise = null;
+
+      function numberToWords(num) {
+        num = parseInt(num, 10) || 0;
+        const ones = [
+          "",
+          "One ",
+          "Two ",
+          "Three ",
+          "Four ",
+          "Five ",
+          "Six ",
+          "Seven ",
+          "Eight ",
+          "Nine ",
+          "Ten ",
+          "Eleven ",
+          "Twelve ",
+          "Thirteen ",
+          "Fourteen ",
+          "Fifteen ",
+          "Sixteen ",
+          "Seventeen ",
+          "Eighteen ",
+          "Nineteen ",
+        ];
+        const tens = [
+          "",
+          "",
+          "Twenty",
+          "Thirty",
+          "Forty",
+          "Fifty",
+          "Sixty",
+          "Seventy",
+          "Eighty",
+          "Ninety",
+        ];
+        if (num === 0) return "ZERO RUPEES ONLY";
+        if (num > 999999999) return "OVERFLOW";
+        const groups = [
+          [10000000, "CRORE"],
+          [100000, "LAKH"],
+          [1000, "THOUSAND"],
+          [100, "HUNDRED"],
+        ];
+        let result = "";
+        groups.forEach(([divisor, label]) => {
+          const group = Math.floor(num / divisor);
+          if (group) {
+            result += `${group < 20 ? ones[group] : `${tens[Math.floor(group / 10)]} ${ones[group % 10]}`} ${label} `;
+            num %= divisor;
+          }
+        });
+        if (num)
+          result += `${result ? "AND " : ""}${num < 20 ? ones[num] : `${tens[Math.floor(num / 10)]} ${ones[num % 10]}`}`;
+        return `${result.trim().toUpperCase()} RUPEES ONLY`;
+      }
+
+      function ensureDashboardLayouts() {
+        if (dashboardLayoutsPromise) return dashboardLayoutsPromise;
+        dashboardLayoutsPromise = Promise.all(
+          ["/dashboard", "/staff-dashboard"].map((url) =>
+            fetch(url).then((response) => response.text()),
+          ),
+        ).then((pages) =>
+          pages.forEach((html) => {
+            const documentFragment = new DOMParser().parseFromString(
+              html,
+              "text/html",
+            );
+            [
+              "bill-modal",
+              "vitals-modal",
+              "labs-modal",
+              "print-rx-layout",
+              "print-bill-layout",
+            ].forEach((id) => {
+              const element = documentFragment.getElementById(id);
+              if (element && !document.getElementById(id))
+                document.body.appendChild(element);
+            });
+          }),
+        );
+        return dashboardLayoutsPromise;
+      }
+
+      function loadClinicDetails() {
+        if (clinicDetailsPromise) return clinicDetailsPromise;
+        clinicDetailsPromise = fetch(
+          `/api/clinics/queue/${encodeURIComponent(clinicId)}`,
+        )
+          .then((response) => response.json())
+          .then((data) => data);
+        return clinicDetailsPromise;
+      }
 
       document.getElementById("date-filter").valueAsDate = new Date();
 
@@ -409,61 +512,55 @@
         }
       }
 
-      function escapePrintText(value) {
-        return String(value ?? "").replace(
-          /[&<>"']/g,
-          (character) =>
-            ({
-              "&": "&amp;",
-              "<": "&lt;",
-              ">": "&gt;",
-              '"': "&quot;",
-              "'": "&#39;",
-            })[character],
+      async function printPastPrescription(visitIndex) {
+        const visit = activeHistoryVisits[visitIndex];
+        if (!visit) return;
+        await ensureDashboardLayouts();
+        const data = await loadClinicDetails();
+        document.getElementById("print-clinic-name").textContent =
+          data.clinic_name || "Clinic";
+        document.getElementById("print-doctor-name").textContent =
+          data.doctor_name || "Doctor";
+        document.getElementById("print-date").textContent =
+          `Date: ${new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`;
+        document.getElementById("print-patient-name").innerHTML =
+          `<strong>Name:</strong> ${document.getElementById("modal-patient-name").textContent}`;
+        document.getElementById("print-patient-id").innerHTML =
+          `<strong>Patient ID:</strong> ${document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", "")}`;
+        document.getElementById("print-complaints").innerHTML = visit.complaints
+          ? `<strong>C/E:</strong> ${visit.complaints}`
+          : "";
+        document.getElementById("print-diagnosis").innerHTML = visit.diagnosis
+          ? `<strong>Diagnosis:</strong> ${visit.diagnosis}`
+          : "";
+        document.getElementById("print-clinical-notes").style.display =
+          visit.complaints || visit.diagnosis ? "block" : "none";
+        document.getElementById("print-tests").innerHTML = visit.tests_suggested
+          ? `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`
+          : "";
+        document.getElementById("print-tests").style.display =
+          visit.tests_suggested ? "block" : "none";
+        document.getElementById("print-medicines").innerHTML = (
+          visit.prescriptions || []
+        )
+          .map(
+            (medicine) =>
+              `<div style="margin-bottom: 20px;"><strong style="font-size: 16px; color: #000; display: block;">${medicine.name}</strong><span style="font-size: 14px; color: #444;">${medicine.instructions || ""}</span></div>`,
+          )
+          .join("");
+        document.body.className = "mode-rx";
+        window.print();
+        setTimeout(
+          () => (document.body.className = isStaff ? "" : "dashboard-body"),
+          1000,
         );
       }
 
-      function openPrintWindow(title, body) {
-        const printWindow = window.open("", "_blank", "width=800,height=900");
-        if (!printWindow) {
-          alert("Please allow pop-ups to print this record.");
-          return;
-        }
-        printWindow.document.write(
-          `<!doctype html><html><head><title>${escapePrintText(title)}</title><style>body{font-family:Arial,sans-serif;color:#0f172a;padding:40px;max-width:760px;margin:auto}h1{color:#0284c7;border-bottom:2px solid #0284c7;padding-bottom:12px}h2{margin-top:28px;color:#334155}.meta{color:#64748b;margin-bottom:24px}.medicine{padding:12px 0;border-bottom:1px solid #e2e8f0}.label{font-weight:700;color:#475569}</style></head><body>${body}</body></html>`,
-        );
-        printWindow.document.close();
-        printWindow.focus();
-        printWindow.print();
-      }
-
-      window.printPastPrescription = function (visitIndex) {
+      async function generatePastBill(visitIndex) {
         const visit = activeHistoryVisits[visitIndex];
         if (!visit) return;
-        const medicines =
-          (visit.prescriptions || [])
-            .map(
-              (medicine) => `
-              <div class="medicine"><strong>${escapePrintText(medicine.name)}</strong><br>${escapePrintText(medicine.instructions || "No instructions recorded")}</div>
-            `,
-            )
-            .join("") || "<p>No medicines recorded.</p>";
-        openPrintWindow(
-          "Past Prescription",
-          `
-              <h1>Digital Prescription</h1>
-              <div class="meta"><span class="label">Patient:</span> ${escapePrintText(document.getElementById("modal-patient-name").textContent)}<br><span class="label">Patient ID:</span> ${escapePrintText(document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", ""))}<br><span class="label">Date:</span> ${escapePrintText(new Date(visit.timestamp).toLocaleDateString("en-IN"))}</div>
-              <h2>Medicines</h2>${medicines}
-              ${visit.complaints ? `<h2>Complaints</h2><p>${escapePrintText(visit.complaints)}</p>` : ""}
-              ${visit.diagnosis ? `<h2>Diagnosis</h2><p>${escapePrintText(visit.diagnosis)}</p>` : ""}
-              ${visit.tests_suggested ? `<h2>Tests Suggested</h2><p>${escapePrintText(visit.tests_suggested)}</p>` : ""}
-            `,
-        );
-      };
-
-      window.generatePastBill = function (visitIndex) {
-        const visit = activeHistoryVisits[visitIndex];
-        if (!visit) return;
+        await ensureDashboardLayouts();
+        const data = await loadClinicDetails();
         const visitType =
           visit.event_type === "followup"
             ? "Follow-up Consultation"
@@ -471,49 +568,69 @@
               ? "Appointment Consultation"
               : "New Consultation";
         const amount = visit.fee || "0";
-        openPrintWindow(
-          "Past Bill",
-          `
-              <h1>Bill cum Receipt</h1>
-              <div class="meta"><span class="label">Patient:</span> ${escapePrintText(document.getElementById("modal-patient-name").textContent)}<br><span class="label">Patient ID:</span> ${escapePrintText(document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", ""))}<br><span class="label">Date:</span> ${escapePrintText(new Date(visit.timestamp).toLocaleString("en-IN"))}<br><span class="label">Token:</span> ${escapePrintText(visit.daily_token_number || "--")}</div>
-              <h2>${escapePrintText(visitType)}</h2>
-              <p><span class="label">Amount Paid:</span> ₹${escapePrintText(amount)}</p>
-              <p><span class="label">Status:</span> Paid</p>
-            `,
+        document.getElementById("bill-clinic-name").textContent =
+          data.clinic_name || "Clinic";
+        document.getElementById("bill-patient-name").textContent =
+          document.getElementById("modal-patient-name").textContent;
+        document.getElementById("bill-patient-id").textContent = document
+          .getElementById("modal-patient-id")
+          .textContent.replace("Patient ID: ", "");
+        document.getElementById("bill-date").textContent = new Date(
+          visit.timestamp,
+        ).toLocaleString("en-IN");
+        document.getElementById("bill-number").textContent =
+          `#${visit.daily_token_number || "--"}`;
+        document.getElementById("bill-service-name").textContent =
+          `Dr. ${data.doctor_name || "Doctor"}- ${visitType}`;
+        [
+          "bill-price",
+          "bill-net-price",
+          "bill-total-1",
+          "bill-total-2",
+          "bill-total-3",
+        ].forEach((id) => (document.getElementById(id).textContent = amount));
+        document.getElementById("bill-payment-mode").textContent = "CASH";
+        document.getElementById("bill-amount-words").textContent =
+          numberToWords(amount);
+        document.body.className = "mode-bill";
+        window.print();
+        setTimeout(
+          () => (document.body.className = isStaff ? "" : "dashboard-body"),
+          1000,
         );
+      }
+
+      window.openVitalsEditor = async function (localToken) {
+        activeRecordToken = localToken;
+        await ensureDashboardLayouts();
+        if (!activeHistoryVisits.length) {
+          const response = await fetch(
+            `/api/events/history/${encodeURIComponent(localToken)}`,
+          );
+          const data = await response.json();
+          activeHistoryVisits = data.history || [];
+        }
+        const vitals = (activeHistoryVisits[0] || {}).vitals || {};
+        [
+          "bp-sys",
+          "bp-dia",
+          "pr",
+          "wt",
+          "ht",
+          "temp",
+          "spo2",
+          "waist",
+          "hip",
+        ].forEach((id) => {
+          const input = document.getElementById(`vital-${id}`);
+          if (input) input.value = vitals[id.replace("-", "_")] || "";
+        });
+        document.getElementById("vitals-token").value = localToken;
+        document.getElementById("vitals-modal").style.display = "flex";
       };
 
-      function closeRecordModal() {
-        document.getElementById("record-modal").style.display = "none";
-      }
-
-      function showRecordModal(title, body) {
-        document.getElementById("record-modal-title").textContent = title;
-        document.getElementById("record-modal-body").innerHTML = body;
-        document.getElementById("record-modal").style.display = "flex";
-      }
-
-      window.openVitalsEditor = function (localToken, patientName) {
-        activeRecordToken = localToken;
-        const fields = [
-          ["bp_sys", "BP systolic"],
-          ["bp_dia", "BP diastolic"],
-          ["pr", "Pulse"],
-          ["wt", "Weight"],
-          ["ht", "Height"],
-          ["temp", "Temperature"],
-          ["spo2", "SpO2"],
-          ["waist", "Waist"],
-          ["hip", "Hip"],
-        ];
-        showRecordModal(
-          `Vitals | ${escapePrintText(patientName)}`,
-          `
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-            ${fields.map(([id, label]) => `<label style="font-size:12px; color:#64748b;">${label}<input id="record-${id}" class="input" style="margin-top:4px;"></label>`).join("")}
-          </div>
-          <button type="button" class="btn btn-primary" onclick="saveDirectoryVitals()" style="margin-top:20px; width:100%;">Save Vitals</button>`,
-        );
+      window.closeVitalsModal = function () {
+        document.getElementById("vitals-modal").style.display = "none";
       };
 
       window.saveDirectoryVitals = async function () {
@@ -530,8 +647,10 @@
         ];
         const vitals = {};
         ids.forEach((id) => {
-          const value = document.getElementById(`record-${id}`).value.trim();
-          if (value) vitals[id] = value;
+          const input = document.getElementById(
+            `vital-${id.replace("_", "-")}`,
+          );
+          if (input && input.value.trim()) vitals[id] = input.value.trim();
         });
         try {
           const response = await fetch("/api/events/vitals/history", {
@@ -540,7 +659,7 @@
             body: JSON.stringify({ local_token: activeRecordToken, vitals }),
           });
           if (!response.ok) throw new Error("Vitals save failed");
-          closeRecordModal();
+          closeVitalsModal();
           openHistory(
             activeRecordToken,
             document
@@ -552,40 +671,82 @@
           alert("Unable to save vitals.");
         }
       };
+      window.submitVitals = window.saveDirectoryVitals;
 
-      window.openLabsEditor = function (localToken, patientName) {
+      window.openLabsEditor = async function (localToken, patientName) {
         activeRecordToken = localToken;
-        showRecordModal(
-          `Labs | ${escapePrintText(patientName)}`,
-          `
-          <label style="font-size:12px; color:#64748b;">Test date<input id="record-lab-date" type="date" class="input" value="${new Date().toISOString().slice(0, 10)}" style="margin-top:4px;"></label>
-          <label style="display:block; margin-top:14px; font-size:12px; color:#64748b;">Test name<input id="record-lab-name" class="input" placeholder="e.g. HbA1c" style="margin-top:4px;"></label>
-          <label style="display:block; margin-top:14px; font-size:12px; color:#64748b;">Result<input id="record-lab-value" class="input" placeholder="e.g. 7.2" style="margin-top:4px;"></label>
-          <button type="button" class="btn btn-primary" onclick="saveDirectoryLab()" style="margin-top:20px; width:100%;">Save Lab Result</button>`,
+        await ensureDashboardLayouts();
+        document.getElementById("lab-modal-patient-name").textContent =
+          patientName || "Patient";
+        document.getElementById("lab-local-token").value = localToken;
+        document.getElementById("labs-modal").style.display = "flex";
+        const today = new Date().toISOString().slice(0, 10);
+        document.getElementById("lab-date").value = today;
+        const response = await fetch(
+          `/api/events/labs/${encodeURIComponent(localToken)}`,
         );
+        const data = await response.json();
+        window.directoryLabRecords = data.labs || [];
+        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+          if (
+            input.id !== "lab-date" &&
+            input.id !== "lab-local-token" &&
+            input.id !== "lab-search-input"
+          )
+            input.value = "";
+        });
+        populateLabInputsForDate(today);
       };
 
-      window.saveDirectoryLab = async function () {
-        const date = document.getElementById("record-lab-date").value;
-        const name = document.getElementById("record-lab-name").value.trim();
-        const value = document.getElementById("record-lab-value").value.trim();
-        if (!date || !name || !value)
-          return alert("Enter the date, test name, and result.");
-        try {
-          const response = await fetch("/api/events/labs", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              local_token: activeRecordToken,
-              lab_record: { test_date: date, results: { [name]: value } },
-            }),
-          });
-          if (!response.ok) throw new Error("Lab save failed");
-          closeRecordModal();
-          alert("Lab result saved.");
-        } catch (error) {
-          alert("Unable to save lab result.");
-        }
+      window.closeLabsModal = function () {
+        document.getElementById("labs-modal").style.display = "none";
+      };
+
+      window.populateLabInputsForDate = function (date) {
+        const record = (window.directoryLabRecords || []).find(
+          (item) => item.test_date === date,
+        );
+        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+          if (
+            !["lab-date", "lab-local-token", "lab-search-input"].includes(
+              input.id,
+            )
+          )
+            input.value = "";
+        });
+        Object.entries(record?.results || {}).forEach(([key, value]) => {
+          const input = document.getElementById(`lab-${key}`);
+          if (input) input.value = value;
+        });
+      };
+
+      window.filterLabFields = function () {};
+      window.checkRange = function () {};
+      window.updateChart = function () {};
+
+      window.saveLabs = async function () {
+        const date = document.getElementById("lab-date").value;
+        const results = {};
+        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+          if (
+            !["lab-date", "lab-local-token", "lab-search-input"].includes(
+              input.id,
+            ) &&
+            input.value.trim()
+          )
+            results[input.id.replace("lab-", "")] = input.value.trim();
+        });
+        const response = await fetch("/api/events/labs", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            local_token: activeRecordToken,
+            lab_record: { test_date: date, results },
+          }),
+        });
+        if (!response.ok) return alert("Unable to save lab results.");
+        closeLabsModal();
+        alert("Lab results saved.");
       };
 
       function searchDirectory() {
