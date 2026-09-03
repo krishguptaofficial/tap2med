@@ -287,6 +287,7 @@
       let activeRecordToken = null;
       let dashboardLayoutsPromise = null;
       let clinicDetailsPromise = null;
+      let directoryClinicName = "Clinic";
 
       function numberToWords(num) {
         num = parseInt(num, 10) || 0;
@@ -348,9 +349,10 @@
       function ensureDashboardLayouts() {
         if (dashboardLayoutsPromise) return dashboardLayoutsPromise;
         dashboardLayoutsPromise = Promise.all(
-          ["/dashboard", "/staff-dashboard"].map((url) =>
-            fetch(url).then((response) => response.text()),
-          ),
+          (isStaff
+            ? ["/staff-dashboard", "/dashboard"]
+            : ["/dashboard", "/staff-dashboard"]
+          ).map((url) => fetch(url).then((response) => response.text())),
         ).then((pages) =>
           pages.forEach((html) => {
             const documentFragment = new DOMParser().parseFromString(
@@ -379,7 +381,10 @@
           `/api/clinics/queue/${encodeURIComponent(clinicId)}`,
         )
           .then((response) => response.json())
-          .then((data) => data);
+          .then((data) => {
+            directoryClinicName = data.clinic_name || "Clinic";
+            return data;
+          });
         return clinicDetailsPromise;
       }
 
@@ -568,20 +573,45 @@
               ? "Appointment Consultation"
               : "New Consultation";
         const amount = visit.fee || "0";
-        document.getElementById("bill-clinic-name").textContent =
-          data.clinic_name || "Clinic";
-        document.getElementById("bill-patient-name").textContent =
+        document.getElementById("modal-bill-patient-name").value =
           document.getElementById("modal-patient-name").textContent;
-        document.getElementById("bill-patient-id").textContent = document
+        document.getElementById("modal-bill-display-id").value = document
           .getElementById("modal-patient-id")
           .textContent.replace("Patient ID: ", "");
-        document.getElementById("bill-date").textContent = new Date(
-          visit.timestamp,
-        ).toLocaleString("en-IN");
-        document.getElementById("bill-number").textContent =
+        document.getElementById("modal-bill-token-num").value =
           `#${visit.daily_token_number || "--"}`;
-        document.getElementById("bill-service-name").textContent =
+        document.getElementById("bill-modal-patient-info").textContent =
+          `Patient: ${document.getElementById("modal-patient-name").textContent} | ID: ${document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", "")} | Token: #${visit.daily_token_number || "--"}`;
+        document.getElementById("modal-bill-service").value =
           `Dr. ${data.doctor_name || "Doctor"}- ${visitType}`;
+        document.getElementById("modal-bill-amount").value = amount;
+        document.getElementById("modal-bill-mode").value = "CASH";
+        document.getElementById("bill-modal").style.display = "flex";
+      }
+
+      window.executePrintBill = function () {
+        const patientName = document.getElementById(
+          "modal-bill-patient-name",
+        ).value;
+        const displayId = document.getElementById(
+          "modal-bill-display-id",
+        ).value;
+        const tokenNum = document.getElementById("modal-bill-token-num").value;
+        const serviceName =
+          document.getElementById("modal-bill-service").value.trim() ||
+          "Consultation";
+        const amount =
+          document.getElementById("modal-bill-amount").value.trim() || "0";
+        const payMode = document.getElementById("modal-bill-mode").value;
+        const now = new Date();
+        document.getElementById("bill-clinic-name").textContent =
+          directoryClinicName;
+        document.getElementById("bill-patient-name").textContent = patientName;
+        document.getElementById("bill-patient-id").textContent = displayId;
+        document.getElementById("bill-date").textContent =
+          `${now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`;
+        document.getElementById("bill-number").textContent = tokenNum;
+        document.getElementById("bill-service-name").textContent = serviceName;
         [
           "bill-price",
           "bill-net-price",
@@ -589,16 +619,17 @@
           "bill-total-2",
           "bill-total-3",
         ].forEach((id) => (document.getElementById(id).textContent = amount));
-        document.getElementById("bill-payment-mode").textContent = "CASH";
+        document.getElementById("bill-payment-mode").textContent = payMode;
         document.getElementById("bill-amount-words").textContent =
           numberToWords(amount);
+        document.getElementById("bill-modal").style.display = "none";
         document.body.className = "mode-bill";
         window.print();
         setTimeout(
           () => (document.body.className = isStaff ? "" : "dashboard-body"),
           1000,
         );
-      }
+      };
 
       window.openVitalsEditor = async function (localToken) {
         activeRecordToken = localToken;
