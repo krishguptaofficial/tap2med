@@ -45,81 +45,217 @@
 
     <main class="main-content">
       <header class="top-header">
-        <h2 style="font-size: 18px; margin: 0; color: var(--primary-color);">Patient Directory Ledger</h2>
+        <h2 style="font-size: 18px; margin: 0; color: var(--primary-color)">
+          Patient Directory Ledger
+        </h2>
       </header>
 
-      <div style="padding: 30px; max-width: 1000px; margin: 0 auto;">
-        
-        <div style="display: flex; gap: 20px; margin-bottom: 30px; align-items: flex-end; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 250px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Filter by Date</label>
-                <input type="date" id="date-filter" class="input" style="background: white; border: 1px solid #cbd5e1; cursor: pointer;">
+      <div style="padding: 30px; max-width: 1000px; margin: 0 auto">
+        <div
+          style="
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <div style="flex: 1; min-width: 250px">
+            <label
+              style="
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-muted);
+                display: block;
+                margin-bottom: 8px;
+              "
+              >Filter by Date</label
+            >
+            <input
+              type="date"
+              id="date-filter"
+              class="input"
+              style="
+                background: white;
+                border: 1px solid #cbd5e1;
+                cursor: pointer;
+              "
+            />
+          </div>
+
+          <div style="flex: 2; min-width: 250px">
+            <label
+              style="
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-muted);
+                display: block;
+                margin-bottom: 8px;
+              "
+              >Search by Patient ID</label
+            >
+            <div style="display: flex; gap: 10px">
+              <input
+                type="text"
+                id="search-input"
+                class="input"
+                placeholder="e.g. A3F8C2D1"
+                style="
+                  background: white;
+                  border: 1px solid #cbd5e1;
+                  text-transform: uppercase;
+                "
+              />
+              <button onclick="searchDirectory()" class="btn btn-primary">
+                Search
+              </button>
+              <button onclick="resetDirectory()" class="btn btn-ghost">
+                Reset
+              </button>
             </div>
-            
-            <div style="flex: 2; min-width: 250px;">
-                <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Search by Patient ID</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="search-input" class="input" placeholder="e.g. A3F8C2D1" style="background: white; border: 1px solid #cbd5e1; text-transform: uppercase;">
-                    <button onclick="searchDirectory()" class="btn btn-primary">Search</button>
-                    <button onclick="resetDirectory()" class="btn btn-ghost">Reset</button>
-                </div>
-            </div>
+          </div>
         </div>
 
-        <div id="directory-results" style="display: flex; flex-direction: column; gap: 12px;"></div>
-
+        <div
+          id="directory-results"
+          style="display: flex; flex-direction: column; gap: 12px"
+        ></div>
       </div>
     </main>
 
     <!-- History Modal -->
-    <div id="history-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
-        <div style="background: white; width: 100%; max-width: 600px; max-height: 85vh; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.2);">
-            <div style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-                <div>
-                    <h3 style="margin: 0; font-size: 20px; color: var(--primary-color);" id="modal-patient-name">Lifetime History</h3>
-                    <span style="font-size: 13px; color: var(--text-muted); font-weight: 600;" id="modal-patient-id">ID: --</span>
-                </div>
-                <button onclick="document.getElementById('history-modal').style.display='none'" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8;">&times;</button>
-            </div>
-            <div id="modal-history-content" style="padding: 24px; overflow-y: auto; background: #f1f5f9; flex: 1;">
-                Loading...
-            </div>
+    <div
+      id="history-modal"
+      style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      "
+    >
+      <div
+        style="
+          background: white;
+          width: 100%;
+          max-width: 600px;
+          max-height: 85vh;
+          border-radius: 16px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
+        "
+      >
+        <div
+          style="
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8fafc;
+          "
+        >
+          <div>
+            <h3
+              style="margin: 0; font-size: 20px; color: var(--primary-color)"
+              id="modal-patient-name"
+            >
+              Lifetime History
+            </h3>
+            <span
+              style="
+                font-size: 13px;
+                color: var(--text-muted);
+                font-weight: 600;
+              "
+              id="modal-patient-id"
+              >ID: --</span
+            >
+          </div>
+          <button
+            onclick="
+              document.getElementById('history-modal').style.display = 'none'
+            "
+            style="
+              background: none;
+              border: none;
+              font-size: 24px;
+              cursor: pointer;
+              color: #94a3b8;
+            "
+          >
+            &times;
+          </button>
         </div>
+        <div
+          id="modal-history-content"
+          style="padding: 24px; overflow-y: auto; background: #f1f5f9; flex: 1"
+        >
+          Loading...
+        </div>
+      </div>
     </div>
 
     <script>
       const clinicId = localStorage.getItem("tap2med_clinic_id");
-      if (!clinicId) window.location.href = "/login";
+      const staffRole = localStorage.getItem("tap2med_staff_role");
+      const isStaff = staffRole === "staff";
+      if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
 
-      document.getElementById('date-filter').valueAsDate = new Date();
+      if (isStaff) {
+        document.title = "Patient Directory | Tap2Med Reception";
+        document.querySelector(".brand-role")?.remove();
+        const workspaceLink = document.querySelector('a[href="/dashboard"]');
+        if (workspaceLink) workspaceLink.href = "/staff-dashboard";
+        document.querySelector('a[href="/settings"]')?.remove();
+        document.getElementById("doc-name").textContent = "Reception";
+        document.getElementById("clinic-name").textContent = "Patient Records";
+      }
+
+      let activeHistoryVisits = [];
+
+      document.getElementById("date-filter").valueAsDate = new Date();
 
       async function loadDirectory(date = null, search = null) {
-          const resultsContainer = document.getElementById("directory-results");
-          resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: #94a3b8;">Loading...</div>';
+        const resultsContainer = document.getElementById("directory-results");
+        resultsContainer.innerHTML =
+          '<div style="text-align: center; padding: 40px; color: #94a3b8;">Loading...</div>';
 
-          let url = `/api/clinics/${clinicId}/directory?`;
-          if (search) url += `search=${encodeURIComponent(search)}`;
-          else if (date) url += `date_filter=${date}`;
+        let url = `/api/clinics/${clinicId}/directory?`;
+        if (search) url += `search=${encodeURIComponent(search)}`;
+        else if (date) url += `date_filter=${date}`;
 
-          try {
-              const res = await fetch(url);
-              const data = await res.json();
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
 
-              if (!data.results || data.results.length === 0) {
-                  resultsContainer.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">No visits found for this criteria.</div>';
-                  return;
-              }
+          if (!data.results || data.results.length === 0) {
+            resultsContainer.innerHTML =
+              '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">No visits found for this criteria.</div>';
+            return;
+          }
 
-              resultsContainer.innerHTML = "";
-              data.results.forEach(patient => {
-                  const checkInTime = new Date(patient.timestamp).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
-                  
-                  const card = document.createElement("div");
-                  card.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;";
-                  card.onmouseover = () => card.style.borderColor = "var(--primary-color)";
-                  card.onmouseout = () => card.style.borderColor = "#e2e8f0";
+          resultsContainer.innerHTML = "";
+          data.results.forEach((patient) => {
+            const checkInTime = new Date(patient.timestamp).toLocaleTimeString(
+              "en-IN",
+              { hour: "2-digit", minute: "2-digit" },
+            );
 
-                  card.innerHTML = `
+            const card = document.createElement("div");
+            card.style.cssText =
+              "display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;";
+            card.onmouseover = () =>
+              (card.style.borderColor = "var(--primary-color)");
+            card.onmouseout = () => (card.style.borderColor = "#e2e8f0");
+
+            card.innerHTML = `
                       <div style="display: flex; align-items: center; gap: 20px;">
                           <div style="background: #f1f5f9; color: var(--primary-color); font-weight: 800; font-size: 18px; padding: 10px 16px; border-radius: 8px;">ID: ${patient.display_id}</div>
                           <div>
@@ -129,90 +265,181 @@
                       </div>
                       <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
                   `;
-                  resultsContainer.appendChild(card);
-              });
-          } catch (e) {
-              resultsContainer.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--error-color);">Failed to load directory.</div>';
-          }
+            resultsContainer.appendChild(card);
+          });
+        } catch (e) {
+          resultsContainer.innerHTML =
+            '<div style="text-align: center; padding: 40px; color: var(--error-color);">Failed to load directory.</div>';
+        }
       }
 
       async function openHistory(localToken, displayId, name) {
-          document.getElementById('modal-patient-name').textContent = name;
-          document.getElementById('modal-patient-id').textContent = `Patient ID: ${displayId}`;
-          document.getElementById('history-modal').style.display = 'flex';
-          
-          const content = document.getElementById('modal-history-content');
-          content.innerHTML = "Fetching secure records...";
+        document.getElementById("modal-patient-name").textContent = name;
+        document.getElementById("modal-patient-id").textContent =
+          `Patient ID: ${displayId}`;
+        document.getElementById("history-modal").style.display = "flex";
 
-          try {
-              const res = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
-              const data = await res.json();
-              
-              if (!data.history || data.history.length === 0) {
-                  content.innerHTML = "No past records found.";
-                  return;
-              }
+        const content = document.getElementById("modal-history-content");
+        content.innerHTML = "Fetching secure records...";
 
-              content.innerHTML = "";
-              data.history.forEach(visit => {
-                  const date = new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-                  let html = `
-                      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                          <div style="font-weight: 700; color: var(--primary-color); border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">📅 ${date}</div>
-                  `;
-                  
-                  if (visit.weight) {
-                      html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
-                  }
+        try {
+          const res = await fetch(
+            `/api/events/history/${encodeURIComponent(localToken)}`,
+          );
+          const data = await res.json();
 
-                  if (visit.complaints || visit.diagnosis) {
-                      html += `<div style="margin-bottom: 15px;">`;
-                      if (visit.complaints) html += `<div style="font-size: 14px; color: #334155; margin-bottom: 4px;"><strong>C/E:</strong> ${visit.complaints}</div>`;
-                      if (visit.diagnosis) html += `<div style="font-size: 14px; color: #0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
-                      html += `</div>`;
-                  }
-
-                  if (visit.prescriptions && visit.prescriptions.length > 0) {
-                      html += `<div style="margin-bottom: 15px;"><strong style="font-size: 14px; color: #0f172a;">Rx:</strong><ul style="list-style: none; padding-left: 0; margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">`;
-                      visit.prescriptions.forEach(rx => {
-                          html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ''}</span></li>`;
-                      });
-                      html += `</ul></div>`;
-                  }
-
-                  if (visit.tests_suggested) {
-                      html += `<div style="font-size: 13px; color: #0284c7; padding-top: 10px; border-top: 1px dashed #cbd5e1;"><strong>Tests Suggested:</strong> ${visit.tests_suggested}</div>`;
-                  }
-                  
-                  html += `</div>`;
-                  content.innerHTML += html;
-              });
-          } catch (e) {
-              content.innerHTML = "Error loading history.";
+          if (!data.history || data.history.length === 0) {
+            content.innerHTML = "No past records found.";
+            return;
           }
+
+          content.innerHTML = "";
+          activeHistoryVisits = data.history;
+          data.history.forEach((visit, visitIndex) => {
+            const date = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            });
+            let html = `
+                      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+                        <strong style="font-weight: 700; color: var(--primary-color);">📅 ${date}</strong>
+                        <span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="printPastPrescription(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🖨️ Prescription</button>
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="generatePastBill(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🧾 Bill</button>
+                        </span>
+                      </div>
+                  `;
+
+            if (visit.weight) {
+              html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
+            }
+
+            if (visit.complaints || visit.diagnosis) {
+              html += `<div style="margin-bottom: 15px;">`;
+              if (visit.complaints)
+                html += `<div style="font-size: 14px; color: #334155; margin-bottom: 4px;"><strong>C/E:</strong> ${visit.complaints}</div>`;
+              if (visit.diagnosis)
+                html += `<div style="font-size: 14px; color: #0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
+              html += `</div>`;
+            }
+
+            if (visit.prescriptions && visit.prescriptions.length > 0) {
+              html += `<div style="margin-bottom: 15px;"><strong style="font-size: 14px; color: #0f172a;">Rx:</strong><ul style="list-style: none; padding-left: 0; margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">`;
+              visit.prescriptions.forEach((rx) => {
+                html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ""}</span></li>`;
+              });
+              html += `</ul></div>`;
+            }
+
+            if (visit.tests_suggested) {
+              html += `<div style="font-size: 13px; color: #0284c7; padding-top: 10px; border-top: 1px dashed #cbd5e1;"><strong>Tests Suggested:</strong> ${visit.tests_suggested}</div>`;
+            }
+
+            html += `</div>`;
+            content.innerHTML += html;
+          });
+        } catch (e) {
+          content.innerHTML = "Error loading history.";
+        }
       }
 
+      function escapePrintText(value) {
+        return String(value ?? "").replace(
+          /[&<>"']/g,
+          (character) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[character],
+        );
+      }
+
+      function openPrintWindow(title, body) {
+        const printWindow = window.open("", "_blank", "width=800,height=900");
+        if (!printWindow) {
+          alert("Please allow pop-ups to print this record.");
+          return;
+        }
+        printWindow.document.write(
+          `<!doctype html><html><head><title>${escapePrintText(title)}</title><style>body{font-family:Arial,sans-serif;color:#0f172a;padding:40px;max-width:760px;margin:auto}h1{color:#0284c7;border-bottom:2px solid #0284c7;padding-bottom:12px}h2{margin-top:28px;color:#334155}.meta{color:#64748b;margin-bottom:24px}.medicine{padding:12px 0;border-bottom:1px solid #e2e8f0}.label{font-weight:700;color:#475569}</style></head><body>${body}</body></html>`,
+        );
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+      }
+
+      window.printPastPrescription = function (visitIndex) {
+        const visit = activeHistoryVisits[visitIndex];
+        if (!visit) return;
+        const medicines =
+          (visit.prescriptions || [])
+            .map(
+              (medicine) => `
+              <div class="medicine"><strong>${escapePrintText(medicine.name)}</strong><br>${escapePrintText(medicine.instructions || "No instructions recorded")}</div>
+            `,
+            )
+            .join("") || "<p>No medicines recorded.</p>";
+        openPrintWindow(
+          "Past Prescription",
+          `
+              <h1>Digital Prescription</h1>
+              <div class="meta"><span class="label">Patient:</span> ${escapePrintText(document.getElementById("modal-patient-name").textContent)}<br><span class="label">Patient ID:</span> ${escapePrintText(document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", ""))}<br><span class="label">Date:</span> ${escapePrintText(new Date(visit.timestamp).toLocaleDateString("en-IN"))}</div>
+              <h2>Medicines</h2>${medicines}
+              ${visit.complaints ? `<h2>Complaints</h2><p>${escapePrintText(visit.complaints)}</p>` : ""}
+              ${visit.diagnosis ? `<h2>Diagnosis</h2><p>${escapePrintText(visit.diagnosis)}</p>` : ""}
+              ${visit.tests_suggested ? `<h2>Tests Suggested</h2><p>${escapePrintText(visit.tests_suggested)}</p>` : ""}
+            `,
+        );
+      };
+
+      window.generatePastBill = function (visitIndex) {
+        const visit = activeHistoryVisits[visitIndex];
+        if (!visit) return;
+        const visitType =
+          visit.event_type === "followup"
+            ? "Follow-up Consultation"
+            : visit.event_type === "appointment"
+              ? "Appointment Consultation"
+              : "New Consultation";
+        const amount = visit.fee || "0";
+        openPrintWindow(
+          "Past Bill",
+          `
+              <h1>Bill cum Receipt</h1>
+              <div class="meta"><span class="label">Patient:</span> ${escapePrintText(document.getElementById("modal-patient-name").textContent)}<br><span class="label">Patient ID:</span> ${escapePrintText(document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", ""))}<br><span class="label">Date:</span> ${escapePrintText(new Date(visit.timestamp).toLocaleString("en-IN"))}<br><span class="label">Token:</span> ${escapePrintText(visit.daily_token_number || "--")}</div>
+              <h2>${escapePrintText(visitType)}</h2>
+              <p><span class="label">Amount Paid:</span> ₹${escapePrintText(amount)}</p>
+              <p><span class="label">Status:</span> Paid</p>
+            `,
+        );
+      };
+
       function searchDirectory() {
-          const searchVal = document.getElementById('search-input').value.trim();
-          if (searchVal) {
-              loadDirectory(null, searchVal);
-          } else {
-              loadDirectory(document.getElementById('date-filter').value);
-          }
+        const searchVal = document.getElementById("search-input").value.trim();
+        if (searchVal) {
+          loadDirectory(null, searchVal);
+        } else {
+          loadDirectory(document.getElementById("date-filter").value);
+        }
       }
 
       function resetDirectory() {
-          document.getElementById('search-input').value = "";
-          document.getElementById('date-filter').valueAsDate = new Date();
-          loadDirectory(document.getElementById('date-filter').value);
+        document.getElementById("search-input").value = "";
+        document.getElementById("date-filter").valueAsDate = new Date();
+        loadDirectory(document.getElementById("date-filter").value);
       }
 
-      document.getElementById('date-filter').addEventListener('change', (e) => {
-          document.getElementById('search-input').value = "";
-          loadDirectory(e.target.value);
+      document.getElementById("date-filter").addEventListener("change", (e) => {
+        document.getElementById("search-input").value = "";
+        loadDirectory(e.target.value);
       });
 
-      loadDirectory(document.getElementById('date-filter').value);
+      loadDirectory(document.getElementById("date-filter").value);
     </script>
   </body>
 </html>

@@ -218,6 +218,7 @@ def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: 
             rec.local_token: rec 
             for rec in db.query(models.ClinicPatientRecord).filter(models.ClinicPatientRecord.clinic_id == clinic_id).all()
         }
+        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
         
         seen_tokens = set()
         results = []
@@ -232,6 +233,13 @@ def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: 
                     "display_id": e.local_token[:8].upper(),
                     "local_token": e.local_token,
                     "timestamp": e.timestamp.isoformat(),
+                    "daily_token_number": e.daily_token_number,
+                    "event_type": e.event_type,
+                    "fee": (
+                        clinic.walkin_fee if e.event_type == "walkin"
+                        else clinic.appointment_fee if e.event_type == "appointment"
+                        else clinic.followup_fee
+                    ),
                     "patient_name": name,
                     "vitals": e.patient_weight
                 })

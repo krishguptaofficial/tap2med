@@ -441,6 +441,9 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
         record = db.query(models.ClinicPatientRecord).filter(
             models.ClinicPatientRecord.local_token == local_token
         ).first()
+        clinic = db.query(models.Clinic).filter(
+            models.Clinic.clinic_id == past_visits[0].clinic_id
+        ).first() if past_visits else None
         patient_name = record.patient_name if record else "Patient"
             
         display_id = local_token[:8].upper()
@@ -468,6 +471,13 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
             formatted_history.append({
                 "event_id": visit_id_str,   
                 "timestamp": visit.timestamp.isoformat(),
+                "daily_token_number": visit.daily_token_number,
+                "event_type": visit.event_type,
+                "fee": (
+                    clinic.appointment_fee if visit.event_type == "appointment"
+                    else clinic.followup_fee if visit.event_type == "followup"
+                    else clinic.walkin_fee
+                ) if clinic else "",
                 "weight": visit.patient_weight,
                 "vitals": visit.vitals,
                 "complaints": visit.complaints,
