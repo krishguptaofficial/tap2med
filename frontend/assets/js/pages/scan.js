@@ -4,34 +4,23 @@ const scannedClinicId = urlParams.get("clinic");
 let currentSessionPhone = localStorage.getItem("tap2med_last_phone") || null;
 let selectedMemberId = null;
 
-function clampMemberId(value) {
-  const cleaned = Number.parseInt(value, 10);
-  if (Number.isNaN(cleaned)) return 1;
-  return Math.min(100, Math.max(1, cleaned));
-}
-
-const memberPreviewOptions = Array.from({ length: 100 }, (_, index) => ({
-  id: index + 1,
-  name: `Member ${index + 1}`,
-}));
-
-function populateMemberIdOptions(selectEl) {
-  if (!selectEl) return;
-  const currentValue = clampMemberId(selectEl.value || "1");
-  selectEl.innerHTML = "";
-  for (let i = 1; i <= 100; i += 1) {
-    const option = document.createElement("option");
-    option.value = String(i);
-    option.textContent = String(i);
-    if (i === currentValue) option.selected = true;
-    selectEl.appendChild(option);
-  }
-  selectEl.value = String(currentValue);
-}
+const defaultMembers = [
+  { id: 0, name: "Self" },
+  { id: 1, name: "Spouse" },
+  { id: 2, name: "Father" },
+  { id: 3, name: "Mother" },
+  { id: 4, name: "Child 1 (Eldest)" },
+  { id: 5, name: "Child 2" },
+  { id: 6, name: "Child 3" },
+  { id: 7, name: "Child 4 (Youngest)" },
+];
+const savedMembers = localStorage.getItem("tap2med_family");
+let familyMembers = savedMembers ? JSON.parse(savedMembers) : defaultMembers;
 
 const screens = [
   "screen-phone",
-  "screen-member",
+  "screen-members",
+  "screen-add-member",
   "screen-details",
   "screen-success",
 ];
@@ -65,118 +54,59 @@ document.getElementById("btn-phone-next")?.addEventListener("click", () => {
 
   currentSessionPhone = phone;
   localStorage.setItem("tap2med_last_phone", phone);
-  renderMemberGrid();
-  showScreen("screen-member");
-});
-
-document.getElementById("btn-member-back")?.addEventListener("click", () => {
-  showScreen("screen-phone");
+  renderMemberList();
+  showScreen("screen-members");
 });
 
 document.getElementById("btn-details-back")?.addEventListener("click", () => {
-  showScreen("screen-member");
+  showScreen("screen-members");
 });
 
-function renderMemberGrid() {
-  const grid = document.getElementById("member-grid");
-  if (!grid) return;
-  grid.innerHTML = "";
-
-  memberPreviewOptions.forEach((member) => {
+function renderMemberList() {
+  const list = document.getElementById("member-list-container");
+  if (!list) return;
+  list.innerHTML = "";
+  familyMembers.forEach((member) => {
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "member-btn";
+    btn.className = "member-row";
     btn.textContent = member.name;
     btn.addEventListener("click", () => {
-      const memberInput = document.getElementById("member-id-input");
-      if (memberInput) {
-        memberInput.value = String(member.id);
-      }
       selectedMemberId = member.id;
-      applyMemberLookup();
+      list
+        .querySelectorAll(".member-row")
+        .forEach((row) => row.classList.remove("selected"));
+      btn.classList.add("selected");
     });
-    grid.appendChild(btn);
+    list.appendChild(btn);
   });
+  const addMember = document.createElement("button");
+  addMember.type = "button";
+  addMember.className = "member-row add-member";
+  addMember.textContent = "+ Add New Member";
+  addMember.addEventListener("click", () => {
+    document.getElementById("new-member-name").value = "";
+    showScreen("screen-add-member");
+  });
+  list.appendChild(addMember);
 }
 
-async function applyMemberLookup() {
-  const memberInput = document.getElementById("member-id-input");
-  const memberId = clampMemberId(
-    memberInput ? memberInput.value : (selectedMemberId ?? 1),
-  );
-  selectedMemberId = memberId;
-  if (memberInput) memberInput.value = String(memberId);
+document.getElementById("save-member-btn")?.addEventListener("click", () => {
+  const input = document.getElementById("new-member-name");
+  const name = input.value.trim();
+  if (!name) return alert("Please enter a name.");
+  familyMembers.push({ id: Date.now(), name });
+  localStorage.setItem("tap2med_family", JSON.stringify(familyMembers));
+  renderMemberList();
+  showScreen("screen-members");
+});
 
-  const nameInput = document.getElementById("patient-name-input");
-  const cityInput = document.getElementById("patient-city-input");
-  const ageInput = document.getElementById("patient-age-input");
-
-  if (!currentSessionPhone || !scannedClinicId) {
-    return;
-  }
-
-  showScreen("screen-details");
-
-  if (nameInput) nameInput.placeholder = "Loading...";
-
-  try {
-    const res = await fetch("/api/events/lookup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        phone: currentSessionPhone,
-        member_id: selectedMemberId,
-        clinic_id: scannedClinicId,
-      }),
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.found) {
-        if (nameInput) nameInput.value = data.patient_name || "";
-        if (cityInput) cityInput.value = data.city || "";
-        if (ageInput)
-          ageInput.value =
-            data.age !== undefined && data.age !== null ? String(data.age) : "";
-        if (nameInput) {
-          nameInput.style.borderColor = "var(--success-color)";
-          setTimeout(
-            () => (nameInput.style.borderColor = "var(--border-color)"),
-            1500,
-          );
-        }
-      } else {
-        if (nameInput) nameInput.value = "";
-        if (cityInput) cityInput.value = "";
-        if (ageInput) ageInput.value = "";
-      }
-    }
-  } catch (e) {
-    console.error("Lookup failed silently", e);
-  }
-
-  if (nameInput) nameInput.placeholder = "Full Name";
-  setTimeout(() => document.getElementById("patient-name-input")?.focus(), 50);
-}
-
-const memberIdInput = document.getElementById("member-id-input");
-if (memberIdInput) {
-  populateMemberIdOptions(memberIdInput);
-  memberIdInput.addEventListener("change", () => {
-    const value = clampMemberId(memberIdInput.value);
-    memberIdInput.value = String(value);
-    selectedMemberId = value;
-    applyMemberLookup();
-  });
-  memberIdInput.addEventListener("mouseover", (event) => {
-    const target = event.target;
-    if (target && target.tagName === "OPTION") {
-      memberIdInput.value = target.value;
-      selectedMemberId = clampMemberId(target.value);
-      applyMemberLookup();
-    }
-  });
-}
+document
+  .getElementById("cancel-member-btn")
+  ?.addEventListener("click", () => showScreen("screen-phone"));
+document
+  .getElementById("cancel-add-member-btn")
+  ?.addEventListener("click", () => showScreen("screen-members"));
 
 // ----------------- RESUME SESSION / POLLING -----------------
 

@@ -14,12 +14,6 @@ function logout() {
   window.location.href = "/staff-login";
 }
 
-function clampMemberId(value) {
-  const cleaned = Number.parseInt(value, 10);
-  if (Number.isNaN(cleaned)) return 1;
-  return Math.min(100, Math.max(1, cleaned));
-}
-
 function getShortCode(tokenNumber) {
   if (tokenNumber === undefined || tokenNumber === null) return "--";
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
@@ -123,25 +117,13 @@ function clearLookupStatus() {
   setLookupStatus("", "neutral");
 }
 
-function populateMemberIdOptions(selectEl) {
-  if (!selectEl) return;
-  const currentValue = clampMemberId(selectEl.value || "1");
-  selectEl.innerHTML = "";
-  for (let i = 1; i <= 100; i += 1) {
-    const option = document.createElement("option");
-    option.value = String(i);
-    option.textContent = String(i);
-    if (i === currentValue) option.selected = true;
-    selectEl.appendChild(option);
-  }
-  selectEl.value = String(currentValue);
-}
-
 window.attemptManualLookup = async function () {
   const phoneInput = document.getElementById("walkin-phone");
   const phone = phoneInput ? phoneInput.value.trim() : "";
   const memberInput = document.getElementById("manual-member-id");
-  const selectedMember = memberInput ? clampMemberId(memberInput.value) : 1;
+  const selectedMember = memberInput
+    ? Number.parseInt(memberInput.value, 10)
+    : 0;
   const nameInput = document.getElementById("walkin-name");
   const cityInput = document.getElementById("walkin-city");
   const ageInput = document.getElementById("walkin-age");
@@ -215,7 +197,6 @@ document
 
 const manualMemberSelect = document.getElementById("manual-member-id");
 if (manualMemberSelect) {
-  populateMemberIdOptions(manualMemberSelect);
   manualMemberSelect.addEventListener("change", () => {
     const phone = document.getElementById("walkin-phone")?.value.trim() || "";
     if (/^\d{10}$/.test(phone)) {
@@ -242,7 +223,9 @@ window.manualCheckIn = async function () {
   const statusEl = document.getElementById("manual-status");
   const btn = document.getElementById("btn-manual-checkin");
   const memberInput = document.getElementById("manual-member-id");
-  const selectedMember = memberInput ? clampMemberId(memberInput.value) : 1;
+  const selectedMember = memberInput
+    ? Number.parseInt(memberInput.value, 10)
+    : 0;
 
   const nameInput = document.getElementById("walkin-name");
   const patientName = nameInput ? nameInput.value.trim() : "Walk-in Patient";
