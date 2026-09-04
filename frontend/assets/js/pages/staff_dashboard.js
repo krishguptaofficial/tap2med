@@ -998,6 +998,7 @@ window.removePatientFromQueue = async function (localToken, event) {
 };
 
 async function loadStaffQueue() {
+  if (queueDragActive) return;
   try {
     const response = await fetch(
       `/api/clinics/queue/${encodeURIComponent(clinicId)}`,

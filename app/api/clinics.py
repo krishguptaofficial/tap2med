@@ -131,7 +131,7 @@ def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload, db: Session = D
         ).all()
         events_by_token = {event.local_token: event for event in waiting}
         ordered_tokens = [token for token in payload.local_tokens if token in events_by_token]
-        remaining_tokens = [event.local_token for event in waiting if event.local_token not in ordered_tokens]
+        remaining_tokens = [str(event.local_token) for event in waiting if event.local_token not in ordered_tokens]
         ordered_tokens.extend(remaining_tokens)
 
         for position, token in enumerate(ordered_tokens):
