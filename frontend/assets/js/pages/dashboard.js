@@ -561,72 +561,35 @@ window.removePatientFromQueue = async function (localToken, event) {
 
 window.rePrintRx = async function (localToken, patientName, displayId) {
   try {
-    const response = await fetch(
-      `/api/events/history/${encodeURIComponent(localToken)}`,
-    );
+    const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
     const data = await response.json();
-    if (!data.history || data.history.length === 0)
-      return alert("No prescription found.");
+    if (!data.history || data.history.length === 0) return alert("No prescription found.");
 
     const visit = data.history[0];
     const today = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+      day: "numeric", month: "long", year: "numeric",
     });
 
-    document.getElementById("print-clinic-name").textContent =
-      clinicName.textContent;
-    document.getElementById("print-doctor-name").textContent =
-      doctorName.textContent;
-    document.getElementById("print-date").textContent = `Date: ${today}`;
-    document.getElementById("print-patient-name").innerHTML =
-      `<strong>Name:</strong> ${patientName}`;
-    document.getElementById("print-patient-id").innerHTML =
-      `<strong>Patient ID:</strong> ${displayId}`;
+    // Package the data for the new Print Engine
+    const printData = {
+        clinicName: clinicName.textContent || "Clinic",
+        doctorName: doctorName.textContent || "Doctor",
+        patientName: patientName || "Patient",
+        displayId: displayId || "--",
+        date: today,
+        vitals: visit.weight || '',
+        complaints: visit.complaints || '',
+        diagnosis: visit.diagnosis || '',
+        tests: visit.tests_suggested || '',
+        prescriptions: visit.prescriptions || []
+    };
 
-    const printNotesContainer = document.getElementById("print-clinical-notes");
-    const printComplaints = document.getElementById("print-complaints");
-    const printDiagnosis = document.getElementById("print-diagnosis");
-    const printTests = document.getElementById("print-tests");
+    // Call the isolated print engine
+    window.PrintEngine.printRx(printData);
 
-    if (visit.complaints || visit.diagnosis) {
-      printNotesContainer.style.display = "block";
-      printComplaints.innerHTML = visit.complaints
-        ? `<strong>C/E:</strong> ${visit.complaints}`
-        : "";
-      printDiagnosis.innerHTML = visit.diagnosis
-        ? `<strong>Diagnosis:</strong> ${visit.diagnosis}`
-        : "";
-    } else {
-      printNotesContainer.style.display = "none";
-    }
-
-    if (visit.tests_suggested) {
-      printTests.style.display = "block";
-      printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
-    } else {
-      printTests.style.display = "none";
-    }
-
-    const printMedContainer = document.getElementById("print-medicines");
-    printMedContainer.innerHTML = "";
-    if (visit.prescriptions) {
-      visit.prescriptions.forEach((med) => {
-        printMedContainer.innerHTML += `
-                    <div style="margin-bottom: 20px;">
-                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                        <span style="font-size: 14px; color: #444;">${med.instructions || ""}</span>
-                    </div>
-                `;
-      });
-    }
-
-    document.body.className = "mode-rx";
-    window.print();
-    setTimeout(() => (document.body.className = "dashboard-body"), 1000);
   } catch (e) {
     alert("Failed to load prescription for printing.");
+    console.error(e);
   }
 };
 
@@ -795,11 +758,25 @@ async function completeVisit() {
 
     setPrescriptionStatus("Sent to WhatsApp", "success");
 
-    const today = new Date().toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
+      const today = new Date().toLocaleDateString("en-IN", {
+      day: "numeric", month: "long", year: "numeric",
     });
+
+    if (localStorage.getItem("tap2med_auto_print") === "true") {
+        const printData = {
+            clinicName: clinicName.textContent || "Clinic",
+            doctorName: doctorName.textContent || "Doctor",
+            patientName: window.currentPatientName || "Patient",
+            displayId: window.currentDisplayId || "--",
+            date: today,
+            vitals: '', 
+            complaints: complaints,
+            diagnosis: diagnosis,
+            tests: tests_suggested,
+            prescriptions: medicines
+        };
+        window.PrintEngine.printRx(printData);
+    }
 
     // Safe null-checked DOM assignments
     const printClinic = document.getElementById("print-clinic-name");
