@@ -1068,6 +1068,8 @@ async function fetchActiveVitals() {
   } catch (e) {}
 }
 
+setInterval(fetchActiveVitals, 2000);
+
 // --- EXPANDED LAB FLOWSHEET ENGINE ---
 const ALL_LAB_KEYS = [
   "diab_sap",

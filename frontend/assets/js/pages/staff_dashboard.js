@@ -372,11 +372,12 @@ window.submitVitals = async function () {
   };
 
   try {
-    await fetch("/api/events/vitals", {
+    const response = await fetch("/api/events/vitals", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ local_token: localToken, vitals: payload }),
     });
+    if (!response.ok) throw new Error("Vitals save failed");
     closeVitalsModal();
     loadStaffQueue();
   } catch (e) {
