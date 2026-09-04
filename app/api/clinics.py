@@ -90,6 +90,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "vitals": event.vitals,
                 "patient_name": patient_name,
                 "city": patient_city,
+                "age": rec.age if rec else None,
                 "display_id": patient_display_id,
                 "timestamp": event.timestamp.isoformat(),
                 "visit_type": visit_type,

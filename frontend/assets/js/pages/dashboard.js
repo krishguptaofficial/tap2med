@@ -247,6 +247,7 @@ function renderActiveHeader({
   patientName,
   displayId,
   cityText = "",
+  age = null,
   modeLabel = "",
 }) {
   const headerEyebrow = document.querySelector(".eyebrow");
@@ -255,11 +256,15 @@ function renderActiveHeader({
   const cityMarkup = cityText
     ? ` <span style="font-size: 14px; color: var(--text-muted);">(${cityText})</span>`
     : "";
+  const ageMarkup =
+    age !== null && age !== undefined && age !== ""
+      ? ` <span style="font-size: 14px; color: var(--text-muted);">Age: ${age}</span>`
+      : "";
   const modeMarkup = modeLabel
     ? ` - <span style="color:#ef4444;">${modeLabel}</span>`
     : "";
 
-  headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${patientName}</strong>${cityMarkup} (ID: ${displayId})${modeMarkup}
+  headerEyebrow.innerHTML = `Active Token: <strong style="color: var(--primary-color);">${patientName}</strong>${cityMarkup}${ageMarkup} (ID: ${displayId})${modeMarkup}
     <button onclick="openLabsModal()" class="btn btn-sm btn-secondary" style="margin-left: 15px; background: white; font-size: 12px; height: 28px; box-shadow: none;">🧪 View Labs & Trends</button>`;
 }
 
@@ -370,6 +375,7 @@ async function loadQueue() {
             patientName: window.currentPatientName,
             displayId: window.currentDisplayId,
             cityText: patient.city || "",
+            age: patient.age,
           });
 
           // Clear form
@@ -421,6 +427,7 @@ async function loadQueue() {
           patientName: window.currentPatientName,
           displayId: window.currentDisplayId,
           cityText: firstPatient.city || "",
+          age: firstPatient.age,
         });
 
         clearPrescription();
