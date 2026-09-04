@@ -1,94 +1,136 @@
 class PrintEngine {
-    static setupContainer() {
-        let container = document.getElementById('tap2med-print-container');
-        if (!container) {
-            container = document.createElement('div');
-            container.id = 'tap2med-print-container';
-            document.body.appendChild(container);
-        }
-        return container;
+  static setupContainer() {
+    let container = document.getElementById("tap2med-print-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "tap2med-print-container";
+      container.className = "print-only";
+      document.body.appendChild(container);
     }
+    return container;
+  }
 
-    static printRx(data) {
-        const container = this.setupContainer();
-        
-        // Build the medicine table rows
-        let medsHtml = '';
-        if (data.prescriptions && data.prescriptions.length > 0) {
-            data.prescriptions.forEach((med, index) => {
-                // Formatting instructions as remarks under the medicine name
-                const remarks = med.instructions ? `<span class="rx-note">Note: ${med.instructions}</span>` : '';
-                medsHtml += `
-                    <tr>
-                        <td style="width: 45%;">
-                            ${index + 1}) <strong>${med.name}</strong>
-                            ${remarks}
+  static printRx(data) {
+    const container = this.setupContainer();
+
+    let medsHtml = "";
+    if (data.prescriptions && data.prescriptions.length > 0) {
+      data.prescriptions.forEach((med, index) => {
+        const note = med.instructions
+          ? `<div style="font-size: 12px; color: var(--text-muted); font-style: italic; padding-left: 20px;">Note : ${med.instructions}</div>`
+          : "";
+        medsHtml += `
+                    <tr style="border-bottom: 1px solid #cbd5e1;">
+                        <td style="padding: 10px 5px;">
+                            ${index + 1}) <strong>${med.name.toUpperCase()}</strong>
+                            ${note}
                         </td>
-                        <td style="width: 20%;">${med.dosage || '--'}</td>
-                        <td style="width: 35%;">${med.duration ? med.duration : 'As directed'}</td>
+                        <td style="padding: 10px 5px;">${med.dosage || "--"}</td>
+                        <td style="padding: 10px 5px;">${med.duration ? med.duration : "As directed"}</td>
                     </tr>
                 `;
-            });
-        }
+      });
+    }
 
-        // Exact layout matching the physical photo
-        container.innerHTML = `
-            <div class="rx-header-grid">
-                <div>
-                    <h2 style="margin:0; font-size:22px;">${data.clinicName}</h2>
-                    <p style="margin:4px 0 0; color:#444;">${data.doctorName}</p>
+    const vitalsHtml = data.vitals
+      ? `<div style="display: flex; gap: 20px; font-size: 13px; font-weight: 600; margin-bottom: 8px;">${data.vitals}</div>`
+      : "";
+    const diagnosisHtml = data.diagnosis
+      ? `<div style="font-size: 14px; font-weight: 700; font-style: italic;">Diagnosis: ${data.diagnosis.toUpperCase()}</div>`
+      : "";
+    const complaintsHtml = data.complaints
+      ? `<div style="font-size: 13px; margin-bottom: 8px;">Complaints: ${data.complaints}</div>`
+      : "";
+
+    container.innerHTML = `
+            <div style="font-family: var(--font-family); color: var(--text-main); background: white; padding: 20px;">
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                  <div>
+                    <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: var(--text-main);">${data.doctorName || "Dr. Faiz Ahmed"}</h1>
+                    <p style="margin: 2px 0 0; font-size: 14px; font-weight: 600; color: var(--text-muted);">MBBS, MD (Medicine)<br>Regn. No.: MCI/23719</p>
+                    <p style="margin: 12px 0 0; font-size: 13px; color: var(--text-muted);">
+                      Formerly at -<br>
+                      St. Luke's Roosevelt Hospital, NY<br>
+                      Broadhurst Clinic, Africa<br>
+                      Endocrinology, JNMCH, Aligarh
+                    </p>
+                  </div>
+                  <div style="text-align: right; font-size: 13px; color: var(--text-main); font-weight: 500;">
+                    <p style="margin: 0 0 4px;">Timings: 11:00am - 02:30pm, 5:30pm - 8:30pm<br>
+                    <strong>Closed: Friday (Evening) & Sunday (Full Day)</strong></p>
+                    <p style="margin: 0 0 4px;">Add: B-25, HIG, Sector-23, Sanjay Nagar, Ghaziabad</p>
+                    <p style="margin: 0 0 4px;"><strong>For Appointment (9:00am - 8:00pm): 9911007141</strong><br>
+                    <strong>Pharmacy: 8766236525</strong></p>
+                  </div>
                 </div>
-                <div style="text-align:right;">
-                    <p style="margin:0; font-weight:bold;">Powered by Tap2Med</p>
+
+                <!-- Thick Primary Colored Line -->
+                <div style="height: 6px; background-color: var(--primary-color); margin-bottom: 20px;"></div>
+
+                <!-- Patient Banner -->
+                <div style="display: flex; justify-content: space-between; background: var(--bg-canvas); padding: 10px 15px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; font-weight: 700;">
+                  <div style="display: flex; gap: 5px; text-transform: uppercase;">
+                     <span>${data.displayId}</span> : <span>${data.patientName}</span>
+                  </div>
+                  <div>Date: ${data.date}</div>
                 </div>
-            </div>
 
-            <div class="rx-patient-banner">
-                <div>${data.displayId} : <strong>${data.patientName.toUpperCase()}</strong></div>
-                <div>Date: ${data.date}</div>
-            </div>
+                <!-- Clinical Notes -->
+                <div style="margin-bottom: 15px; padding-bottom: 10px;">
+                  ${vitalsHtml}
+                  ${complaintsHtml}
+                  ${diagnosisHtml}
+                </div>
 
-            <div class="rx-vitals-row">
-                ${data.vitals ? `<span><strong>Vitals:</strong> ${data.vitals}</span>` : ''}
-            </div>
+                <!-- Rx Symbol -->
+                <div style="font-size: 36px; font-weight: bold; font-family: serif; color: var(--text-main); margin-bottom: 15px;">&#8471;</div>
 
-            ${data.diagnosis ? `<div class="rx-diagnosis-row"><strong>Diagnosis:</strong> ${data.diagnosis.toUpperCase()}</div>` : ''}
-
-            <div class="rx-symbol">&#8471;</div>
-
-            <table class="rx-med-table">
-                <thead>
-                    <tr>
-                        <th>Medicine</th>
-                        <th>Dosage</th>
-                        <th>Timing - Freq. - Duration</th>
+                <!-- Medicines Table -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; margin-bottom: 30px;">
+                  <thead>
+                    <tr style="border-top: 1px solid var(--text-muted); border-bottom: 1px solid var(--text-muted);">
+                      <th style="padding: 10px 5px; font-weight: 600;">Medicine</th>
+                      <th style="padding: 10px 5px; font-weight: 600; width: 25%;">Dosage</th>
+                      <th style="padding: 10px 5px; font-weight: 600; width: 35%;">Timing - Freq. - Duration</th>
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     ${medsHtml}
-                </tbody>
-            </table>
+                  </tbody>
+                </table>
 
-            <div class="rx-footer-grid">
-                <div style="width: 50%;">
-                    ${data.complaints ? `<p><strong>Advice / Notes:</strong><br>${data.complaints}</p>` : ''}
-                    ${data.tests ? `<p><strong>Tests Suggested:</strong><br>${data.tests}</p>` : ''}
+                <!-- Tests -->
+                ${data.tests ? `<div style="font-size: 14px; margin-bottom: 20px;"><strong>Tests Suggested:</strong> ${data.tests}</div>` : ""}
+
+                <!-- Footer / Advice / Signature -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; font-size: 14px;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; font-style: italic;">Advice:</div>
+                        <div style="text-transform: uppercase;">BED REST 5 DAYS</div>
+                        <!-- Placeholder for QR Code (matching image placement) -->
+                        <div style="margin-top: 15px; width: 80px; height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #999;">QR Code</div>
+                    </div>
+                    <div style="text-align: center; width: 200px;">
+                        <div style="border-bottom: 1px solid var(--text-main); height: 50px; margin-bottom: 8px;"></div>
+                        <span style="font-weight: 700;">${data.doctorName || "Dr Faiz Ahmed"}</span>
+                    </div>
                 </div>
-                <div class="rx-signature">
-                    <div class="rx-signature-line"></div>
-                    <strong>${data.doctorName}</strong>
+
+                <!-- Bottom Footer Powered By -->
+                <div style="margin-top: 30px; font-size: 12px; color: var(--text-muted); text-align: center; border-top: 1px solid #cbd5e1; padding-top: 10px;">
+                    Download HealthPlix App from Google Play/Apple Appstore to view your prescriptions and consult with me online.<br>
+                    <strong style="color: var(--primary-color);">Powered by Tap2Med EMR - www.tap2med.com</strong>
                 </div>
             </div>
         `;
 
-        // Trigger the print dialogue
-        window.print();
-        
-        // Clean up the DOM after printing
-        setTimeout(() => {
-            container.innerHTML = '';
-        }, 1000);
-    }
+    window.print();
+
+    setTimeout(() => {
+      container.innerHTML = "";
+    }, 1000);
+  }
 }
 
 window.PrintEngine = PrintEngine;

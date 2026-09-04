@@ -1190,62 +1190,29 @@ window.printPrescription = async function (localToken, patientName, displayId) {
 
     const visit = data.history[0];
     const today = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-      day: "numeric",
+      day: "2-digit",
       month: "short",
       year: "numeric",
-    });
+    }).replace(/ /g, '-');
 
-    document.getElementById("print-clinic-name").textContent =
-      currentClinicName;
-    document.getElementById("print-doctor-name").textContent =
-      currentDoctorName;
-    document.getElementById("print-date").textContent = `Date: ${today}`;
-    document.getElementById("print-patient-name").innerHTML =
-      `<strong>Name:</strong> ${patientName || "Patient"}`;
-    document.getElementById("print-patient-id").innerHTML =
-      `<strong>Patient ID:</strong> ${displayId || "--"}`;
-
-    const printNotesContainer = document.getElementById("print-clinical-notes");
-    const printComplaints = document.getElementById("print-complaints");
-    const printDiagnosis = document.getElementById("print-diagnosis");
-    const printTests = document.getElementById("print-tests");
-
-    if (visit.complaints || visit.diagnosis) {
-      printNotesContainer.style.display = "block";
-      printComplaints.innerHTML = visit.complaints
-        ? `<strong>C/E:</strong> ${visit.complaints}`
-        : "";
-      printDiagnosis.innerHTML = visit.diagnosis
-        ? `<strong>Diagnosis:</strong> ${visit.diagnosis}`
-        : "";
+    if (window.PrintEngine) {
+        window.PrintEngine.printRx({
+            clinicName: currentClinicName,
+            doctorName: currentDoctorName,
+            patientName: patientName || "Patient",
+            displayId: displayId || "--",
+            date: today,
+            vitals: visit.vitals || "",
+            complaints: visit.complaints || "",
+            diagnosis: visit.diagnosis || "",
+            tests: visit.tests_suggested || "",
+            prescriptions: visit.prescriptions || []
+        });
     } else {
-      printNotesContainer.style.display = "none";
+        alert("PrintEngine not loaded.");
     }
-
-    if (visit.tests_suggested) {
-      printTests.style.display = "block";
-      printTests.innerHTML = `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`;
-    } else {
-      printTests.style.display = "none";
-    }
-
-    const printMedContainer = document.getElementById("print-medicines");
-    printMedContainer.innerHTML = "";
-    if (visit.prescriptions) {
-      visit.prescriptions.forEach((med) => {
-        printMedContainer.innerHTML += `
-                    <div style="margin-bottom: 20px;">
-                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                        <span style="font-size: 14px; color: #444;">${med.instructions || ""}</span>
-                    </div>
-                `;
-      });
-    }
-
-    document.body.className = "mode-rx";
-    window.print();
-    setTimeout(() => (document.body.className = ""), 1000);
   } catch (e) {
+    console.error(e);
     alert("Failed to load prescription for printing.");
   }
 };
