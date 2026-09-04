@@ -79,7 +79,21 @@
               </div>
           </div>
 
-          <button onclick="saveFees()" class="btn btn-primary" id="btn-save-fees">Save Fees</button>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Doctor Qualifications (for Rx Print)</label>
+                  <input type="text" id="doc-qualifications" class="input" placeholder="e.g. MBBS, MD (Medicine)">
+              </div>
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Clinic Address (for Rx Print)</label>
+                  <input type="text" id="doc-address" class="input" placeholder="e.g. B-25, HIG, Sector-23, Sanjay Nagar">
+              </div>
+              <div class="field">
+                  <label style="font-size: 13px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 8px;">Extra Notes / Timings (for Rx Print)</label>
+                  <input type="text" id="doc-extra" class="input" placeholder="e.g. Timings: 11:00am - 02:30pm">
+              </div>
+          </div>
+          <button onclick="saveFees()" class="btn btn-primary" id="btn-save-fees">Save Settings</button>
           <span id="fee-status" style="margin-left: 15px; font-size: 13px; font-weight: 600;"></span>
         </div>
 
@@ -187,6 +201,9 @@
                   document.getElementById("fee-appt").value = data.appointment_fee || "";
                   document.getElementById("fee-followup").value = data.followup_fee || "";
                   document.getElementById("fee-days").value = data.followup_days || "";
+                  document.getElementById("doc-qualifications").value = data.qualifications || "";
+                  document.getElementById("doc-address").value = data.address || "";
+                  document.getElementById("doc-extra").value = data.extra_notes || "";
               }
           } catch (e) { 
               console.error("Could not load fees"); 
@@ -199,7 +216,10 @@
               walkin_fee: document.getElementById("fee-walkin").value.trim(),
               appointment_fee: document.getElementById("fee-appt").value.trim(),
               followup_fee: document.getElementById("fee-followup").value.trim(),
-              followup_days: document.getElementById("fee-days").value.trim()
+              followup_days: document.getElementById("fee-days").value.trim(),
+              qualifications: document.getElementById("doc-qualifications").value.trim(),
+              address: document.getElementById("doc-address").value.trim(),
+              extra_notes: document.getElementById("doc-extra").value.trim()
           };
 
           status.textContent = "Saving...";
@@ -213,11 +233,11 @@
               });
               if (!res.ok) throw new Error("Failed");
               
-              status.textContent = "Fees saved successfully!";
+              status.textContent = "Settings saved successfully!";
               status.style.color = "var(--success-color)";
               setTimeout(() => status.textContent = "", 3000);
           } catch (err) {
-              status.textContent = "Error saving fees.";
+              status.textContent = "Error saving settings.";
               status.style.color = "var(--error-color)";
           }
       }

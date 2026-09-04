@@ -283,6 +283,9 @@ class ClinicSettingsPayload(BaseModel):
     appointment_fee: str
     followup_fee: str
     followup_days: str
+    qualifications: str = ""
+    address: str = ""
+    extra_notes: str = ""
 
 @router.put("/{clinic_id}/preferences")
 def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db: Session = Depends(get_db)):
@@ -295,6 +298,9 @@ def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db:
         clinic.appointment_fee = payload.appointment_fee
         clinic.followup_fee = payload.followup_fee
         clinic.followup_days = int(payload.followup_days) if payload.followup_days.isdigit() else 0
+        clinic.qualifications = payload.qualifications
+        clinic.address = payload.address
+        clinic.extra_notes = payload.extra_notes
         
         db.commit()
         return {"status": "success"}
@@ -310,8 +316,11 @@ def get_preferences(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "walkin_fee": clinic.walkin_fee or "",
                 "appointment_fee": clinic.appointment_fee or "",
                 "followup_fee": clinic.followup_fee or "",
-                "followup_days": str(clinic.followup_days) if clinic.followup_days else ""
+                "followup_days": str(clinic.followup_days) if clinic.followup_days else "",
+                "qualifications": clinic.qualifications or "",
+                "address": clinic.address or "",
+                "extra_notes": clinic.extra_notes or ""
             }
-        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": ""}
+        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": "", "qualifications": "", "address": "", "extra_notes": ""}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

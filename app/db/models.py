@@ -29,6 +29,10 @@ class Clinic(Base):
     appointment_fee = Column(Text, nullable=True)
     followup_fee = Column(Text, nullable=True)
     followup_days = Column(Integer, nullable=True, default=0)
+
+    qualifications = Column(Text, nullable=True)
+    address = Column(Text, nullable=True)
+    extra_notes = Column(Text, nullable=True)
     
 class EmailVerification(Base):
     __tablename__ = "email_verifications"
