@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import uuid
 import json
@@ -116,8 +117,35 @@ class ReorderPayload(BaseModel):
     local_tokens: list[str]
 
 @router.put("/{clinic_id}/queue/reorder")
-def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload):
-    return {"status": "success", "message": "Manual reordering handled by tokens"}
+def reorder_queue(clinic_id: uuid.UUID, payload: ReorderPayload, db: Session = Depends(get_db)):
+    try:
+        now_ist = datetime.now(IST)
+        today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        waiting = db.query(models.Event).filter(
+            models.Event.clinic_id == clinic_id,
+            models.Event.timestamp >= today_start,
+            models.Event.timestamp <= today_end,
+            models.Event.status == "waiting",
+        ).all()
+        events_by_token = {event.local_token: event for event in waiting}
+        ordered_tokens = [token for token in payload.local_tokens if token in events_by_token]
+        remaining_tokens = [event.local_token for event in waiting if event.local_token not in ordered_tokens]
+        ordered_tokens.extend(remaining_tokens)
+
+        for position, token in enumerate(ordered_tokens):
+            event = events_by_token[token]
+            vitals = dict(event.vitals) if isinstance(event.vitals, dict) else {}
+            vitals["queue_pos"] = position
+            event.vitals = vitals
+            flag_modified(event, "vitals")
+
+        db.commit()
+        return {"status": "success"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 class RoleUpdate(BaseModel):
     role_type: str 

@@ -908,6 +908,65 @@ window.moveQueue = async function (localToken, direction, event) {
   }
 };
 
+let draggedQueueCard = null;
+let queueDragActive = false;
+
+function setupQueueDrag(card) {
+  card.draggable = true;
+  card.dataset.localToken = card.dataset.localToken || "";
+
+  card.addEventListener("dragstart", (event) => {
+    draggedQueueCard = card;
+    queueDragActive = true;
+    card.classList.add("queue-card-dragging");
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", card.dataset.localToken);
+  });
+
+  card.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    if (!draggedQueueCard || draggedQueueCard === card) return;
+    const bounds = card.getBoundingClientRect();
+    const insertBefore = event.clientY < bounds.top + bounds.height / 2;
+    card.parentNode.insertBefore(
+      draggedQueueCard,
+      insertBefore ? card : card.nextSibling,
+    );
+  });
+
+  card.addEventListener("dragend", async () => {
+    card.classList.remove("queue-card-dragging");
+    draggedQueueCard = null;
+    queueDragActive = false;
+    await persistQueueOrder(card.parentNode);
+  });
+}
+
+async function persistQueueOrder(list) {
+  if (!list || queueDragActive) return;
+  const localTokens = [
+    ...list.querySelectorAll(".queue-card[data-local-token]"),
+  ]
+    .map((card) => card.dataset.localToken)
+    .filter(Boolean);
+  if (!localTokens.length) return;
+
+  try {
+    const response = await fetch(
+      `/api/clinics/${encodeURIComponent(clinicId)}/queue/reorder`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ local_tokens: localTokens }),
+      },
+    );
+    if (!response.ok) throw new Error("Queue reorder failed");
+  } catch (error) {
+    console.error("Failed to save queue order", error);
+    loadStaffQueue();
+  }
+}
+
 window.changeVisitType = async function (localToken, newType) {
   try {
     await fetch("/api/events/visit_type", {
@@ -1036,13 +1095,11 @@ async function loadStaffQueue() {
         const card = document.createElement("div");
         card.className = `queue-card ${isCurrent ? "active-patient" : ""}`;
         card.style.position = "relative";
+        card.dataset.localToken = patient.local_token;
 
         card.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; width: 100%;">
-                        <div style="display: flex; flex-direction: column; gap: 6px;">
-                            <button onclick="moveQueue('${patient.local_token}', -1, event)" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; cursor:pointer; color: #475569; font-size: 12px; line-height: 1; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">▲</button>
-                            <button onclick="moveQueue('${patient.local_token}', 1, event)" style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; cursor:pointer; color: #475569; font-size: 12px; line-height: 1; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">▼</button>
-                        </div>
+                        <span class="queue-drag-handle" title="Drag to reorder" aria-label="Drag to reorder">☷</span>
                         <div class="token-badge">#${shortCode}</div>
                         <div>
                             <strong style="display: flex; align-items: center; font-size: 18px; color: var(--text-main); margin-bottom: 4px;">
@@ -1058,6 +1115,7 @@ async function loadStaffQueue() {
                     <button onclick="removePatientFromQueue('${patient.local_token}', event)" title="Remove patient from queue" style="position:absolute; right:12px; bottom:12px; width:28px; height:28px; border:none; border-radius:8px; display:inline-flex; align-items:center; justify-content:center; background:#fff1f2; color:#be123c; font-size:14px; cursor:pointer; box-shadow:0 6px 14px rgba(190,18,60,0.12); border:1px solid #fecdd3;">🗑</button>
                 `;
         list.appendChild(card);
+        setupQueueDrag(card);
       });
     }
 

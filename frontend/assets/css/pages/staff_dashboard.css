@@ -35,6 +35,27 @@ body {
   border-color: #cbd5e1;
 }
 
+.queue-card[draggable="true"] {
+  cursor: grab;
+}
+
+.queue-card-dragging {
+  opacity: 0.55;
+  cursor: grabbing;
+}
+
+.queue-drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  color: #64748b;
+  font-size: 22px;
+  line-height: 1;
+  cursor: grab;
+  user-select: none;
+}
+
 .queue-card.active-patient {
   border-color: rgba(2, 132, 199, 0.4);
   background: linear-gradient(
