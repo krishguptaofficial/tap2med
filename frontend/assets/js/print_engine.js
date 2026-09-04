@@ -75,12 +75,12 @@ class PrintEngine {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                   <div>
                     <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #0f172a;">${data.doctorName || "Doctor Name"}</h1>
-                    ${data.qualifications ? `<p style="margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #64748b;">${data.qualifications}</p>` : ""}
+                    ${data.qualifications ? `<p style="margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #64748b; white-space: pre-wrap;">${data.qualifications}</p>` : ""}
                     ${data.extra_notes ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b; white-space: pre-wrap;">${data.extra_notes}</p>` : ""}
                   </div>
                   <div style="text-align: right;">
                     <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #64748b;">${data.clinicName || "Clinic Name"}</h2>
-                    ${data.address ? `<p style="margin: 4px 0 0; font-size: 13px; color: #0f172a; max-width: 250px; display: inline-block;">${data.address}</p>` : ""}
+                    ${data.address ? `<p style="margin: 4px 0 0; font-size: 13px; color: #0f172a; max-width: 250px; display: inline-block; white-space: pre-wrap;">${data.address}</p>` : ""}
                   </div>
                 </div>
 

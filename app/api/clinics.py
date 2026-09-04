@@ -6,7 +6,7 @@ import uuid
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from sqlalchemy import func
+from sqlalchemy import func, text
 
 from app.core import security
 from app.db import crud, models
@@ -14,6 +14,24 @@ from app.db.database import get_db
 
 router = APIRouter()
 IST = ZoneInfo("Asia/Kolkata")
+
+@router.get("/fix_db")
+def fix_db(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("ALTER TABLE clinics ADD COLUMN qualifications TEXT;"))
+    except:
+        pass
+    try:
+        db.execute(text("ALTER TABLE clinics ADD COLUMN address TEXT;"))
+    except:
+        pass
+    try:
+        db.execute(text("ALTER TABLE clinics ADD COLUMN extra_notes TEXT;"))
+    except:
+        pass
+    db.commit()
+    return {"status": "ok"}
+
 
 class ClinicCreate(BaseModel):
     doctor_name: str
@@ -279,10 +297,10 @@ def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: 
         raise HTTPException(status_code=500, detail=str(e))
 
 class ClinicSettingsPayload(BaseModel):
-    walkin_fee: str
-    appointment_fee: str
-    followup_fee: str
-    followup_days: str
+    walkin_fee: str = ""
+    appointment_fee: str = ""
+    followup_fee: str = ""
+    followup_days: str = ""
     qualifications: str = ""
     address: str = ""
     extra_notes: str = ""
