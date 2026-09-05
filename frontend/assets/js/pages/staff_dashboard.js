@@ -122,6 +122,9 @@ function clearLookupStatus() {
 }
 
 window.attemptManualLookup = async function (memberId = null) {
+  if (memberId !== null && typeof memberId === "object") {
+    memberId = null; // Ignore Event objects
+  }
   const phoneInput = document.getElementById("walkin-phone");
   const phone = phoneInput ? phoneInput.value.trim() : "";
   const memberInput = document.getElementById("manual-member-id");
