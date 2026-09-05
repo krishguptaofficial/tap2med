@@ -78,6 +78,8 @@ function savePrescriptionDraft() {
     complaints: document.getElementById("patient-complaints")?.value || "",
     diagnosis: document.getElementById("patient-diagnosis")?.value || "",
     testsSuggested: document.getElementById("patient-tests")?.value || "",
+    advice: document.getElementById("patient-advice")?.value || "",
+    followup: document.getElementById("patient-followup")?.value || "3",
     medicines,
   };
 
@@ -99,9 +101,15 @@ function restorePrescriptionDraft(localToken) {
     const complaints = document.getElementById("patient-complaints");
     const diagnosis = document.getElementById("patient-diagnosis");
     const tests = document.getElementById("patient-tests");
+    const advice = document.getElementById("patient-advice");
+    const followup = document.getElementById("patient-followup");
+
     if (complaints) complaints.value = draft.complaints || "";
     if (diagnosis) diagnosis.value = draft.diagnosis || "";
     if (tests) tests.value = draft.testsSuggested || "";
+    if (advice) advice.value = draft.advice || "";
+    if (followup) followup.value = draft.followup || "3";
+
     populatePrescriptionPad(draft.medicines);
     return true;
   } catch (error) {
@@ -169,7 +177,7 @@ window.addPrescriptionRow = function () {
   row.style.gap = "10px";
   row.style.marginBottom = "15px";
   row.innerHTML = `
-        <div class="field"><input type="text" class="input rx-med" placeholder="Medicine" autocomplete="off" /></div>
+        <div class="field"><input type="text" class="input rx-med" placeholder="Medicine" autocomplete="off" value="TAB. " /></div>
         <div class="field"><input type="text" class="input rx-dosage" placeholder="Dosage" autocomplete="off" oninput="updateFreq(this)" /></div>
         <div class="field"><input type="text" class="input rx-days" placeholder="Days" autocomplete="off" oninput="updateFreq(this)" /></div>
         <div class="field"><input type="text" class="input rx-remarks" placeholder="Remarks (e.g. after food)" autocomplete="off" oninput="updateFreq(this)" /></div>
@@ -228,9 +236,13 @@ function clearPrescription() {
   const cEl = document.getElementById("patient-complaints");
   const dEl = document.getElementById("patient-diagnosis");
   const tEl = document.getElementById("patient-tests");
+  const aEl = document.getElementById("patient-advice");
+  const fEl = document.getElementById("patient-followup");
   if (cEl) cEl.value = "";
   if (dEl) dEl.value = "";
   if (tEl) tEl.value = "";
+  if (aEl) aEl.value = "";
+  if (fEl) fEl.value = "3";
   setPrescriptionStatus("Waiting...", "warning");
 }
 
@@ -561,32 +573,38 @@ window.removePatientFromQueue = async function (localToken, event) {
 
 window.rePrintRx = async function (localToken, patientName, displayId) {
   try {
-    const response = await fetch(`/api/events/history/${encodeURIComponent(localToken)}`);
+    const response = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}`,
+    );
     const data = await response.json();
-    if (!data.history || data.history.length === 0) return alert("No prescription found.");
+    if (!data.history || data.history.length === 0)
+      return alert("No prescription found.");
 
     const visit = data.history[0];
     const today = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-      day: "numeric", month: "long", year: "numeric",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
 
     // Package the data for the new Print Engine
     const printData = {
-        clinicName: clinicName.textContent || "Clinic",
-        doctorName: doctorName.textContent || "Doctor",
-        patientName: patientName || "Patient",
-        displayId: displayId || "--",
-        date: today,
-        vitals: visit.weight || '',
-        complaints: visit.complaints || '',
-        diagnosis: visit.diagnosis || '',
-        tests: visit.tests_suggested || '',
-        prescriptions: visit.prescriptions || []
+      clinicName: clinicName.textContent || "Clinic",
+      doctorName: doctorName.textContent || "Doctor",
+      patientName: patientName || "Patient",
+      displayId: displayId || "--",
+      date: today,
+      vitals: visit.weight || "",
+      complaints: visit.complaints || "",
+      diagnosis: visit.diagnosis || "",
+      tests: visit.tests_suggested || "",
+      advice: visit.advice || "",
+      follow_up_days: visit.follow_up_days || 0,
+      prescriptions: visit.prescriptions || [],
     };
 
     // Call the isolated print engine
     window.PrintEngine.printRx(printData);
-
   } catch (e) {
     alert("Failed to load prescription for printing.");
     console.error(e);
@@ -634,6 +652,14 @@ window.editRx = async function (
     if (diagEl) diagEl.value = visit.diagnosis || "";
     const testEl = document.getElementById("patient-tests");
     if (testEl) testEl.value = visit.tests_suggested || "";
+    const advEl = document.getElementById("patient-advice");
+    if (advEl) advEl.value = visit.advice || "";
+    const fEl = document.getElementById("patient-followup");
+    if (fEl)
+      fEl.value =
+        visit.follow_up_days !== null && visit.follow_up_days !== undefined
+          ? visit.follow_up_days
+          : "3";
 
     const rxContainer = document.getElementById("rx-container");
     if (rxContainer) {
@@ -733,8 +759,19 @@ async function completeVisit() {
     document.getElementById("patient-diagnosis")?.value.trim() || "";
   const tests_suggested =
     document.getElementById("patient-tests")?.value.trim() || "";
+  const advice = document.getElementById("patient-advice")?.value.trim() || "";
+  const follow_up_days = parseInt(
+    document.getElementById("patient-followup")?.value.trim() || "3",
+    10,
+  );
 
-  if (!medicines.length && !complaints && !diagnosis && !tests_suggested) {
+  if (
+    !medicines.length &&
+    !complaints &&
+    !diagnosis &&
+    !tests_suggested &&
+    !advice
+  ) {
     if (!confirm("No details have been entered. Complete this visit?")) return;
   }
 
@@ -751,6 +788,8 @@ async function completeVisit() {
         complaints: complaints,
         diagnosis: diagnosis,
         tests_suggested: tests_suggested,
+        advice: advice,
+        follow_up_days: follow_up_days,
       }),
     });
 
@@ -758,91 +797,28 @@ async function completeVisit() {
 
     setPrescriptionStatus("Sent to WhatsApp", "success");
 
-      const today = new Date().toLocaleDateString("en-IN", {
-      day: "numeric", month: "long", year: "numeric",
+    const today = new Date().toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
     });
 
     if (localStorage.getItem("tap2med_auto_print") === "true") {
-        const printData = {
-            clinicName: clinicName.textContent || "Clinic",
-            doctorName: doctorName.textContent || "Doctor",
-            patientName: window.currentPatientName || "Patient",
-            displayId: window.currentDisplayId || "--",
-            date: today,
-            vitals: '', 
-            complaints: complaints,
-            diagnosis: diagnosis,
-            tests: tests_suggested,
-            prescriptions: medicines
-        };
-        window.PrintEngine.printRx(printData);
-    }
-
-    // Safe null-checked DOM assignments
-    const printClinic = document.getElementById("print-clinic-name");
-    if (printClinic)
-      printClinic.textContent = clinicName ? clinicName.textContent : "Clinic";
-
-    const printDoc = document.getElementById("print-doctor-name");
-    if (printDoc)
-      printDoc.textContent = doctorName ? doctorName.textContent : "Doctor";
-
-    const printDate = document.getElementById("print-date");
-    if (printDate) printDate.textContent = `Date: ${today}`;
-
-    const printPatient = document.getElementById("print-patient-name");
-    if (printPatient)
-      printPatient.innerHTML = `<strong>Name:</strong> ${window.currentPatientName || "Patient"}`;
-
-    const printId = document.getElementById("print-patient-id");
-    if (printId)
-      printId.innerHTML = `<strong>Patient ID:</strong> ${window.currentDisplayId || "--"}`;
-
-    const printNotesContainer = document.getElementById("print-clinical-notes");
-    const printComplaints = document.getElementById("print-complaints");
-    const printDiagnosis = document.getElementById("print-diagnosis");
-    const printTests = document.getElementById("print-tests");
-
-    if (complaints || diagnosis) {
-      if (printNotesContainer) printNotesContainer.style.display = "block";
-      if (printComplaints)
-        printComplaints.innerHTML = complaints
-          ? `<strong>C/E:</strong> ${complaints}`
-          : "";
-      if (printDiagnosis)
-        printDiagnosis.innerHTML = diagnosis
-          ? `<strong>Diagnosis:</strong> ${diagnosis}`
-          : "";
-    } else {
-      if (printNotesContainer) printNotesContainer.style.display = "none";
-    }
-
-    if (tests_suggested) {
-      if (printTests) {
-        printTests.style.display = "block";
-        printTests.innerHTML = `<strong>Tests Suggested:</strong> ${tests_suggested}`;
-      }
-    } else {
-      if (printTests) printTests.style.display = "none";
-    }
-
-    const printMedContainer = document.getElementById("print-medicines");
-    if (printMedContainer) {
-      printMedContainer.innerHTML = "";
-      medicines.forEach((med) => {
-        printMedContainer.innerHTML += `
-                    <div style="margin-bottom: 20px;">
-                        <strong style="font-size: 16px; color: #000; display: block;">${med.name}</strong>
-                        <span style="font-size: 14px; color: #444;">${med.instructions || ""}</span>
-                    </div>
-                `;
-      });
-    }
-
-    if (localStorage.getItem("tap2med_auto_print") === "true") {
-      document.body.className = "mode-rx";
-      window.print();
-      setTimeout(() => (document.body.className = "dashboard-body"), 1000);
+      const printData = {
+        clinicName: clinicName.textContent || "Clinic",
+        doctorName: doctorName.textContent || "Doctor",
+        patientName: window.currentPatientName || "Patient",
+        displayId: window.currentDisplayId || "--",
+        date: today,
+        vitals: "",
+        complaints: complaints,
+        diagnosis: diagnosis,
+        tests: tests_suggested,
+        advice: advice,
+        follow_up_days: follow_up_days,
+        prescriptions: medicines,
+      };
+      window.PrintEngine.printRx(printData);
     }
 
     const completedToken = currentLocalToken;

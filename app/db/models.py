@@ -59,6 +59,9 @@ class Event(Base):
     complaints = Column(Text, nullable=True)
     diagnosis = Column(Text, nullable=True)
     tests_suggested = Column(Text, nullable=True)
+    
+    advice = Column(Text, nullable=True)
+    follow_up_days = Column(Integer, nullable=True, default=3)
 
     daily_token_number = Column(Integer, nullable= False)
     event_type = Column(String, default ="clinic_visit", nullable = False )

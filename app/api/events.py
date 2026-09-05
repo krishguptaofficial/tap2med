@@ -57,6 +57,9 @@ class CompleteRequest(BaseModel):
     complaints: Optional[str] = None
     diagnosis: Optional[str] = None
     tests_suggested: Optional[str] = None
+    advice: Optional[str] = None
+    follow_up_days: Optional[int] = 3
+
 
 class StartVisitRequest(BaseModel):
     phone: str
@@ -402,6 +405,8 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         event.complaints = payload.complaints.strip() if payload.complaints else None
         event.diagnosis = payload.diagnosis.strip() if payload.diagnosis else None
         event.tests_suggested = payload.tests_suggested.strip() if payload.tests_suggested else None
+        event.advice = payload.advice.strip() if payload.advice else None
+        event.follow_up_days = payload.follow_up_days if payload.follow_up_days is not None else 3
 
         db.query(models.Prescription).filter(models.Prescription.event_id == event.event_id).delete()
 
@@ -483,6 +488,8 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
                 "complaints": visit.complaints,
                 "diagnosis": visit.diagnosis,
                 "tests_suggested": visit.tests_suggested,
+                "advice": visit.advice,
+                "follow_up_days": visit.follow_up_days,
                 "prescriptions": matched_rx
             })
 

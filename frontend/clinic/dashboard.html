@@ -248,6 +248,51 @@
               ></textarea>
             </div>
 
+            <div style="margin-top: 20px;">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+              >Advice</label>
+              <textarea
+                id="patient-advice"
+                class="textarea"
+                placeholder="e.g. BED REST 5 DAYS"
+                style="min-height: 60px; font-size: 14px; background: white"
+              ></textarea>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+              >Schedule Follow-up</label>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <input
+                  type="number"
+                  id="patient-followup"
+                  class="input"
+                  value="3"
+                  min="0"
+                  style="width: 80px; font-size: 14px; background: white; text-align: center;"
+                />
+                <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Days</span>
+              </div>
+            </div>
+
             <div class="consultation-actions" style="margin-top: 25px">
               <button id="print-btn" class="btn btn-primary btn-lg btn-block">
                 Save & Send to WhatsApp

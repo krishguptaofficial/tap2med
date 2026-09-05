@@ -29,6 +29,14 @@ def fix_db(db: Session = Depends(get_db)):
         db.execute(text("ALTER TABLE clinics ADD COLUMN extra_notes TEXT;"))
     except:
         pass
+    try:
+        db.execute(text("ALTER TABLE events ADD COLUMN advice TEXT;"))
+    except:
+        pass
+    try:
+        db.execute(text("ALTER TABLE events ADD COLUMN follow_up_days INTEGER DEFAULT 3;"))
+    except:
+        pass
     db.commit()
     return {"status": "ok"}
 

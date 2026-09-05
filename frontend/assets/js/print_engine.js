@@ -76,11 +76,11 @@ class PrintEngine {
                   <div>
                     <h1 style="margin: 0; font-size: 26px; font-weight: 800; color: #0f172a;">${data.doctorName || "Doctor Name"}</h1>
                     ${data.qualifications ? `<p style="margin: 4px 0 0; font-size: 14px; font-weight: 600; color: #64748b; white-space: pre-wrap;">${data.qualifications}</p>` : ""}
-                    ${data.extra_notes ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b; white-space: pre-wrap;">${data.extra_notes}</p>` : ""}
                   </div>
                   <div style="text-align: right;">
                     <h2 style="margin: 0; font-size: 20px; font-weight: 700; color: #64748b;">${data.clinicName || "Clinic Name"}</h2>
                     ${data.address ? `<p style="margin: 4px 0 0; font-size: 13px; color: #0f172a; max-width: 250px; display: inline-block; white-space: pre-wrap;">${data.address}</p>` : ""}
+                    ${data.extra_notes ? `<p style="margin: 8px 0 0; font-size: 13px; color: #64748b; white-space: pre-wrap;">${data.extra_notes}</p>` : ""}
                   </div>
                 </div>
 
@@ -111,7 +111,7 @@ class PrintEngine {
                     <tr style="border-top: 1px solid #64748b; border-bottom: 1px solid #64748b;">
                       <th style="padding: 10px 5px; font-weight: 600;">Medicine</th>
                       <th style="padding: 10px 5px; font-weight: 600; width: 25%;">Dosage</th>
-                      <th style="padding: 10px 5px; font-weight: 600; width: 35%;">Timing - Freq. - Duration</th>
+                      <th style="padding: 10px 5px; font-weight: 600; width: 35%;">Instruction</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -125,8 +125,8 @@ class PrintEngine {
                 <!-- Footer / Advice / Signature -->
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; font-size: 14px;">
                     <div style="flex: 1;">
-                        <div style="font-weight: 600; font-style: italic;">Advice:</div>
-                        <div style="text-transform: uppercase;">BED REST 5 DAYS</div>
+                        ${data.advice ? `<div style="font-weight: 600; font-style: italic;">Advice:</div><div style="text-transform: uppercase; white-space: pre-wrap; margin-bottom: 10px;">${data.advice}</div>` : ""}
+                        ${data.follow_up_days && data.follow_up_days > 0 ? `<div style="font-weight: 600;">Follow-up Date: ${new Date(Date.now() + data.follow_up_days * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} (${data.follow_up_days} Days)</div>` : ""}
                     </div>
                     <div style="text-align: center; width: 200px;">
                         <div style="border-bottom: 1px solid #0f172a; height: 50px; margin-bottom: 8px;"></div>
@@ -136,7 +136,7 @@ class PrintEngine {
 
                 <!-- Bottom Footer Powered By -->
                 <div style="margin-top: 30px; font-size: 12px; color: #64748b; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 10px;">
-                    <strong style="color: #0284c7;">Powered by Tap2Med EMR - www.tap2med.com</strong>
+                    <strong style="color: #0284c7;">Powered by Tap2Med - www.tap2med.com</strong>
                 </div>
             </div>
         `;
