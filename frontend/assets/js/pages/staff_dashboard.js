@@ -1192,27 +1192,29 @@ window.printPrescription = async function (localToken, patientName, displayId) {
     }
 
     const visit = data.history[0];
-    const today = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    }).replace(/ /g, '-');
+    const today = new Date(visit.timestamp)
+      .toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+      .replace(/ /g, "-");
 
     if (window.PrintEngine) {
-        window.PrintEngine.printRx({
-            clinicName: currentClinicName,
-            doctorName: currentDoctorName,
-            patientName: patientName || "Patient",
-            displayId: displayId || "--",
-            date: today,
-            vitals: visit.vitals || "",
-            complaints: visit.complaints || "",
-            diagnosis: visit.diagnosis || "",
-            tests: visit.tests_suggested || "",
-            prescriptions: visit.prescriptions || []
-        });
+      window.PrintEngine.printRx({
+        clinicName: currentClinicName,
+        doctorName: currentDoctorName,
+        patientName: patientName || "Patient",
+        displayId: displayId || "--",
+        date: today,
+        vitals: visit.vitals || "",
+        complaints: visit.complaints || "",
+        diagnosis: visit.diagnosis || "",
+        tests: visit.tests_suggested || "",
+        prescriptions: visit.prescriptions || [],
+      });
     } else {
-        alert("PrintEngine not loaded.");
+      alert("PrintEngine not loaded.");
     }
   } catch (e) {
     console.error(e);
