@@ -17,27 +17,20 @@ IST = ZoneInfo("Asia/Kolkata")
 
 @router.get("/fix_db")
 def fix_db(db: Session = Depends(get_db)):
-    try:
-        db.execute(text("ALTER TABLE clinics ADD COLUMN qualifications TEXT;"))
-    except:
-        pass
-    try:
-        db.execute(text("ALTER TABLE clinics ADD COLUMN address TEXT;"))
-    except:
-        pass
-    try:
-        db.execute(text("ALTER TABLE clinics ADD COLUMN extra_notes TEXT;"))
-    except:
-        pass
-    try:
-        db.execute(text("ALTER TABLE events ADD COLUMN advice TEXT;"))
-    except:
-        pass
-    try:
-        db.execute(text("ALTER TABLE events ADD COLUMN follow_up_days INTEGER DEFAULT 3;"))
-    except:
-        pass
-    db.commit()
+    queries = [
+        "ALTER TABLE clinics ADD COLUMN qualifications TEXT;",
+        "ALTER TABLE clinics ADD COLUMN address TEXT;",
+        "ALTER TABLE clinics ADD COLUMN extra_notes TEXT;",
+        "ALTER TABLE events ADD COLUMN advice TEXT;",
+        "ALTER TABLE events ADD COLUMN follow_up_days INTEGER DEFAULT 3;"
+    ]
+    for q in queries:
+        try:
+            db.execute(text(q))
+            db.commit()
+        except Exception:
+            db.rollback()
+    
     return {"status": "ok"}
 
 
