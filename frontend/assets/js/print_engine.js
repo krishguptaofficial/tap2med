@@ -35,17 +35,38 @@ class PrintEngine {
     let medsHtml = "";
     if (data.prescriptions && data.prescriptions.length > 0) {
       data.prescriptions.forEach((med, index) => {
-        let instructionText = med.instructions || "As directed";
-        if (med.duration) {
-          instructionText += ` (For ${med.duration})`;
+        let fullInstructions = med.instructions || "";
+        let dosageText = med.dosage || "";
+        let remarksText = "";
+
+        // If dosage is not explicitly provided, extract from merged instructions
+        if (!dosageText) {
+          if (fullInstructions.includes(" | ")) {
+            const parts = fullInstructions.split(" | ");
+            dosageText = parts[0].trim();
+            remarksText = parts.slice(1).join(" | ").trim();
+          } else if (fullInstructions.includes(" for ")) {
+            dosageText = fullInstructions.trim();
+          } else {
+            remarksText = fullInstructions.trim();
+          }
+        } else {
+          remarksText = fullInstructions.trim();
+          if (med.duration) {
+            dosageText += ` for ${med.duration}`;
+          }
         }
+
+        if (!dosageText) dosageText = "--";
+        if (!remarksText) remarksText = "As directed";
+
         medsHtml += `
                     <tr style="border-bottom: 1px solid #cbd5e1;">
                         <td style="padding: 10px 5px;">
                             ${index + 1}) <strong>${med.name.toUpperCase()}</strong>
                         </td>
-                        <td style="padding: 10px 5px;">${med.dosage || "--"}</td>
-                        <td style="padding: 10px 5px;">${instructionText}</td>
+                        <td style="padding: 10px 5px;">${dosageText}</td>
+                        <td style="padding: 10px 5px;">${remarksText}</td>
                     </tr>
                 `;
       });
