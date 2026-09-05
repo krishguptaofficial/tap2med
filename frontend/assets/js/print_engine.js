@@ -35,17 +35,17 @@ class PrintEngine {
     let medsHtml = "";
     if (data.prescriptions && data.prescriptions.length > 0) {
       data.prescriptions.forEach((med, index) => {
-        const note = med.instructions
-          ? `<div style="font-size: 12px; color: #64748b; font-style: italic; padding-left: 20px;">Note : ${med.instructions}</div>`
-          : "";
+        let instructionText = med.instructions || "As directed";
+        if (med.duration) {
+          instructionText += ` (For ${med.duration})`;
+        }
         medsHtml += `
                     <tr style="border-bottom: 1px solid #cbd5e1;">
                         <td style="padding: 10px 5px;">
                             ${index + 1}) <strong>${med.name.toUpperCase()}</strong>
-                            ${note}
                         </td>
                         <td style="padding: 10px 5px;">${med.dosage || "--"}</td>
-                        <td style="padding: 10px 5px;">${med.duration ? med.duration : "As directed"}</td>
+                        <td style="padding: 10px 5px;">${instructionText}</td>
                     </tr>
                 `;
       });
