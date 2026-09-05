@@ -262,6 +262,8 @@
       </div>
     </div>
 
+    <script src="/assets/js/load_layouts.js"></script>
+    <script src="/assets/js/print_engine.js"></script>
     <script>
       const clinicId = localStorage.getItem("tap2med_clinic_id");
       const staffRole = localStorage.getItem("tap2med_staff_role");
@@ -343,34 +345,7 @@
         return `${result.trim().toUpperCase()} RUPEES ONLY`;
       }
 
-      function ensureDashboardLayouts() {
-        if (dashboardLayoutsPromise) return dashboardLayoutsPromise;
-        dashboardLayoutsPromise = Promise.all(
-          (isStaff
-            ? ["/staff-dashboard", "/dashboard"]
-            : ["/dashboard", "/staff-dashboard"]
-          ).map((url) => fetch(url).then((response) => response.text())),
-        ).then((pages) =>
-          pages.forEach((html) => {
-            const documentFragment = new DOMParser().parseFromString(
-              html,
-              "text/html",
-            );
-            [
-              "bill-modal",
-              "vitals-modal",
-              "labs-modal",
-              "print-rx-layout",
-              "print-bill-layout",
-            ].forEach((id) => {
-              const element = documentFragment.getElementById(id);
-              if (element && !document.getElementById(id))
-                document.body.appendChild(element);
-            });
-          }),
-        );
-        return dashboardLayoutsPromise;
-      }
+      // ensureDashboardLayouts removed in favor of load_layouts.js
 
       function loadClinicDetails() {
         if (clinicDetailsPromise) return clinicDetailsPromise;
@@ -475,6 +450,7 @@
                       <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
                         <strong style="font-weight: 700; color: var(--primary-color);">📅 ${date}</strong>
                         <span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+                          <button type="button" class="btn btn-secondary btn-sm" onclick="copyPastVisitToPad(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px; color: var(--primary-color);">↻ Copy to Pad</button>
                           <button type="button" class="btn btn-secondary btn-sm" onclick="printPastPrescription(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🖨️ Prescription</button>
                           <button type="button" class="btn btn-secondary btn-sm" onclick="generatePastBill(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🧾 Bill</button>
                         </span>
@@ -514,54 +490,79 @@
         }
       }
 
+      window.copyPastVisitToPad = function (visitIndex) {
+        const visit = activeHistoryVisits[visitIndex];
+        if (
+          !visit ||
+          !visit.prescriptions ||
+          visit.prescriptions.length === 0
+        ) {
+          alert("No medicines to copy from this visit.");
+          return;
+        }
+
+        // In the directory, we don't have an active dashboard pad.
+        // We can save the draft using the patient's ID so that next time they join the queue,
+        // or if they are currently in the queue, their pad can pick it up.
+        // However, the dashboard loads drafts based on `localToken`.
+        // So we will just alert the user that they should copy from the Workspace when the patient is in the queue,
+        // OR we can copy the medicines text directly to their system clipboard.
+
+        let rxText = visit.prescriptions
+          .map((rx) => `${rx.name} - ${rx.instructions || ""}`)
+          .join("\n");
+        navigator.clipboard
+          .writeText(rxText)
+          .then(() => {
+            alert(
+              "Prescription copied to clipboard! You can paste it anywhere.",
+            );
+          })
+          .catch(() => {
+            alert("Failed to copy to clipboard.");
+          });
+      };
+
       async function printPastPrescription(visitIndex) {
         const visit = activeHistoryVisits[visitIndex];
         if (!visit) return;
-        await ensureDashboardLayouts();
+
         const data = await loadClinicDetails();
-        document.getElementById("print-clinic-name").textContent =
-          data.clinic_name || "Clinic";
-        document.getElementById("print-doctor-name").textContent =
-          data.doctor_name || "Doctor";
-        document.getElementById("print-date").textContent =
-          `Date: ${new Date(visit.timestamp).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}`;
-        document.getElementById("print-patient-name").innerHTML =
-          `<strong>Name:</strong> ${document.getElementById("modal-patient-name").textContent}`;
-        document.getElementById("print-patient-id").innerHTML =
-          `<strong>Patient ID:</strong> ${document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", "")}`;
-        document.getElementById("print-complaints").innerHTML = visit.complaints
-          ? `<strong>C/E:</strong> ${visit.complaints}`
-          : "";
-        document.getElementById("print-diagnosis").innerHTML = visit.diagnosis
-          ? `<strong>Diagnosis:</strong> ${visit.diagnosis}`
-          : "";
-        document.getElementById("print-clinical-notes").style.display =
-          visit.complaints || visit.diagnosis ? "block" : "none";
-        document.getElementById("print-tests").innerHTML = visit.tests_suggested
-          ? `<strong>Tests Suggested:</strong> ${visit.tests_suggested}`
-          : "";
-        document.getElementById("print-tests").style.display =
-          visit.tests_suggested ? "block" : "none";
-        document.getElementById("print-medicines").innerHTML = (
-          visit.prescriptions || []
-        )
-          .map(
-            (medicine) =>
-              `<div style="margin-bottom: 20px;"><strong style="font-size: 16px; color: #000; display: block;">${medicine.name}</strong><span style="font-size: 14px; color: #444;">${medicine.instructions || ""}</span></div>`,
-          )
-          .join("");
-        document.body.className = "mode-rx";
-        window.print();
-        setTimeout(
-          () => (document.body.className = isStaff ? "" : "dashboard-body"),
-          1000,
-        );
+
+        const dateStr = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        });
+        const patientName =
+          document.getElementById("modal-patient-name").textContent;
+        const displayId = document
+          .getElementById("modal-patient-id")
+          .textContent.replace("Patient ID: ", "");
+
+        const printData = {
+          clinicName: data.clinic_name || "Clinic",
+          doctorName: data.doctor_name || "Doctor",
+          patientName: patientName,
+          displayId: displayId,
+          date: dateStr,
+          complaints: visit.complaints || "",
+          diagnosis: visit.diagnosis || "",
+          tests: visit.tests_suggested || "",
+          vitals: visit.weight || "",
+          prescriptions: visit.prescriptions || [],
+        };
+
+        if (window.PrintEngine) {
+          window.PrintEngine.printRx(printData);
+        } else {
+          alert("PrintEngine not loaded.");
+        }
       }
 
       async function generatePastBill(visitIndex) {
         const visit = activeHistoryVisits[visitIndex];
         if (!visit) return;
-        await ensureDashboardLayouts();
         const data = await loadClinicDetails();
         const visitType =
           visit.event_type === "followup"
@@ -630,7 +631,6 @@
 
       window.openVitalsEditor = async function (localToken) {
         activeRecordToken = localToken;
-        await ensureDashboardLayouts();
         if (!activeHistoryVisits.length) {
           const response = await fetch(
             `/api/events/history/${encodeURIComponent(localToken)}`,
@@ -703,7 +703,6 @@
 
       window.openLabsEditor = async function (localToken, patientName) {
         activeRecordToken = localToken;
-        await ensureDashboardLayouts();
         document.getElementById("lab-modal-patient-name").textContent =
           patientName || "Patient";
         document.getElementById("lab-local-token").value = localToken;
