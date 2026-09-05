@@ -85,9 +85,19 @@ class PrintEngine {
     container.innerHTML = `
             <style>
               @media print {
-                #tap2med-print-container * {
+                body * { visibility: hidden; }
+                #tap2med-print-container, #tap2med-print-container * {
+                  visibility: visible;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
+                }
+                #tap2med-print-container {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  width: 100%;
+                  padding: 20px;
+                  display: block !important;
                 }
               }
             </style>
