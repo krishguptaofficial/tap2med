@@ -428,7 +428,7 @@
 
         try {
           const res = await fetch(
-            `/api/events/history/${encodeURIComponent(localToken)}`,
+            `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
           );
           const data = await res.json();
 
@@ -635,7 +635,7 @@
         activeRecordToken = localToken;
         if (!activeHistoryVisits.length) {
           const response = await fetch(
-            `/api/events/history/${encodeURIComponent(localToken)}`,
+            `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
           );
           const data = await response.json();
           activeHistoryVisits = data.history || [];
@@ -686,7 +686,7 @@
           const response = await fetch("/api/events/vitals/history", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ local_token: activeRecordToken, vitals }),
+            body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken, vitals }),
           });
           if (!response.ok) throw new Error("Vitals save failed");
           closeVitalsModal();
@@ -712,7 +712,7 @@
         const today = new Date().toISOString().slice(0, 10);
         document.getElementById("lab-date").value = today;
         const response = await fetch(
-          `/api/events/labs/${encodeURIComponent(localToken)}`,
+          `/api/events/labs/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
         );
         const data = await response.json();
         window.directoryLabRecords = data.labs || [];
@@ -768,8 +768,7 @@
         const response = await fetch("/api/events/labs", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            local_token: activeRecordToken,
+          body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken,
             lab_record: { test_date: date, results },
           }),
         });

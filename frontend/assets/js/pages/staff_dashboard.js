@@ -378,7 +378,7 @@ window.submitVitals = async function () {
     const response = await fetch("/api/events/vitals", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken, vitals: payload }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken, vitals: payload }),
     });
     if (!response.ok) throw new Error("Vitals save failed");
     closeVitalsModal();
@@ -399,7 +399,7 @@ window.markAsPaid = async function (localToken, currentVitalsJSON) {
     await fetch("/api/events/vitals", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken, vitals: vitals }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken, vitals: vitals }),
     });
     loadStaffQueue();
   } catch (e) {
@@ -652,7 +652,7 @@ window.closeLabsModal = function () {
 
 async function fetchLabData(token) {
   try {
-    const res = await fetch(`/api/events/labs/${token}`);
+    const res = await fetch(`/api/events/labs/${token}?clinic_id=${clinicId}`);
     const data = await res.json();
     patientLabData = data.labs || [];
     populateLabInputsForDate(document.getElementById("lab-date").value);
@@ -904,7 +904,7 @@ window.moveQueue = async function (localToken, direction, event) {
     await fetch("/api/events/queue/move", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken, direction: direction }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken, direction: direction }),
     });
     loadStaffQueue();
   } catch (e) {
@@ -976,7 +976,7 @@ window.changeVisitType = async function (localToken, newType) {
     await fetch("/api/events/visit_type", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken, visit_type: newType }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken, visit_type: newType }),
     });
     loadStaffQueue();
   } catch (e) {
@@ -992,7 +992,7 @@ window.removePatientFromQueue = async function (localToken, event) {
     await fetch("/api/events/queue/remove", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken }),
     });
     loadStaffQueue();
   } catch (e) {
@@ -1183,7 +1183,7 @@ async function loadStaffQueue() {
 window.printPrescription = async function (localToken, patientName, displayId) {
   try {
     const response = await fetch(
-      `/api/events/history/${encodeURIComponent(localToken)}`,
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
     );
     const data = await response.json();
     if (!data.history || data.history.length === 0) {

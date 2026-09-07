@@ -160,7 +160,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (savedLocalToken) {
     try {
       const response = await fetch(
-        `/api/events/status/${encodeURIComponent(savedLocalToken)}`,
+        `/api/events/status/${encodeURIComponent(savedLocalToken)}?clinic_id=${clinicId}`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -279,7 +279,7 @@ function startQueuePolling(localToken) {
   pollingInterval = setInterval(async () => {
     try {
       const response = await fetch(
-        `/api/events/status/${encodeURIComponent(localToken)}`,
+        `/api/events/status/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
       );
       if (!response.ok) return;
 

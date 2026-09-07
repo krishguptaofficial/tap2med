@@ -401,7 +401,7 @@ async function loadQueue() {
               fetch("/api/events/queue/top", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ local_token: patient.local_token }),
+                body: JSON.stringify({ clinic_id: clinicId, local_token: patient.local_token }),
               }),
               loadHistory(selectedToken).then(() =>
                 restorePrescriptionDraft(selectedToken),
@@ -490,7 +490,7 @@ async function loadQueue() {
 async function loadHistory(localToken) {
   try {
     const response = await fetch(
-      `/api/events/history/${encodeURIComponent(localToken)}`,
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
     );
     if (!response.ok) throw new Error("History request failed");
 
@@ -560,7 +560,7 @@ window.removePatientFromQueue = async function (localToken, event) {
     const response = await fetch("/api/events/queue/remove", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: localToken }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: localToken }),
     });
 
     if (!response.ok) throw new Error("Failed to remove patient from queue");
@@ -574,7 +574,7 @@ window.removePatientFromQueue = async function (localToken, event) {
 window.rePrintRx = async function (localToken, patientName, displayId) {
   try {
     const response = await fetch(
-      `/api/events/history/${encodeURIComponent(localToken)}`,
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
     );
     const data = await response.json();
     if (!data.history || data.history.length === 0)
@@ -619,7 +619,7 @@ window.editRx = async function (
 ) {
   try {
     const response = await fetch(
-      `/api/events/history/${encodeURIComponent(localToken)}`,
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
     );
     if (!response.ok)
       throw new Error("Server returned HTTP " + response.status);
@@ -782,8 +782,7 @@ async function completeVisit() {
     const response = await fetch("/api/events/complete", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        local_token: currentLocalToken,
+      body: JSON.stringify({ clinic_id: clinicId, local_token: currentLocalToken,
         medicines: medicines,
         complaints: complaints,
         diagnosis: diagnosis,
@@ -983,7 +982,7 @@ window.submitVitals = async function () {
     await fetch("/api/events/vitals", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ local_token: currentLocalToken, vitals: payload }),
+      body: JSON.stringify({ clinic_id: clinicId, local_token: currentLocalToken, vitals: payload }),
     });
 
     closeVitalsModal();
@@ -1160,7 +1159,7 @@ window.closeLabsModal = function () {
 
 async function fetchLabData(token) {
   try {
-    const res = await fetch(`/api/events/labs/${token}`);
+    const res = await fetch(`/api/events/labs/${token}?clinic_id=${clinicId}`);
     const data = await res.json();
     patientLabData = data.labs || [];
     populateLabInputsForDate(document.getElementById("lab-date").value);

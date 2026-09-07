@@ -117,7 +117,7 @@ class VisitTypePayload(BaseModel):
 def update_patient_city(payload: CityUpdate, db: Session = Depends(get_db)):
     try:
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.local_token == payload.local_token
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == payload.local_token
         ).first()
         
         if record:
@@ -139,8 +139,7 @@ def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
         local_token = hashing.generate_local_token(payload.phone, payload.member_id, str(clinic.clinic_salt))
 
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.clinic_id == payload.clinic_id,
-            models.ClinicPatientRecord.local_token == local_token
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == local_token
         ).first()
 
         if record:
@@ -212,8 +211,7 @@ def start_visit(
         local_token = hashing.generate_local_token(phone, member_id, clinic_salt)
 
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.clinic_id == payload.clinic_id,
-            models.ClinicPatientRecord.local_token == local_token
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == local_token
         ).first()
 
         if record:
@@ -245,7 +243,7 @@ def start_visit(
         followup_days = clinic.followup_days or 0
                 
         last_visit = db.query(models.Event).filter(
-            models.Event.local_token == local_token,
+            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
             models.Event.status == "completed"
         ).order_by(models.Event.timestamp.desc()).first()
 
@@ -300,14 +298,14 @@ def start_visit(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/status/{local_token}")
-def get_patient_status(local_token: str, db: Session = Depends(get_db)):
+def get_patient_status(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         now_ist = datetime.now(IST)
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         current_visit = db.query(models.Event).filter(
-            models.Event.local_token == local_token,
+            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end
         ).order_by(models.Event.timestamp.desc()).first()
@@ -391,7 +389,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         event = db.query(models.Event).filter(
-            models.Event.local_token == payload.local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status.in_(["waiting", "completed"]) 
@@ -432,10 +430,10 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/history/{local_token}")
-def get_patient_history(local_token: str, db: Session = Depends(get_db)):
+def get_patient_history(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         past_visits = db.query(models.Event).filter(
-            models.Event.local_token == local_token,
+            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
             models.Event.status == "completed" 
         ).order_by(models.Event.timestamp.desc()).all()    
          
@@ -444,7 +442,7 @@ def get_patient_history(local_token: str, db: Session = Depends(get_db)):
         ).all()
 
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.local_token == local_token
+            models.ClinicPatientRecord.clinic_id == clinic_id, models.ClinicPatientRecord.local_token == local_token
         ).first()
         clinic = db.query(models.Clinic).filter(
             models.Clinic.clinic_id == past_visits[0].clinic_id
@@ -510,7 +508,7 @@ def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         event = db.query(models.Event).filter(
-            models.Event.local_token == payload.local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end,
             models.Event.status == "waiting"
@@ -530,7 +528,7 @@ def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
 def update_historical_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):
     try:
         event = db.query(models.Event).filter(
-            models.Event.local_token == payload.local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token,
             models.Event.status == "completed"
         ).order_by(models.Event.timestamp.desc()).first()
         if not event:
@@ -551,7 +549,7 @@ def update_historical_vitals(payload: VitalsUpdate, db: Session = Depends(get_db
 def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)):
     try:
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.local_token == payload.local_token
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == payload.local_token
         ).first()
         if not record:
             raise HTTPException(status_code=404, detail="Patient record not found")
@@ -559,7 +557,7 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         test_date_obj = datetime.strptime(payload.lab_record.test_date, "%Y-%m-%d").replace(tzinfo=IST)
         
         lab_record = db.query(models.ClinicPatientLabRecord).filter(
-            models.ClinicPatientLabRecord.local_token == payload.local_token,
+            models.ClinicPatientLabRecord.clinic_id == payload.clinic_id, models.ClinicPatientLabRecord.local_token == payload.local_token,
             func.date(models.ClinicPatientLabRecord.test_date) == test_date_obj.date()
         ).first()
         
@@ -588,10 +586,10 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/labs/{local_token}")
-def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
+def get_patient_labs(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         labs = db.query(models.ClinicPatientLabRecord).filter(
-            models.ClinicPatientLabRecord.local_token == local_token
+            models.ClinicPatientLabRecord.clinic_id == clinic_id, models.ClinicPatientLabRecord.local_token == local_token
         ).order_by(models.ClinicPatientLabRecord.test_date.asc()).all()
         
         return {
@@ -606,10 +604,6 @@ def get_patient_labs(local_token: str, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ---------------------------------------------------------
-# QUEUE MANIPULATION & VISIT TYPE (FIXED DEEP COPY FOR JSONB)
-# ---------------------------------------------------------
 
 def get_sort_key(event):
     """Bulletproof sorting fallback function"""
@@ -628,7 +622,7 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        target_event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        target_event = db.query(models.Event).filter(models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token).first()
         if not target_event:
             return {"status": "error"}
 
@@ -679,7 +673,7 @@ def move_queue(payload: MoveQueuePayload, db: Session = Depends(get_db)):
 @router.put("/queue/remove")
 def remove_queue(payload: RemoveQueuePayload, db: Session = Depends(get_db)):
     try:
-        event = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        event = db.query(models.Event).filter(models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token).first()
         if not event:
             return {"status": "error"}
 
@@ -698,7 +692,7 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
         today_start = now_ist.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
-        target = db.query(models.Event).filter(models.Event.local_token == payload.local_token).first()
+        target = db.query(models.Event).filter(models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token).first()
         if not target: 
             return {"status": "error"}
 
@@ -733,7 +727,7 @@ def top_queue(payload: TopQueuePayload, db: Session = Depends(get_db)):
 def update_visit_type(payload: VisitTypePayload, db: Session = Depends(get_db)):
     try:
         event = db.query(models.Event).filter(
-            models.Event.local_token == payload.local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == payload.local_token,
             models.Event.status == "waiting"
         ).first()
         
