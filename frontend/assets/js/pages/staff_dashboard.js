@@ -1116,7 +1116,7 @@ async function loadStaffQueue() {
                             <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">In at ${checkInTime} • ID: ${displayId}</span>
                         </div>
                         <div style="display:flex; align-items:center; margin-left: 10px; background: #e0f2fe; padding: 6px 12px; border-radius: 8px;">
-                            <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}${cityText}${patient.phone ? " | ?? " + patient.phone : ""}</span>
+                            <span style="font-size: 16px; font-weight: 700; color: var(--primary-color);">👤 ${displayName}${cityText}${patient.phone ? " | 📱 " + patient.phone : ""}</span>
                         </div>
                         ${actionButtons}
                     </div>
@@ -1165,7 +1165,7 @@ async function loadStaffQueue() {
                     <div style="display: flex; align-items: center; gap: 24px;">
                         <div class="token-badge" style="background: #e2e8f0; color: #94a3b8;">#${shortCode}</div>
                         <div>
-                            <strong style="display: flex; align-items: center; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName}${cityText}${patient.phone ? " | ?? " + patient.phone : ""} (ID: ${displayId}) ${typeBadge}</strong>
+                            <strong style="display: flex; align-items: center; font-size: 16px; color: #475569; margin-bottom: 2px;">👤 ${displayName}${cityText}${patient.phone ? " | 📱 " + patient.phone : ""} (ID: ${displayId}) ${typeBadge}</strong>
                             <span style="color: #94a3b8; font-size: 13px; font-weight: 500;">Consultation Completed</span>
                         </div>
                     </div>
