@@ -52,6 +52,7 @@ class MedicineItem(BaseModel):
     duration: Optional[str] = None
 
 class CompleteRequest(BaseModel):
+    clinic_id: uuid.UUID
     local_token : str
     medicines: List[MedicineItem]=[]
     complaints: Optional[str] = None
@@ -71,6 +72,7 @@ class StartVisitRequest(BaseModel):
     is_appointment: bool = False
 
 class CityUpdate(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
     city: str
 
@@ -87,6 +89,7 @@ class VitalsPayload(BaseModel):
     is_paid: Optional[bool] = False
 
 class VitalsUpdate(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
     vitals: VitalsPayload
 
@@ -95,20 +98,25 @@ class LabRecordPayload(BaseModel):
     results: dict
 
 class LabUpdatePayload(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
     lab_record: LabRecordPayload
 
 class MoveQueuePayload(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
     direction: int 
 
 class RemoveQueuePayload(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
 
 class TopQueuePayload(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
 
 class VisitTypePayload(BaseModel):
+    clinic_id: uuid.UUID
     local_token: str
     visit_type: str
 
