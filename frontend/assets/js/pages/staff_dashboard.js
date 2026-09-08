@@ -167,7 +167,7 @@ window.attemptManualLookup = async function (memberId = null) {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                phone: phone,
+                phone: finalPhone,
                 member_id: selectedMember,
                 clinic_id: clinicId,
               }),
@@ -280,8 +280,11 @@ window.manualCheckIn = async function () {
 
   const isAppt = document.getElementById("walkin-is-appt")?.checked || false;
 
-  if (!/^\d{10}$/.test(phone)) {
-    statusEl.textContent = "Please enter a valid 10-digit phone number.";
+  let finalPhone = phone;
+  if (!finalPhone) {
+    finalPhone = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+  } else if (!/^\d{10}$/.test(finalPhone)) {
+    statusEl.textContent = "Please enter a valid 10-digit phone number or leave blank.";
     statusEl.style.color = "var(--error-color)";
     return;
   }

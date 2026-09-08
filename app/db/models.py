@@ -33,6 +33,7 @@ class Clinic(Base):
     qualifications = Column(Text, nullable=True)
     address = Column(Text, nullable=True)
     extra_notes = Column(Text, nullable=True)
+    save_patient_phone = Column(Boolean, nullable=False, default=False)
     
 class EmailVerification(Base):
     __tablename__ = "email_verifications"
@@ -114,6 +115,7 @@ class ClinicPatientRecord(Base):
     patient_name = Column(Text, nullable=False)
     city = Column(Text, nullable=True)
     age = Column(Integer, nullable=True)
+    phone_number = Column(Text, nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

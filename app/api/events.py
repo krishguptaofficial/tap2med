@@ -147,7 +147,8 @@ def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
                 "found": True,
                 "patient_name": record.patient_name,
                 "city": record.city,
-                "age": record.age
+                "age": record.age,
+                "phone": getattr(record, 'phone_number', None)
             }
         
         return {"found": False}
@@ -220,6 +221,8 @@ def start_visit(
                 record.city = payload.city.strip()
             if payload.age is not None:
                 record.age = int(payload.age)
+            if getattr(clinic, 'save_patient_phone', False) and payload.phone:
+                record.phone_number = payload.phone
         else:
             new_record = models.ClinicPatientRecord(
                 clinic_id=payload.clinic_id,
@@ -227,6 +230,7 @@ def start_visit(
                 patient_name=payload.name,
                 city=payload.city.strip() if payload.city else None,
                 age=int(payload.age) if payload.age is not None else None,
+                phone_number=payload.phone if getattr(clinic, 'save_patient_phone', False) and payload.phone else None
             )
             db.add(new_record)
         
@@ -243,7 +247,7 @@ def start_visit(
         followup_days = clinic.followup_days or 0
                 
         last_visit = db.query(models.Event).filter(
-            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == local_token,
             models.Event.status == "completed"
         ).order_by(models.Event.timestamp.desc()).first()
 
@@ -305,7 +309,7 @@ def get_patient_status(local_token: str, clinic_id: uuid.UUID, db: Session = Dep
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         current_visit = db.query(models.Event).filter(
-            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end
         ).order_by(models.Event.timestamp.desc()).first()
@@ -433,7 +437,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
 def get_patient_history(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         past_visits = db.query(models.Event).filter(
-            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
+            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == local_token,
             models.Event.status == "completed" 
         ).order_by(models.Event.timestamp.desc()).all()    
          

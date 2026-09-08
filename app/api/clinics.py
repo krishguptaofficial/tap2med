@@ -110,6 +110,7 @@ def get_clinic_queue(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "patient_name": patient_name,
                 "city": patient_city,
                 "age": rec.age if rec else None,
+                "phone": getattr(rec, 'phone_number', None) if rec else None,
                 "display_id": patient_display_id,
                 "timestamp": event.timestamp.isoformat(),
                 "visit_type": visit_type,
@@ -305,6 +306,7 @@ class ClinicSettingsPayload(BaseModel):
     qualifications: str = ""
     address: str = ""
     extra_notes: str = ""
+    save_patient_phone: bool = False
 
 @router.put("/{clinic_id}/preferences")
 def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db: Session = Depends(get_db)):

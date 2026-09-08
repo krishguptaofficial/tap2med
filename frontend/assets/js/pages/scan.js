@@ -45,10 +45,12 @@ document.getElementById("btn-phone-next")?.addEventListener("click", () => {
   }
 
   const phoneInput = document.getElementById("phone-input");
-  const phone = phoneInput ? phoneInput.value.trim() : "";
+  let phone = phoneInput ? phoneInput.value.trim() : "";
 
-  if (!/^\d{10}$/.test(phone)) {
-    alert("Please enter a valid 10-digit phone number.");
+  if (!phone) {
+    phone = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+  } else if (!/^\d{10}$/.test(phone)) {
+    alert("Please enter a valid 10-digit phone number or leave blank.");
     return;
   }
 
