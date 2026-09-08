@@ -1,1141 +1,1141 @@
 <!-- Expanded Lab Flowsheet Modal for Staff -->
-    <div id="labs-modal" class="backdrop">
-      <div class="labs-modal-container">
-        <div class="labs-modal-header">
-          <div>
-            <h3 style="margin: 0; font-size: 20px; color: var(--primary-color)">
-              Lab Flowsheet & Trends
-            </h3>
-            <span
-              style="
-                font-size: 13px;
-                color: var(--text-muted);
-                font-weight: 600;
-              "
-              id="lab-modal-patient-name"
-              >Patient Name</span
-            >
-            <input type="hidden" id="lab-local-token" />
-          </div>
-          <button
-            onclick="closeLabsModal()"
-            style="
-              background: none;
-              border: none;
-              font-size: 24px;
-              cursor: pointer;
-              color: #94a3b8;
-            "
-          >
-            &times;
-          </button>
-        </div>
-        <div class="labs-modal-body">
-          <div class="labs-entry-section">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px">
-              <input
-                type="date"
-                id="lab-date"
-                class="input"
-                style="flex: 1"
-                onchange="populateLabInputsForDate(this.value)"
-              />
-              <button onclick="saveLabs()" class="btn btn-primary">
-                Save Values
-              </button>
-            </div>
-            <div style="margin-bottom: 16px">
-              <label
-                for="lab-search-input"
-                style="
-                  display: block;
-                  margin-bottom: 8px;
-                  font-size: 12px;
-                  font-weight: 700;
-                  color: var(--text-muted);
-                "
-                >Search tests</label
-              >
-              <input
-                type="text"
-                id="lab-search-input"
-                class="input"
-                placeholder="Search by test name or code"
-                oninput="filterLabFields()"
-              />
-            </div>
-
-            <!-- DIABETES PROFILE -->
-            <div
-              class="lab-section-header"
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-              "
-            >
-              Diabetes Profile
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Serum Alkaline Phosphatase (IU/L)</label
-                ><input
-                  type="number"
-                  id="lab-diab_sap"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Fasting Blood Sugar (FBS) (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-diab_fbs"
-                  class="input"
-                  data-min="70"
-                  data-max="99"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Glycosylated Haemoglobin - HbA1c (%)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-diab_hba1c"
-                  class="input"
-                  data-min="4.0"
-                  data-max="5.6"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Creatinine (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-diab_creat"
-                  class="input"
-                  data-min="0.6"
-                  data-max="1.2"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>eGFR - Creatinine Clearance (mL/min/1.73m2)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-diab_egfr"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Spot Albumin Creatinine Ratio (mg/g)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-diab_sacr"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Total Cholesterol (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-diab_chol"
-                  class="input"
-                  data-max="200"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Triglycerides (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-diab_tg"
-                  class="input"
-                  data-max="150"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum LDL Cholesterol (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-diab_ldl"
-                  class="input"
-                  data-max="100"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum HDL Cholesterol (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-diab_hdl"
-                  class="input"
-                  data-min="40"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- HAEMATOLOGY -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              HAEMATOLOGY
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Absolute Eosinophil Count (cells/cumm)</label
-                ><input
-                  type="number"
-                  id="lab-haem_aec"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Haemoglobin (Hb) (Gms %)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_hb"
-                  class="input"
-                  data-min="12.0"
-                  data-max="17.5"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Total WBC Count (Cells/cu mm)</label
-                ><input
-                  type="number"
-                  id="lab-haem_wbc"
-                  class="input"
-                  data-min="4000"
-                  data-max="11000"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Haematocrit (PCV) (%)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_pcv"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Neutrophils (%)</label
-                ><input
-                  type="number"
-                  id="lab-haem_neut"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Lymphocytes (%)</label
-                ><input
-                  type="number"
-                  id="lab-haem_lymph"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Eosinophils (%)</label
-                ><input
-                  type="number"
-                  id="lab-haem_eos"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Monocytes (%)</label
-                ><input
-                  type="number"
-                  id="lab-haem_mono"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Basophils (%)</label
-                ><input
-                  type="number"
-                  id="lab-haem_baso"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>RBC - Red Blood Cells (millions/cu mm)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_rbc"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Erythrocyte Sedimentation Rate (ESR) (mm/hour)</label
-                ><input
-                  type="number"
-                  id="lab-haem_esr"
-                  class="input"
-                  data-max="20"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>RBCs (-)</label
-                ><input type="text" id="lab-haem_rbcs" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>WBCs (thousand cells/µL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_wbcs"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Platelets (-)</label
-                ><input type="text" id="lab-haem_plt" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Haemoparasites (-)</label
-                ><input type="text" id="lab-haem_para" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Impression (-)</label
-                ><input type="text" id="lab-haem_imp" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Mean Corpuscular Volume (MCV) (fL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_mcv"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Mean Corpuscular Haemoglobin (MCH) (pg)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_mch"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label
-                  >Mean Corpuscular Haemoglobin Concentration (MCHC)
-                  (g/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-haem_mchc"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- BIO CHEMISTRY -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              BIO CHEMISTRY
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Fasting Urine Sugar (FUS) (-)</label
-                ><input type="text" id="lab-bio_fus" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Post Prandial Blood Sugar (PPBS) (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-bio_ppbs"
-                  class="input"
-                  data-max="140"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Post Prandial Urine Sugar - PPUS (-)</label
-                ><input type="text" id="lab-bio_ppus" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Mean Blood Glucose (Calculated from HbA1c) (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-bio_mbg"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Random Blood Sugar - RBS (mg/dL)</label
-                ><input
-                  type="number"
-                  id="lab-bio_rbs"
-                  class="input"
-                  data-min="70"
-                  data-max="140"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Random Urine Sugar (-)</label
-                ><input type="text" id="lab-bio_rus" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Ketone (-)</label
-                ><input type="text" id="lab-bio_ket" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Protein (-)</label
-                ><input type="text" id="lab-bio_prot" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Blood Urea (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_urea"
-                  class="input"
-                  data-min="15"
-                  data-max="40"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Sodium (Na+) (mEq/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_na"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Potassium (K+) (mEq/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_k"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Chloride (Cl+) (mEq/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_cl"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Uric Acid (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_uric"
-                  class="input"
-                  data-min="3.5"
-                  data-max="7.2"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Blood Urea Nitrogen (BUN) (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_bun"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Electrolyte Bicarbonate (mEq/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_hco3"
-                  class="input"
-                  data-min="8"
-                  data-max="21"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Calcium (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-bio_cal"
-                  class="input"
-                  data-min="8.5"
-                  data-max="10.5"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- LFT -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              LFT
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Serum Bilirubin Total (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_bili_tot"
-                  class="input"
-                  data-min="0.2"
-                  data-max="1.2"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Bilirubin Direct (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_bili_dir"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Bilirubin Indirect (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_bili_ind"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Protein - Total (g/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_prot_tot"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Protein - Albumin (g/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_prot_alb"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Protein - Globulin (g/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_prot_glob"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>SGOT (AST) (IU/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_sgot"
-                  class="input"
-                  data-min="5"
-                  data-max="40"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>SGPT (ALT) (IU/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_sgpt"
-                  class="input"
-                  data-min="7"
-                  data-max="56"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Gamma Glutamyl Transpeptidase (GGT) (IU/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_ggt"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Magnesium (Mg+) (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-lft_mg"
-                  class="input"
-                  data-max="66"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- UACR -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              UACR
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Urine Albumin (mg/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-uacr_alb"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Urine Micro Albumin (mg/L)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-uacr_malb"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Urine Creatinine (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-uacr_creat"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- URINE ROUTINE -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              URINE ROUTINE
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Appearance (-)</label
-                ><input type="text" id="lab-ur_app" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Reaction (-)</label
-                ><input type="text" id="lab-ur_reac" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Albumin (-)</label
-                ><input type="text" id="lab-ur_alb" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Pus Cells (-)</label
-                ><input type="text" id="lab-ur_pus" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>RBCs (-)</label
-                ><input type="text" id="lab-ur_rbc" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Casts (-)</label
-                ><input type="text" id="lab-ur_casts" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Crystals (-)</label
-                ><input type="text" id="lab-ur_cryst" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Urine Bacteria (-)</label
-                ><input type="text" id="lab-ur_bact" class="input" />
-              </div>
-            </div>
-
-            <!-- THYROID PROFILE -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              THYROID PROFILE
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>TSH (Thyroid Stimulating Hormone) (mIU/L)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_tsh"
-                  class="input"
-                  data-min="0.4"
-                  data-max="4.5"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>TSH (Thyroid Ultra Sensitive Hormone) (-)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_tsh_ultra"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>T3 (ng/dL)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_t3"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>T4 (µg/dL)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_t4"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Free T3 (ng/mL)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_ft3"
-                  class="input"
-                  data-min="2.0"
-                  data-max="4.4"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Free T4 (ng/dL)</label
-                ><input
-                  type="number"
-                  step="0.01"
-                  id="lab-thy_ft4"
-                  class="input"
-                  data-min="0.8"
-                  data-max="1.8"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Antibodies TPO (-)</label
-                ><input type="text" id="lab-thy_tpo" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>TG Antibodies (-)</label
-                ><input type="text" id="lab-thy_tg_ab" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Anti Thyroglobulin Antibody (Anti Tg) (U/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-thy_anti_tg"
-                  class="input"
-                  data-max="60"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-            </div>
-
-            <!-- PCOS -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              PCOS
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>Luteinizing Hormone (LH) (mIU/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-pcos_lh"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Follicle Stimulating Hormone (FSH) (mIU/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-pcos_fsh"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Prolactin (ng/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-pcos_prol"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Testosterone Total (ng/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-pcos_testo"
-                  class="input"
-                  data-min="15"
-                  data-max="1100"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>DHEAS (-)</label
-                ><input type="text" id="lab-pcos_dheas" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>SHBG (-)</label
-                ><input type="text" id="lab-pcos_shbg" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Oestridiol (-)</label
-                ><input type="text" id="lab-pcos_oest" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>FGW - Scoring (-)</label
-                ><input type="text" id="lab-pcos_fgw" class="input" />
-              </div>
-            </div>
-
-            <!-- OTHERS -->
-            <div
-              style="
-                background: #e2e8f0;
-                padding: 8px 12px;
-                font-weight: 800;
-                font-size: 13px;
-                margin-bottom: 10px;
-                margin-top: 20px;
-              "
-            >
-              OTHERS
-            </div>
-            <div class="lab-grid">
-              <div class="lab-input-group">
-                <label>ECG (-)</label
-                ><input type="text" id="lab-oth_ecg" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>ULTRASOUND Abdomen (-)</label
-                ><input type="text" id="lab-oth_usg" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>FNAC (-)</label
-                ><input type="text" id="lab-oth_fnac" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Troponin I (-)</label
-                ><input type="text" id="lab-oth_trop" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Pulmonary Function Test (PFT) (-)</label
-                ><input type="text" id="lab-oth_pft" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>VPT (-)</label
-                ><input type="text" id="lab-oth_vpt" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Vitamin B12 (pg/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_vitb12"
-                  class="input"
-                  data-min="200"
-                  data-max="900"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>2D Echo (-)</label
-                ><input type="text" id="lab-oth_echo" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Iron Profile (-)</label
-                ><input type="text" id="lab-oth_iron_prof" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Iron (µg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_serum_iron"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>TIBC (-)</label
-                ><input type="text" id="lab-oth_tibc" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Vitamin D3 25 OH (ng/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_vitd3"
-                  class="input"
-                  data-min="30"
-                  data-max="100"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>C-Reactive Protein (CRP) (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_crp"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>High Sensitive - CRP (mg/dL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_hscrp"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum Ferritin (ng/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_ferritin"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>MRI (-)</label
-                ><input type="text" id="lab-oth_mri" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>CT SCAN (-)</label
-                ><input type="text" id="lab-oth_ct" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Fibroscan (-)</label
-                ><input type="text" id="lab-oth_fibro" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Serum IgA TTG (-)</label
-                ><input type="text" id="lab-oth_ttg" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>CECT Abdomen (-)</label
-                ><input type="text" id="lab-oth_cect" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>MRI BRAIN (-)</label
-                ><input type="text" id="lab-oth_mri_brain" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>IgE (-)</label
-                ><input type="text" id="lab-oth_ige" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>PT/INR (-)</label
-                ><input type="text" id="lab-oth_ptinr" class="input" />
-              </div>
-              <div class="lab-input-group">
-                <label>Para Thyroid Hormone - PTH (pg/mL)</label
-                ><input
-                  type="number"
-                  step="0.1"
-                  id="lab-oth_pth"
-                  class="input"
-                  onkeyup="checkRange(this)"
-                />
-              </div>
-              <div class="lab-input-group">
-                <label>Anti Tpo (-)</label
-                ><input type="text" id="lab-oth_anti_tpo" class="input" />
-              </div>
-            </div>
-          </div>
-
-          <div class="labs-chart-section">
-            <h4
-              style="
-                color: var(--primary-color);
-                margin-bottom: 16px;
-                margin-top: 0;
-              "
-            >
-              Trend Analysis
-            </h4>
-            <input
-              type="text"
-              id="chart-search-input"
-              class="input"
-              placeholder="Search trend test"
-              oninput="filterChartOptions()"
-              style="margin-bottom: 12px"
-            />
-            <select
-              id="chart-parameter"
-              class="select"
-              style="
-                margin-bottom: 20px;
-                border: 1px solid #cbd5e1;
-                background: white;
-              "
-              onchange="updateChart()"
-            >
-              <optgroup label="Diabetes">
-                <option value="diab_hba1c">HbA1c (%)</option>
-                <option value="diab_fbs">Fasting Blood Sugar</option>
-                <option value="bio_ppbs">PPBS</option>
-              </optgroup>
-              <optgroup label="Thyroid">
-                <option value="thy_tsh">TSH</option>
-                <option value="thy_ft3">Free T3</option>
-                <option value="thy_ft4">Free T4</option>
-              </optgroup>
-              <optgroup label="LFT & KFT">
-                <option value="diab_creat">Serum Creatinine</option>
-                <option value="lft_sgpt">SGPT</option>
-                <option value="lft_bili_tot">Total Bilirubin</option>
-                <option value="bio_uric">Uric Acid</option>
-              </optgroup>
-              <optgroup label="Lipid">
-                <option value="diab_chol">Total Cholesterol</option>
-                <option value="diab_tg">Triglycerides</option>
-                <option value="diab_ldl">LDL</option>
-                <option value="diab_hdl">HDL</option>
-              </optgroup>
-              <optgroup label="Haematology & Vits">
-                <option value="haem_hb">Haemoglobin</option>
-                <option value="haem_wbc">TLC / WBC</option>
-                <option value="oth_vitb12">Vitamin B12</option>
-                <option value="oth_vitd3">Vitamin D3</option>
-              </optgroup>
-            </select>
-            <div class="chart-container">
-              <canvas id="labChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div id="labs-modal" class="backdrop">
+   <div class="labs-modal-container">
+    <div class="labs-modal-header">
+     <div>
+      <h3 style="margin: 0; font-size: 20px; color: var(--primary-color)">
+       Lab Flowsheet & Trends
+      </h3>
+      <span
+       style="
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 600;
+       "
+       id="lab-modal-patient-name"
+      >Patient Name</span
+     >
+      <input type="hidden" id="lab-local-token" />
+     </div>
+     <button
+      onclick="closeLabsModal()"
+      style="
+       background: none;
+       border: none;
+       font-size: 24px;
+       cursor: pointer;
+       color: #94a3b8;
+      "
+    >
+      &times;
+     </button>
     </div>
+    <div class="labs-modal-body">
+     <div class="labs-entry-section">
+      <div style="display: flex; gap: 10px; margin-bottom: 20px">
+       <input
+        type="date"
+        id="lab-date"
+        class="input"
+        style="flex: 1"
+        onchange="populateLabInputsForDate(this.value)"
+       />
+       <button onclick="saveLabs()" class="btn btn-primary">
+        Save Values
+       </button>
+      </div>
+      <div style="margin-bottom: 16px">
+       <label
+        for="lab-search-input"
+        style="
+         display: block;
+         margin-bottom: 8px;
+         font-size: 12px;
+         font-weight: 700;
+         color: var(--text-muted);
+        "
+       >Search tests</label
+      >
+       <input
+        type="text"
+        id="lab-search-input"
+        class="input"
+        placeholder="Search by test name or code"
+        oninput="filterLabFields()"
+       />
+      </div>
+
+      <!-- DIABETES PROFILE -->
+      <div
+       class="lab-section-header"
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+       "
+     >
+       Diabetes Profile
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Serum Alkaline Phosphatase (IU/L)</label
+       ><input
+         type="number"
+         id="lab-diab_sap"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Fasting Blood Sugar (FBS) (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-diab_fbs"
+         class="input"
+         data-min="70"
+         data-max="99"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Glycosylated Haemoglobin - HbA1c (%)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-diab_hba1c"
+         class="input"
+         data-min="4.0"
+         data-max="5.6"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Creatinine (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-diab_creat"
+         class="input"
+         data-min="0.6"
+         data-max="1.2"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>eGFR - Creatinine Clearance (mL/min/1.73m2)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-diab_egfr"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Spot Albumin Creatinine Ratio (mg/g)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-diab_sacr"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Total Cholesterol (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-diab_chol"
+         class="input"
+         data-max="200"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Triglycerides (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-diab_tg"
+         class="input"
+         data-max="150"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum LDL Cholesterol (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-diab_ldl"
+         class="input"
+         data-max="100"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum HDL Cholesterol (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-diab_hdl"
+         class="input"
+         data-min="40"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- HAEMATOLOGY -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       HAEMATOLOGY
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Absolute Eosinophil Count (cells/cumm)</label
+       ><input
+         type="number"
+         id="lab-haem_aec"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Haemoglobin (Hb) (Gms %)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_hb"
+         class="input"
+         data-min="12.0"
+         data-max="17.5"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Total WBC Count (Cells/cu mm)</label
+       ><input
+         type="number"
+         id="lab-haem_wbc"
+         class="input"
+         data-min="4000"
+         data-max="11000"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Haematocrit (PCV) (%)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_pcv"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Neutrophils (%)</label
+       ><input
+         type="number"
+         id="lab-haem_neut"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Lymphocytes (%)</label
+       ><input
+         type="number"
+         id="lab-haem_lymph"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Eosinophils (%)</label
+       ><input
+         type="number"
+         id="lab-haem_eos"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Monocytes (%)</label
+       ><input
+         type="number"
+         id="lab-haem_mono"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Basophils (%)</label
+       ><input
+         type="number"
+         id="lab-haem_baso"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>RBC - Red Blood Cells (millions/cu mm)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_rbc"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Erythrocyte Sedimentation Rate (ESR) (mm/hour)</label
+       ><input
+         type="number"
+         id="lab-haem_esr"
+         class="input"
+         data-max="20"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>RBCs (-)</label
+       ><input type="text" id="lab-haem_rbcs" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>WBCs (thousand cells/µL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_wbcs"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Platelets (-)</label
+       ><input type="text" id="lab-haem_plt" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Haemoparasites (-)</label
+       ><input type="text" id="lab-haem_para" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Impression (-)</label
+       ><input type="text" id="lab-haem_imp" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Mean Corpuscular Volume (MCV) (fL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_mcv"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Mean Corpuscular Haemoglobin (MCH) (pg)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_mch"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label
+        >Mean Corpuscular Haemoglobin Concentration (MCHC)
+         (g/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-haem_mchc"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- BIO CHEMISTRY -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       BIO CHEMISTRY
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Fasting Urine Sugar (FUS) (-)</label
+       ><input type="text" id="lab-bio_fus" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Post Prandial Blood Sugar (PPBS) (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-bio_ppbs"
+         class="input"
+         data-max="140"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Post Prandial Urine Sugar - PPUS (-)</label
+       ><input type="text" id="lab-bio_ppus" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Mean Blood Glucose (Calculated from HbA1c) (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-bio_mbg"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Random Blood Sugar - RBS (mg/dL)</label
+       ><input
+         type="number"
+         id="lab-bio_rbs"
+         class="input"
+         data-min="70"
+         data-max="140"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Random Urine Sugar (-)</label
+       ><input type="text" id="lab-bio_rus" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Ketone (-)</label
+       ><input type="text" id="lab-bio_ket" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Protein (-)</label
+       ><input type="text" id="lab-bio_prot" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Blood Urea (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_urea"
+         class="input"
+         data-min="15"
+         data-max="40"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Sodium (Na+) (mEq/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_na"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Potassium (K+) (mEq/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_k"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Chloride (Cl+) (mEq/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_cl"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Uric Acid (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_uric"
+         class="input"
+         data-min="3.5"
+         data-max="7.2"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Blood Urea Nitrogen (BUN) (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_bun"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Electrolyte Bicarbonate (mEq/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_hco3"
+         class="input"
+         data-min="8"
+         data-max="21"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Calcium (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-bio_cal"
+         class="input"
+         data-min="8.5"
+         data-max="10.5"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- LFT -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       LFT
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Serum Bilirubin Total (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_bili_tot"
+         class="input"
+         data-min="0.2"
+         data-max="1.2"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Bilirubin Direct (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_bili_dir"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Bilirubin Indirect (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_bili_ind"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Protein - Total (g/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_prot_tot"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Protein - Albumin (g/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_prot_alb"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Protein - Globulin (g/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_prot_glob"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>SGOT (AST) (IU/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_sgot"
+         class="input"
+         data-min="5"
+         data-max="40"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>SGPT (ALT) (IU/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_sgpt"
+         class="input"
+         data-min="7"
+         data-max="56"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Gamma Glutamyl Transpeptidase (GGT) (IU/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_ggt"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Magnesium (Mg+) (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-lft_mg"
+         class="input"
+         data-max="66"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- UACR -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       UACR
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Urine Albumin (mg/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-uacr_alb"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Urine Micro Albumin (mg/L)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-uacr_malb"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Urine Creatinine (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-uacr_creat"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- URINE ROUTINE -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       URINE ROUTINE
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Appearance (-)</label
+       ><input type="text" id="lab-ur_app" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Reaction (-)</label
+       ><input type="text" id="lab-ur_reac" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Albumin (-)</label
+       ><input type="text" id="lab-ur_alb" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Pus Cells (-)</label
+       ><input type="text" id="lab-ur_pus" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>RBCs (-)</label
+       ><input type="text" id="lab-ur_rbc" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Casts (-)</label
+       ><input type="text" id="lab-ur_casts" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Crystals (-)</label
+       ><input type="text" id="lab-ur_cryst" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Urine Bacteria (-)</label
+       ><input type="text" id="lab-ur_bact" class="input" />
+       </div>
+      </div>
+
+      <!-- THYROID PROFILE -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       THYROID PROFILE
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>TSH (Thyroid Stimulating Hormone) (mIU/L)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_tsh"
+         class="input"
+         data-min="0.4"
+         data-max="4.5"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>TSH (Thyroid Ultra Sensitive Hormone) (-)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_tsh_ultra"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>T3 (ng/dL)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_t3"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>T4 (µg/dL)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_t4"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Free T3 (ng/mL)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_ft3"
+         class="input"
+         data-min="2.0"
+         data-max="4.4"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Free T4 (ng/dL)</label
+       ><input
+         type="number"
+         step="0.01"
+         id="lab-thy_ft4"
+         class="input"
+         data-min="0.8"
+         data-max="1.8"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Antibodies TPO (-)</label
+       ><input type="text" id="lab-thy_tpo" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>TG Antibodies (-)</label
+       ><input type="text" id="lab-thy_tg_ab" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Anti Thyroglobulin Antibody (Anti Tg) (U/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-thy_anti_tg"
+         class="input"
+         data-max="60"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+      </div>
+
+      <!-- PCOS -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       PCOS
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>Luteinizing Hormone (LH) (mIU/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-pcos_lh"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Follicle Stimulating Hormone (FSH) (mIU/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-pcos_fsh"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Prolactin (ng/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-pcos_prol"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Testosterone Total (ng/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-pcos_testo"
+         class="input"
+         data-min="15"
+         data-max="1100"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>DHEAS (-)</label
+       ><input type="text" id="lab-pcos_dheas" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>SHBG (-)</label
+       ><input type="text" id="lab-pcos_shbg" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Oestridiol (-)</label
+       ><input type="text" id="lab-pcos_oest" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>FGW - Scoring (-)</label
+       ><input type="text" id="lab-pcos_fgw" class="input" />
+       </div>
+      </div>
+
+      <!-- OTHERS -->
+      <div
+       style="
+        background: #e2e8f0;
+        padding: 8px 12px;
+        font-weight: 800;
+        font-size: 13px;
+        margin-bottom: 10px;
+        margin-top: 20px;
+       "
+     >
+       OTHERS
+      </div>
+      <div class="lab-grid">
+       <div class="lab-input-group">
+        <label>ECG (-)</label
+       ><input type="text" id="lab-oth_ecg" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>ULTRASOUND Abdomen (-)</label
+       ><input type="text" id="lab-oth_usg" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>FNAC (-)</label
+       ><input type="text" id="lab-oth_fnac" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Troponin I (-)</label
+       ><input type="text" id="lab-oth_trop" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Pulmonary Function Test (PFT) (-)</label
+       ><input type="text" id="lab-oth_pft" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>VPT (-)</label
+       ><input type="text" id="lab-oth_vpt" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Vitamin B12 (pg/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_vitb12"
+         class="input"
+         data-min="200"
+         data-max="900"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>2D Echo (-)</label
+       ><input type="text" id="lab-oth_echo" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Iron Profile (-)</label
+       ><input type="text" id="lab-oth_iron_prof" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Iron (µg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_serum_iron"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>TIBC (-)</label
+       ><input type="text" id="lab-oth_tibc" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Vitamin D3 25 OH (ng/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_vitd3"
+         class="input"
+         data-min="30"
+         data-max="100"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>C-Reactive Protein (CRP) (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_crp"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>High Sensitive - CRP (mg/dL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_hscrp"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum Ferritin (ng/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_ferritin"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>MRI (-)</label
+       ><input type="text" id="lab-oth_mri" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>CT SCAN (-)</label
+       ><input type="text" id="lab-oth_ct" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Fibroscan (-)</label
+       ><input type="text" id="lab-oth_fibro" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Serum IgA TTG (-)</label
+       ><input type="text" id="lab-oth_ttg" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>CECT Abdomen (-)</label
+       ><input type="text" id="lab-oth_cect" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>MRI BRAIN (-)</label
+       ><input type="text" id="lab-oth_mri_brain" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>IgE (-)</label
+       ><input type="text" id="lab-oth_ige" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>PT/INR (-)</label
+       ><input type="text" id="lab-oth_ptinr" class="input" />
+       </div>
+       <div class="lab-input-group">
+        <label>Para Thyroid Hormone - PTH (pg/mL)</label
+       ><input
+         type="number"
+         step="0.1"
+         id="lab-oth_pth"
+         class="input"
+         onkeyup="checkRange(this)"
+        />
+       </div>
+       <div class="lab-input-group">
+        <label>Anti Tpo (-)</label
+       ><input type="text" id="lab-oth_anti_tpo" class="input" />
+       </div>
+      </div>
+     </div>
+
+     <div class="labs-chart-section">
+      <h4
+       style="
+        color: var(--primary-color);
+        margin-bottom: 16px;
+        margin-top: 0;
+       "
+     >
+       Trend Analysis
+      </h4>
+      <input
+       type="text"
+       id="chart-search-input"
+       class="input"
+       placeholder="Search trend test"
+       oninput="filterChartOptions()"
+       style="margin-bottom: 12px"
+      />
+      <select
+       id="chart-parameter"
+       class="select"
+       style="
+        margin-bottom: 20px;
+        border: 1px solid #cbd5e1;
+        background: white;
+       "
+       onchange="updateChart()"
+     >
+       <optgroup label="Diabetes">
+        <option value="diab_hba1c">HbA1c (%)</option>
+        <option value="diab_fbs">Fasting Blood Sugar</option>
+        <option value="bio_ppbs">PPBS</option>
+       </optgroup>
+       <optgroup label="Thyroid">
+        <option value="thy_tsh">TSH</option>
+        <option value="thy_ft3">Free T3</option>
+        <option value="thy_ft4">Free T4</option>
+       </optgroup>
+       <optgroup label="LFT & KFT">
+        <option value="diab_creat">Serum Creatinine</option>
+        <option value="lft_sgpt">SGPT</option>
+        <option value="lft_bili_tot">Total Bilirubin</option>
+        <option value="bio_uric">Uric Acid</option>
+       </optgroup>
+       <optgroup label="Lipid">
+        <option value="diab_chol">Total Cholesterol</option>
+        <option value="diab_tg">Triglycerides</option>
+        <option value="diab_ldl">LDL</option>
+        <option value="diab_hdl">HDL</option>
+       </optgroup>
+       <optgroup label="Haematology & Vits">
+        <option value="haem_hb">Haemoglobin</option>
+        <option value="haem_wbc">TLC / WBC</option>
+        <option value="oth_vitb12">Vitamin B12</option>
+        <option value="oth_vitd3">Vitamin D3</option>
+       </optgroup>
+      </select>
+      <div class="chart-container">
+       <canvas id="labChart"></canvas>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>

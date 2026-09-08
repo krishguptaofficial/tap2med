@@ -1,259 +1,259 @@
 <!-- Complete Vitals Modal -->
-    <div id="vitals-modal" class="backdrop">
-      <div
+  <div id="vitals-modal" class="backdrop">
+   <div
+    style="
+     background: white;
+     padding: 32px;
+     border-radius: 16px;
+     width: 100%;
+     max-width: 550px;
+     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    "
+  >
+    <h3
+     style="
+      margin-top: 0;
+      color: var(--text-main);
+      margin-bottom: 24px;
+      font-size: 20px;
+      font-weight: 700;
+     "
+   >
+     Add Vitals
+    </h3>
+    <input type="hidden" id="vitals-token" />
+    <input type="hidden" id="vital-is-paid" value="false" />
+    <div
+     style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+     "
+   >
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >BP (mmHg)</label
+     >
+      <div style="display: flex; align-items: center; gap: 4px">
+       <input
+        type="number"
+        id="vital-bp-sys"
+        placeholder="Sys"
         style="
-          background: white;
-          padding: 32px;
-          border-radius: 16px;
-          width: 100%;
-          max-width: 550px;
-          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+         width: 100%;
+         padding: 8px;
+         border: 1px solid #cbd5e1;
+         border-radius: 6px;
+         font-size: 14px;
         "
-      >
-        <h3
-          style="
-            margin-top: 0;
-            color: var(--text-main);
-            margin-bottom: 24px;
-            font-size: 20px;
-            font-weight: 700;
-          "
-        >
-          Add Vitals
-        </h3>
-        <input type="hidden" id="vitals-token" />
-        <input type="hidden" id="vital-is-paid" value="false" />
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-          "
-        >
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >BP (mmHg)</label
-            >
-            <div style="display: flex; align-items: center; gap: 4px">
-              <input
-                type="number"
-                id="vital-bp-sys"
-                placeholder="Sys"
-                style="
-                  width: 100%;
-                  padding: 8px;
-                  border: 1px solid #cbd5e1;
-                  border-radius: 6px;
-                  font-size: 14px;
-                "
-              /><span style="color: #94a3b8; font-weight: bold">/</span
-              ><input
-                type="number"
-                id="vital-bp-dia"
-                placeholder="Dia"
-                style="
-                  width: 100%;
-                  padding: 8px;
-                  border: 1px solid #cbd5e1;
-                  border-radius: 6px;
-                  font-size: 14px;
-                "
-              />
-            </div>
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Pulse (bpm)</label
-            ><input
-              type="number"
-              id="vital-pr"
-              placeholder="e.g. 80"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Weight (kg)</label
-            ><input
-              type="number"
-              id="vital-wt"
-              placeholder="e.g. 70"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Height (cm)</label
-            ><input
-              type="number"
-              id="vital-ht"
-              placeholder="e.g. 170"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Temperature (°F)</label
-            ><input
-              type="number"
-              id="vital-temp"
-              placeholder="e.g. 98.6"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >SpO2 (%)</label
-            ><input
-              type="number"
-              id="vital-spo2"
-              placeholder="e.g. 99"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Waist (cm)</label
-            ><input
-              type="number"
-              id="vital-waist"
-              placeholder="e.g. 85"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 12px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 4px;
-              "
-              >Hip (cm)</label
-            ><input
-              type="number"
-              id="vital-hip"
-              placeholder="e.g. 95"
-              style="
-                width: 100%;
-                padding: 8px;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                font-size: 14px;
-              "
-            />
-          </div>
-        </div>
-        <div
-          style="
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            padding-top: 16px;
-            border-top: 1px solid #e2e8f0;
-          "
-        >
-          <button
-            onclick="closeVitalsModal()"
-            class="btn btn-ghost"
-            style="color: var(--text-muted)"
-          >
-            Cancel
-          </button>
-          <button
-            onclick="submitVitals()"
-            class="btn btn-primary"
-            style="padding-left: 24px; padding-right: 24px"
-          >
-            Save Vitals
-          </button>
-        </div>
+       /><span style="color: #94a3b8; font-weight: bold">/</span
+      ><input
+        type="number"
+        id="vital-bp-dia"
+        placeholder="Dia"
+        style="
+         width: 100%;
+         padding: 8px;
+         border: 1px solid #cbd5e1;
+         border-radius: 6px;
+         font-size: 14px;
+        "
+       />
       </div>
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Pulse (bpm)</label
+     ><input
+       type="number"
+       id="vital-pr"
+       placeholder="e.g. 80"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Weight (kg)</label
+     ><input
+       type="number"
+       id="vital-wt"
+       placeholder="e.g. 70"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Height (cm)</label
+     ><input
+       type="number"
+       id="vital-ht"
+       placeholder="e.g. 170"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Temperature (°F)</label
+     ><input
+       type="number"
+       id="vital-temp"
+       placeholder="e.g. 98.6"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >SpO2 (%)</label
+     ><input
+       type="number"
+       id="vital-spo2"
+       placeholder="e.g. 99"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Waist (cm)</label
+     ><input
+       type="number"
+       id="vital-waist"
+       placeholder="e.g. 85"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
+     <div>
+      <label
+       style="
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 4px;
+       "
+      >Hip (cm)</label
+     ><input
+       type="number"
+       id="vital-hip"
+       placeholder="e.g. 95"
+       style="
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 14px;
+       "
+      />
+     </div>
     </div>
+    <div
+     style="
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+     "
+   >
+     <button
+      onclick="closeVitalsModal()"
+      class="btn btn-ghost"
+      style="color: var(--text-muted)"
+    >
+      Cancel
+     </button>
+     <button
+      onclick="submitVitals()"
+      class="btn btn-primary"
+      style="padding-left: 24px; padding-right: 24px"
+    >
+      Save Vitals
+     </button>
+    </div>
+   </div>
+  </div>

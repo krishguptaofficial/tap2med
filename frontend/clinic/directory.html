@@ -1,803 +1,803 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Patient Directory | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css" />
-    <link rel="stylesheet" href="/assets/css/base.css" />
-    <link rel="stylesheet" href="/assets/css/layout.css" />
-    <link rel="stylesheet" href="/assets/css/components.css" />
-    <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <link rel="stylesheet" href="/assets/css/forms.css" />
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
-    <link
-      id="staff-dashboard-styles"
-      rel="stylesheet"
-      href="/assets/css/pages/staff_dashboard.css"
-    />
-  </head>
-  <body class="dashboard-body">
-    <!-- Sidebar -->
-    <aside id="clinicSidebar" class="sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
-          <span>Tap2Med</span>
-        </div>
-      </div>
-      <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item">
-          <span style="font-size: 18px">⚡</span> Workspace
-        </a>
-        <a href="/directory" class="nav-item active">
-          <span style="font-size: 18px">👥</span> Patient Directory
-        </a>
-        <a href="/settings" class="nav-item">
-          <span style="font-size: 18px">⚙️</span> Clinic Settings
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="doc-profile">
-          <div class="avatar">🩺</div>
-          <div class="doc-info">
-            <strong id="doc-name">Doctor</strong>
-            <span id="clinic-name">Clinic</span>
-          </div>
-        </div>
-      </div>
-    </aside>
+ <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patient Directory | Tap2Med</title>
+  <link rel="stylesheet" href="/assets/css/variables.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/buttons.css" />
+  <link rel="stylesheet" href="/assets/css/forms.css" />
+  <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+  <link
+   id="staff-dashboard-styles"
+   rel="stylesheet"
+   href="/assets/css/pages/staff_dashboard.css"
+  />
+ </head>
+ <body class="dashboard-body">
+  <!-- Sidebar -->
+  <aside id="clinicSidebar" class="sidebar">
+   <div class="sidebar-header">
+    <div class="brand">
+     <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+     <span>Tap2Med</span>
+    </div>
+   </div>
+   <nav class="sidebar-nav">
+    <a href="/dashboard" class="nav-item">
+     <span style="font-size: 18px"></span> Workspace
+    </a>
+    <a href="/directory" class="nav-item active">
+     <span style="font-size: 18px"></span> Patient Directory
+    </a>
+    <a href="/settings" class="nav-item">
+     <span style="font-size: 18px"></span> Clinic Settings
+    </a>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="doc-profile">
+     <div class="avatar"></div>
+     <div class="doc-info">
+      <strong id="doc-name">Doctor</strong>
+      <span id="clinic-name">Clinic</span>
+     </div>
+    </div>
+   </div>
+  </aside>
 
-    <main class="main-content">
-      <header class="top-header">
-        <h2 style="font-size: 18px; margin: 0; color: var(--primary-color)">
-          Patient Directory Ledger
-        </h2>
-      </header>
+  <main class="main-content">
+   <header class="top-header">
+    <h2 style="font-size: 18px; margin: 0; color: var(--primary-color)">
+     Patient Directory Ledger
+    </h2>
+   </header>
 
-      <div style="padding: 30px; max-width: 1000px; margin: 0 auto">
-        <div
-          style="
-            display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-          "
-        >
-          <div style="flex: 1; min-width: 250px">
-            <label
-              style="
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 8px;
-              "
-              >Filter by Date</label
-            >
-            <input
-              type="date"
-              id="date-filter"
-              class="input"
-              style="
-                background: white;
-                border: 1px solid #cbd5e1;
-                cursor: pointer;
-              "
-            />
-          </div>
-
-          <div style="flex: 2; min-width: 250px">
-            <label
-              style="
-                font-size: 13px;
-                font-weight: 600;
-                color: var(--text-muted);
-                display: block;
-                margin-bottom: 8px;
-              "
-              >Search by Patient ID</label
-            >
-            <div style="display: flex; gap: 10px">
-              <input
-                type="text"
-                id="search-input"
-                class="input"
-                placeholder="e.g. A3F8C2D1"
-                style="
-                  background: white;
-                  border: 1px solid #cbd5e1;
-                  text-transform: uppercase;
-                "
-              />
-              <button onclick="searchDirectory()" class="btn btn-primary">
-                Search
-              </button>
-              <button onclick="resetDirectory()" class="btn btn-ghost">
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div
-          id="directory-results"
-          style="display: flex; flex-direction: column; gap: 12px"
-        ></div>
-      </div>
-    </main>
-
-    <!-- History Modal -->
+   <div style="padding: 30px; max-width: 1000px; margin: 0 auto">
     <div
-      id="history-modal"
-      style="
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(4px);
-        z-index: 1000;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-      "
-    >
-      <div
+     style="
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      align-items: flex-end;
+      flex-wrap: wrap;
+     "
+   >
+     <div style="flex: 1; min-width: 250px">
+      <label
+       style="
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 8px;
+       "
+      >Filter by Date</label
+     >
+      <input
+       type="date"
+       id="date-filter"
+       class="input"
+       style="
+        background: white;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+       "
+      />
+     </div>
+
+     <div style="flex: 2; min-width: 250px">
+      <label
+       style="
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+        margin-bottom: 8px;
+       "
+      >Search by Patient ID</label
+     >
+      <div style="display: flex; gap: 10px">
+       <input
+        type="text"
+        id="search-input"
+        class="input"
+        placeholder="e.g. A3F8C2D1"
         style="
-          background: white;
-          width: 100%;
-          max-width: 600px;
-          max-height: 85vh;
-          border-radius: 16px;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
+         background: white;
+         border: 1px solid #cbd5e1;
+         text-transform: uppercase;
         "
-      >
-        <div
-          style="
-            padding: 20px 24px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc;
-          "
-        >
-          <div>
-            <h3
-              style="margin: 0; font-size: 20px; color: var(--primary-color)"
-              id="modal-patient-name"
-            >
-              Lifetime History
-            </h3>
-            <span
-              style="
-                font-size: 13px;
-                color: var(--text-muted);
-                font-weight: 600;
-              "
-              id="modal-patient-id"
-              >ID: --</span
-            >
-          </div>
-          <button
-            onclick="
-              document.getElementById('history-modal').style.display = 'none'
-            "
-            style="
-              background: none;
-              border: none;
-              font-size: 24px;
-              cursor: pointer;
-              color: #94a3b8;
-            "
-          >
-            &times;
-          </button>
-        </div>
-        <div
-          id="modal-history-content"
-          style="padding: 24px; overflow-y: auto; background: #f1f5f9; flex: 1"
-        >
-          Loading...
-        </div>
+       />
+       <button onclick="searchDirectory()" class="btn btn-primary">
+        Search
+       </button>
+       <button onclick="resetDirectory()" class="btn btn-ghost">
+        Reset
+       </button>
       </div>
+     </div>
     </div>
 
     <div
-      id="record-modal"
+     id="directory-results"
+     style="display: flex; flex-direction: column; gap: 12px"
+   ></div>
+   </div>
+  </main>
+
+  <!-- History Modal -->
+  <div
+   id="history-modal"
+   style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+   "
+ >
+   <div
+    style="
+     background: white;
+     width: 100%;
+     max-width: 600px;
+     max-height: 85vh;
+     border-radius: 16px;
+     display: flex;
+     flex-direction: column;
+     overflow: hidden;
+     box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
+    "
+  >
+    <div
+     style="
+      padding: 20px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+     "
+   >
+     <div>
+      <h3
+       style="margin: 0; font-size: 20px; color: var(--primary-color)"
+       id="modal-patient-name"
+     >
+       Lifetime History
+      </h3>
+      <span
+       style="
+        font-size: 13px;
+        color: var(--text-muted);
+        font-weight: 600;
+       "
+       id="modal-patient-id"
+      >ID: --</span
+     >
+     </div>
+     <button
+      onclick="
+       document.getElementById('history-modal').style.display = 'none'
+      "
       style="
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 1100;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
+       background: none;
+       border: none;
+       font-size: 24px;
+       cursor: pointer;
+       color: #94a3b8;
       "
     >
-      <div
-        style="
-          background: white;
-          width: 100%;
-          max-width: 520px;
-          max-height: 90vh;
-          overflow: auto;
-          border-radius: 16px;
-          padding: 24px;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 18px;
-          "
-        >
-          <h3
-            id="record-modal-title"
-            style="margin: 0; color: var(--primary-color)"
-          >
-            Patient Records
-          </h3>
-          <button
-            type="button"
-            onclick="closeRecordModal()"
-            style="
-              border: 0;
-              background: none;
-              font-size: 24px;
-              cursor: pointer;
-            "
-          >
-            &times;
-          </button>
-        </div>
-        <div id="record-modal-body"></div>
-      </div>
+      &times;
+     </button>
     </div>
+    <div
+     id="modal-history-content"
+     style="padding: 24px; overflow-y: auto; background: #f1f5f9; flex: 1"
+   >
+     Loading...
+    </div>
+   </div>
+  </div>
 
-    <script src="/assets/js/load_layouts.js"></script>
-    <script src="/assets/js/print_engine.js"></script>
-    <script>
-      const clinicId = localStorage.getItem("tap2med_clinic_id");
-      const staffRole = localStorage.getItem("tap2med_staff_role");
-      const isStaffRoute = window.location.pathname === "/staff-directory";
-      const isStaff = isStaffRoute;
-      if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
-      if (!isStaff) document.getElementById("staff-dashboard-styles")?.remove();
+  <div
+   id="record-modal"
+   style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1100;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+   "
+ >
+   <div
+    style="
+     background: white;
+     width: 100%;
+     max-width: 520px;
+     max-height: 90vh;
+     overflow: auto;
+     border-radius: 16px;
+     padding: 24px;
+    "
+  >
+    <div
+     style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+     "
+   >
+     <h3
+      id="record-modal-title"
+      style="margin: 0; color: var(--primary-color)"
+    >
+      Patient Records
+     </h3>
+     <button
+      type="button"
+      onclick="closeRecordModal()"
+      style="
+       border: 0;
+       background: none;
+       font-size: 24px;
+       cursor: pointer;
+      "
+    >
+      &times;
+     </button>
+    </div>
+    <div id="record-modal-body"></div>
+   </div>
+  </div>
 
-      if (isStaff) {
-        document.title = "Patient Directory | Tap2Med Reception";
-        document.querySelector(".brand-role")?.remove();
-        const workspaceLink = document.querySelector('a[href="/dashboard"]');
-        if (workspaceLink) workspaceLink.href = "/staff-dashboard";
-        document.querySelector('a[href="/settings"]')?.remove();
-        document.getElementById("doc-name").textContent = "Reception";
-        document.getElementById("clinic-name").textContent = "Patient Records";
-      }
+  <script src="/assets/js/load_layouts.js"></script>
+  <script src="/assets/js/print_engine.js"></script>
+  <script>
+   const clinicId = localStorage.getItem("tap2med_clinic_id");
+   const staffRole = localStorage.getItem("tap2med_staff_role");
+   const isStaffRoute = window.location.pathname === "/staff-directory";
+   const isStaff = isStaffRoute;
+   if (!clinicId) window.location.href = isStaff ? "/staff-login" : "/login";
+   if (!isStaff) document.getElementById("staff-dashboard-styles")?.remove();
 
-      let activeHistoryVisits = [];
-      let activeRecordToken = null;
-      let dashboardLayoutsPromise = null;
-      let clinicDetailsPromise = null;
-      let directoryClinicName = "Clinic";
+   if (isStaff) {
+    document.title = "Patient Directory | Tap2Med Reception";
+    document.querySelector(".brand-role")?.remove();
+    const workspaceLink = document.querySelector('a[href="/dashboard"]');
+    if (workspaceLink) workspaceLink.href = "/staff-dashboard";
+    document.querySelector('a[href="/settings"]')?.remove();
+    document.getElementById("doc-name").textContent = "Reception";
+    document.getElementById("clinic-name").textContent = "Patient Records";
+   }
 
-      function numberToWords(num) {
-        num = parseInt(num, 10) || 0;
-        const ones = [
-          "",
-          "One ",
-          "Two ",
-          "Three ",
-          "Four ",
-          "Five ",
-          "Six ",
-          "Seven ",
-          "Eight ",
-          "Nine ",
-          "Ten ",
-          "Eleven ",
-          "Twelve ",
-          "Thirteen ",
-          "Fourteen ",
-          "Fifteen ",
-          "Sixteen ",
-          "Seventeen ",
-          "Eighteen ",
-          "Nineteen ",
-        ];
-        const tens = [
-          "",
-          "",
-          "Twenty",
-          "Thirty",
-          "Forty",
-          "Fifty",
-          "Sixty",
-          "Seventy",
-          "Eighty",
-          "Ninety",
-        ];
-        if (num === 0) return "ZERO RUPEES ONLY";
-        if (num > 999999999) return "OVERFLOW";
-        const groups = [
-          [10000000, "CRORE"],
-          [100000, "LAKH"],
-          [1000, "THOUSAND"],
-          [100, "HUNDRED"],
-        ];
-        let result = "";
-        groups.forEach(([divisor, label]) => {
-          const group = Math.floor(num / divisor);
-          if (group) {
-            result += `${group < 20 ? ones[group] : `${tens[Math.floor(group / 10)]} ${ones[group % 10]}`} ${label} `;
-            num %= divisor;
-          }
-        });
-        if (num)
-          result += `${result ? "AND " : ""}${num < 20 ? ones[num] : `${tens[Math.floor(num / 10)]} ${ones[num % 10]}`}`;
-        return `${result.trim().toUpperCase()} RUPEES ONLY`;
-      }
+   let activeHistoryVisits = [];
+   let activeRecordToken = null;
+   let dashboardLayoutsPromise = null;
+   let clinicDetailsPromise = null;
+   let directoryClinicName = "Clinic";
 
-      // ensureDashboardLayouts removed in favor of load_layouts.js
+   function numberToWords(num) {
+    num = parseInt(num, 10) || 0;
+    const ones = [
+     "",
+     "One ",
+     "Two ",
+     "Three ",
+     "Four ",
+     "Five ",
+     "Six ",
+     "Seven ",
+     "Eight ",
+     "Nine ",
+     "Ten ",
+     "Eleven ",
+     "Twelve ",
+     "Thirteen ",
+     "Fourteen ",
+     "Fifteen ",
+     "Sixteen ",
+     "Seventeen ",
+     "Eighteen ",
+     "Nineteen ",
+    ];
+    const tens = [
+     "",
+     "",
+     "Twenty",
+     "Thirty",
+     "Forty",
+     "Fifty",
+     "Sixty",
+     "Seventy",
+     "Eighty",
+     "Ninety",
+    ];
+    if (num === 0) return "ZERO RUPEES ONLY";
+    if (num> 999999999) return "OVERFLOW";
+    const groups = [
+     [10000000, "CRORE"],
+     [100000, "LAKH"],
+     [1000, "THOUSAND"],
+     [100, "HUNDRED"],
+    ];
+    let result = "";
+    groups.forEach(([divisor, label]) => {
+     const group = Math.floor(num / divisor);
+     if (group) {
+      result += `${group < 20 ? ones[group] : `${tens[Math.floor(group / 10)]} ${ones[group % 10]}`} ${label} `;
+      num %= divisor;
+     }
+    });
+    if (num)
+     result += `${result ? "AND " : ""}${num < 20 ? ones[num] : `${tens[Math.floor(num / 10)]} ${ones[num % 10]}`}`;
+    return `${result.trim().toUpperCase()} RUPEES ONLY`;
+   }
 
-      function loadClinicDetails() {
-        if (clinicDetailsPromise) return clinicDetailsPromise;
-        clinicDetailsPromise = fetch(
-          `/api/clinics/queue/${encodeURIComponent(clinicId)}`,
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            directoryClinicName = data.clinic_name || "Clinic";
-            return data;
-          });
-        return clinicDetailsPromise;
-      }
+   // ensureDashboardLayouts removed in favor of load_layouts.js
 
-      document.getElementById("date-filter").valueAsDate = new Date();
+   function loadClinicDetails() {
+    if (clinicDetailsPromise) return clinicDetailsPromise;
+    clinicDetailsPromise = fetch(
+     `/api/clinics/queue/${encodeURIComponent(clinicId)}`,
+    )
+     .then((response) => response.json())
+     .then((data) => {
+      directoryClinicName = data.clinic_name || "Clinic";
+      return data;
+     });
+    return clinicDetailsPromise;
+   }
 
-      async function loadDirectory(date = null, search = null) {
-        const resultsContainer = document.getElementById("directory-results");
-        resultsContainer.innerHTML =
-          '<div style="text-align: center; padding: 40px; color: #94a3b8;">Loading...</div>';
+   document.getElementById("date-filter").valueAsDate = new Date();
 
-        let url = `/api/clinics/${clinicId}/directory?`;
-        if (search) url += `search=${encodeURIComponent(search)}`;
-        else if (date) url += `date_filter=${date}`;
+   async function loadDirectory(date = null, search = null) {
+    const resultsContainer = document.getElementById("directory-results");
+    resultsContainer.innerHTML =
+     '<div style="text-align: center; padding: 40px; color: #94a3b8;">Loading...</div>';
 
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
+    let url = `/api/clinics/${clinicId}/directory?`;
+    if (search) url += `search=${encodeURIComponent(search)}`;
+    else if (date) url += `date_filter=${date}`;
 
-          if (!data.results || data.results.length === 0) {
-            resultsContainer.innerHTML =
-              '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">No visits found for this criteria.</div>';
-            return;
-          }
+    try {
+     const res = await fetch(url);
+     const data = await res.json();
 
-          resultsContainer.innerHTML = "";
-          data.results.forEach((patient) => {
-            const checkInTime = new Date(patient.timestamp).toLocaleTimeString(
-              "en-IN",
-              { hour: "2-digit", minute: "2-digit" },
-            );
+     if (!data.results || data.results.length === 0) {
+      resultsContainer.innerHTML =
+       '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500;">No visits found for this criteria.</div>';
+      return;
+     }
 
-            const card = document.createElement("div");
-            card.style.cssText =
-              "display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;";
-            card.onmouseover = () =>
-              (card.style.borderColor = "var(--primary-color)");
-            card.onmouseout = () => (card.style.borderColor = "#e2e8f0");
+     resultsContainer.innerHTML = "";
+     data.results.forEach((patient) => {
+      const checkInTime = new Date(patient.timestamp).toLocaleTimeString(
+       "en-IN",
+       { hour: "2-digit", minute: "2-digit" },
+      );
 
-            card.innerHTML = `
-                      <div style="display: flex; align-items: center; gap: 20px;">
-                          <div style="background: #f1f5f9; color: var(--primary-color); font-weight: 800; font-size: 18px; padding: 10px 16px; border-radius: 8px;">ID: ${patient.display_id}</div>
-                          <div>
-                              <strong style="display: block; font-size: 16px; color: var(--text-main); margin-bottom: 4px;">👤 ${patient.patient_name}</strong>
-                              <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Visit Logged: ${checkInTime}</span>
-                          </div>
-                      </div>
-                      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
-                        <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
-                        <button onclick="openVitalsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">❤️ Vitals</button>
-                        <button onclick="openLabsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">🧪 Labs</button>
-                      </div>
-                  `;
-            resultsContainer.appendChild(card);
-          });
-        } catch (e) {
-          resultsContainer.innerHTML =
-            '<div style="text-align: center; padding: 40px; color: var(--error-color);">Failed to load directory.</div>';
-        }
-      }
+      const card = document.createElement("div");
+      card.style.cssText =
+       "display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; background: white; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.2s;";
+      card.onmouseover = () =>
+       (card.style.borderColor = "var(--primary-color)");
+      card.onmouseout = () => (card.style.borderColor = "#e2e8f0");
 
-      async function openHistory(localToken, displayId, name) {
-        document.getElementById("modal-patient-name").textContent = name;
-        document.getElementById("modal-patient-id").textContent =
-          `Patient ID: ${displayId}`;
-        document.getElementById("history-modal").style.display = "flex";
+      card.innerHTML = `
+           <div style="display: flex; align-items: center; gap: 20px;">
+             <div style="background: #f1f5f9; color: var(--primary-color); font-weight: 800; font-size: 18px; padding: 10px 16px; border-radius: 8px;">ID: ${patient.display_id}</div>
+             <div>
+               <strong style="display: block; font-size: 16px; color: var(--text-main); margin-bottom: 4px;">${patient.patient_name}</strong>
+               <span style="color: var(--text-muted); font-size: 13px; font-weight: 500;">Visit Logged: ${checkInTime}</span>
+             </div>
+           </div>
+           <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+            <button onclick="openHistory('${patient.local_token}', '${patient.display_id}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">View Medical History</button>
+            <button onclick="openVitalsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">Vitals</button>
+            <button onclick="openLabsEditor('${patient.local_token}', '${patient.patient_name}')" class="btn btn-secondary" style="background: white;">Labs</button>
+           </div>
+         `;
+      resultsContainer.appendChild(card);
+     });
+    } catch (e) {
+     resultsContainer.innerHTML =
+      '<div style="text-align: center; padding: 40px; color: var(--error-color);">Failed to load directory.</div>';
+    }
+   }
 
-        const content = document.getElementById("modal-history-content");
-        content.innerHTML = "Fetching secure records...";
+   async function openHistory(localToken, displayId, name) {
+    document.getElementById("modal-patient-name").textContent = name;
+    document.getElementById("modal-patient-id").textContent =
+     `Patient ID: ${displayId}`;
+    document.getElementById("history-modal").style.display = "flex";
 
-        try {
-          const res = await fetch(
-            `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
-          );
-          const data = await res.json();
+    const content = document.getElementById("modal-history-content");
+    content.innerHTML = "Fetching secure records...";
 
-          if (!data.history || data.history.length === 0) {
-            content.innerHTML = "No past records found.";
-            return;
-          }
+    try {
+     const res = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
+     );
+     const data = await res.json();
 
-          content.innerHTML = "";
-          activeHistoryVisits = data.history;
-          data.history.forEach((visit, visitIndex) => {
-            const date = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            });
-            let html = `
-                      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
-                        <strong style="font-weight: 700; color: var(--primary-color);">📅 ${date}</strong>
-                        <span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="copyPastVisitToPad(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px; color: var(--primary-color);">↻ Copy to Pad</button>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="printPastPrescription(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🖨️ Prescription</button>
-                          <button type="button" class="btn btn-secondary btn-sm" onclick="generatePastBill(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">🧾 Bill</button>
-                        </span>
-                      </div>
-                  `;
+     if (!data.history || data.history.length === 0) {
+      content.innerHTML = "No past records found.";
+      return;
+     }
 
-            if (visit.weight) {
-              html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
-            }
-
-            if (visit.complaints || visit.diagnosis) {
-              html += `<div style="margin-bottom: 15px;">`;
-              if (visit.complaints)
-                html += `<div style="font-size: 14px; color: #334155; margin-bottom: 4px;"><strong>C/E:</strong> ${visit.complaints}</div>`;
-              if (visit.diagnosis)
-                html += `<div style="font-size: 14px; color: #0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
-              html += `</div>`;
-            }
-
-            if (visit.prescriptions && visit.prescriptions.length > 0) {
-              html += `<div style="margin-bottom: 15px;"><strong style="font-size: 14px; color: #0f172a;">Rx:</strong><ul style="list-style: none; padding-left: 0; margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">`;
-              visit.prescriptions.forEach((rx) => {
-                html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ""}</span></li>`;
-              });
-              html += `</ul></div>`;
-            }
-
-            if (visit.tests_suggested) {
-              html += `<div style="font-size: 13px; color: #0284c7; padding-top: 10px; border-top: 1px dashed #cbd5e1;"><strong>Tests Suggested:</strong> ${visit.tests_suggested}</div>`;
-            }
-
-            html += `</div>`;
-            content.innerHTML += html;
-          });
-        } catch (e) {
-          content.innerHTML = "Error loading history.";
-        }
-      }
-
-      window.copyPastVisitToPad = function (visitIndex) {
-        const visit = activeHistoryVisits[visitIndex];
-        if (
-          !visit ||
-          !visit.prescriptions ||
-          visit.prescriptions.length === 0
-        ) {
-          alert("No medicines to copy from this visit.");
-          return;
-        }
-
-        // In the directory, we don't have an active dashboard pad.
-        // We can save the draft using the patient's ID so that next time they join the queue,
-        // or if they are currently in the queue, their pad can pick it up.
-        // However, the dashboard loads drafts based on `localToken`.
-        // So we will just alert the user that they should copy from the Workspace when the patient is in the queue,
-        // OR we can copy the medicines text directly to their system clipboard.
-
-        let rxText = visit.prescriptions
-          .map((rx) => `${rx.name} - ${rx.instructions || ""}`)
-          .join("\n");
-        navigator.clipboard
-          .writeText(rxText)
-          .then(() => {
-            alert(
-              "Prescription copied to clipboard! You can paste it anywhere.",
-            );
-          })
-          .catch(() => {
-            alert("Failed to copy to clipboard.");
-          });
-      };
-
-      async function printPastPrescription(visitIndex) {
-        const visit = activeHistoryVisits[visitIndex];
-        if (!visit) return;
-
-        const data = await loadClinicDetails();
-
-        const dateStr = new Date(visit.timestamp).toLocaleDateString("en-IN", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-        const patientName =
-          document.getElementById("modal-patient-name").textContent;
-        const displayId = document
-          .getElementById("modal-patient-id")
-          .textContent.replace("Patient ID: ", "");
-
-        const printData = {
-          clinicName: data.clinic_name || "Clinic",
-          doctorName: data.doctor_name || "Doctor",
-          patientName: patientName,
-          displayId: displayId,
-          date: dateStr,
-          complaints: visit.complaints || "",
-          diagnosis: visit.diagnosis || "",
-          tests: visit.tests_suggested || "",
-          advice: visit.advice || "",
-          follow_up_days: visit.follow_up_days || 0,
-          vitals: visit.weight || "",
-          prescriptions: visit.prescriptions || [],
-        };
-
-        if (window.PrintEngine) {
-          window.PrintEngine.printRx(printData);
-        } else {
-          alert("PrintEngine not loaded.");
-        }
-      }
-
-      async function generatePastBill(visitIndex) {
-        const visit = activeHistoryVisits[visitIndex];
-        if (!visit) return;
-        const data = await loadClinicDetails();
-        const visitType =
-          visit.event_type === "followup"
-            ? "Follow-up Consultation"
-            : visit.event_type === "appointment"
-              ? "Appointment Consultation"
-              : "New Consultation";
-        const amount = visit.fee || "0";
-        document.getElementById("modal-bill-patient-name").value =
-          document.getElementById("modal-patient-name").textContent;
-        document.getElementById("modal-bill-display-id").value = document
-          .getElementById("modal-patient-id")
-          .textContent.replace("Patient ID: ", "");
-        document.getElementById("modal-bill-token-num").value =
-          `#${visit.daily_token_number || "--"}`;
-        document.getElementById("bill-modal-patient-info").textContent =
-          `Patient: ${document.getElementById("modal-patient-name").textContent} | ID: ${document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", "")} | Token: #${visit.daily_token_number || "--"}`;
-        document.getElementById("modal-bill-service").value =
-          `Dr. ${data.doctor_name || "Doctor"}- ${visitType}`;
-        document.getElementById("modal-bill-amount").value = amount;
-        document.getElementById("modal-bill-mode").value = "CASH";
-        document.getElementById("bill-modal").style.display = "flex";
-      }
-
-      window.executePrintBill = function () {
-        const patientName = document.getElementById(
-          "modal-bill-patient-name",
-        ).value;
-        const displayId = document.getElementById(
-          "modal-bill-display-id",
-        ).value;
-        const tokenNum = document.getElementById("modal-bill-token-num").value;
-        const serviceName =
-          document.getElementById("modal-bill-service").value.trim() ||
-          "Consultation";
-        const amount =
-          document.getElementById("modal-bill-amount").value.trim() || "0";
-        const payMode = document.getElementById("modal-bill-mode").value;
-        const now = new Date();
-        document.getElementById("bill-clinic-name").textContent =
-          directoryClinicName;
-        document.getElementById("bill-patient-name").textContent = patientName;
-        document.getElementById("bill-patient-id").textContent = displayId;
-        document.getElementById("bill-date").textContent =
-          `${now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`;
-        document.getElementById("bill-number").textContent = tokenNum;
-        document.getElementById("bill-service-name").textContent = serviceName;
-        [
-          "bill-price",
-          "bill-net-price",
-          "bill-total-1",
-          "bill-total-2",
-          "bill-total-3",
-        ].forEach((id) => (document.getElementById(id).textContent = amount));
-        document.getElementById("bill-payment-mode").textContent = payMode;
-        document.getElementById("bill-amount-words").textContent =
-          numberToWords(amount);
-        document.getElementById("bill-modal").style.display = "none";
-        document.body.className = "mode-bill";
-        window.print();
-        setTimeout(
-          () => (document.body.className = isStaff ? "" : "dashboard-body"),
-          1000,
-        );
-      };
-
-      window.openVitalsEditor = async function (localToken) {
-        activeRecordToken = localToken;
-        if (!activeHistoryVisits.length) {
-          const response = await fetch(
-            `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
-          );
-          const data = await response.json();
-          activeHistoryVisits = data.history || [];
-        }
-        const vitals = (activeHistoryVisits[0] || {}).vitals || {};
-        [
-          "bp-sys",
-          "bp-dia",
-          "pr",
-          "wt",
-          "ht",
-          "temp",
-          "spo2",
-          "waist",
-          "hip",
-        ].forEach((id) => {
-          const input = document.getElementById(`vital-${id}`);
-          if (input) input.value = vitals[id.replace("-", "_")] || "";
-        });
-        document.getElementById("vitals-token").value = localToken;
-        document.getElementById("vitals-modal").style.display = "flex";
-      };
-
-      window.closeVitalsModal = function () {
-        document.getElementById("vitals-modal").style.display = "none";
-      };
-
-      window.saveDirectoryVitals = async function () {
-        const ids = [
-          "bp_sys",
-          "bp_dia",
-          "pr",
-          "wt",
-          "ht",
-          "temp",
-          "spo2",
-          "waist",
-          "hip",
-        ];
-        const vitals = {};
-        ids.forEach((id) => {
-          const input = document.getElementById(
-            `vital-${id.replace("_", "-")}`,
-          );
-          if (input && input.value.trim()) vitals[id] = input.value.trim();
-        });
-        try {
-          const response = await fetch("/api/events/vitals/history", {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken, vitals }),
-          });
-          if (!response.ok) throw new Error("Vitals save failed");
-          closeVitalsModal();
-          openHistory(
-            activeRecordToken,
-            document
-              .getElementById("modal-patient-id")
-              .textContent.replace("Patient ID: ", ""),
-            document.getElementById("modal-patient-name").textContent,
-          );
-        } catch (error) {
-          alert("Unable to save vitals.");
-        }
-      };
-      window.submitVitals = window.saveDirectoryVitals;
-
-      window.openLabsEditor = async function (localToken, patientName) {
-        activeRecordToken = localToken;
-        document.getElementById("lab-modal-patient-name").textContent =
-          patientName || "Patient";
-        document.getElementById("lab-local-token").value = localToken;
-        document.getElementById("labs-modal").style.display = "flex";
-        const today = new Date().toISOString().slice(0, 10);
-        document.getElementById("lab-date").value = today;
-        const response = await fetch(
-          `/api/events/labs/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
-        );
-        const data = await response.json();
-        window.directoryLabRecords = data.labs || [];
-        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
-          if (
-            input.id !== "lab-date" &&
-            input.id !== "lab-local-token" &&
-            input.id !== "lab-search-input"
-          )
-            input.value = "";
-        });
-        populateLabInputsForDate(today);
-      };
-
-      window.closeLabsModal = function () {
-        document.getElementById("labs-modal").style.display = "none";
-      };
-
-      window.populateLabInputsForDate = function (date) {
-        const record = (window.directoryLabRecords || []).find(
-          (item) => item.test_date === date,
-        );
-        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
-          if (
-            !["lab-date", "lab-local-token", "lab-search-input"].includes(
-              input.id,
-            )
-          )
-            input.value = "";
-        });
-        Object.entries(record?.results || {}).forEach(([key, value]) => {
-          const input = document.getElementById(`lab-${key}`);
-          if (input) input.value = value;
-        });
-      };
-
-      window.filterLabFields = function () {};
-      window.checkRange = function () {};
-      window.updateChart = function () {};
-
-      window.saveLabs = async function () {
-        const date = document.getElementById("lab-date").value;
-        const results = {};
-        document.querySelectorAll('[id^="lab-"]').forEach((input) => {
-          if (
-            !["lab-date", "lab-local-token", "lab-search-input"].includes(
-              input.id,
-            ) &&
-            input.value.trim()
-          )
-            results[input.id.replace("lab-", "")] = input.value.trim();
-        });
-        const response = await fetch("/api/events/labs", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken,
-            lab_record: { test_date: date, results },
-          }),
-        });
-        if (!response.ok) return alert("Unable to save lab results.");
-        closeLabsModal();
-        alert("Lab results saved.");
-      };
-
-      function searchDirectory() {
-        const searchVal = document.getElementById("search-input").value.trim();
-        if (searchVal) {
-          loadDirectory(null, searchVal);
-        } else {
-          loadDirectory(document.getElementById("date-filter").value);
-        }
-      }
-
-      function resetDirectory() {
-        document.getElementById("search-input").value = "";
-        document.getElementById("date-filter").valueAsDate = new Date();
-        loadDirectory(document.getElementById("date-filter").value);
-      }
-
-      document.getElementById("date-filter").addEventListener("change", (e) => {
-        document.getElementById("search-input").value = "";
-        loadDirectory(e.target.value);
+     content.innerHTML = "";
+     activeHistoryVisits = data.history;
+     data.history.forEach((visit, visitIndex) => {
+      const date = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+       day: "numeric",
+       month: "long",
+       year: "numeric",
       });
+      let html = `
+           <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+           <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+            <strong style="font-weight: 700; color: var(--primary-color);">${date}</strong>
+            <span style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end;">
+             <button type="button" class="btn btn-secondary btn-sm" onclick="copyPastVisitToPad(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px; color: var(--primary-color);">↻ Copy to Pad</button>
+             <button type="button" class="btn btn-secondary btn-sm" onclick="printPastPrescription(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">Prescription</button>
+             <button type="button" class="btn btn-secondary btn-sm" onclick="generatePastBill(${visitIndex})" style="height: 32px; padding: 0 10px; font-size: 12px;">Bill</button>
+            </span>
+           </div>
+         `;
 
-      loadDirectory(document.getElementById("date-filter").value);
-    </script>
-  </body>
+      if (visit.weight) {
+       html += `<div style="font-size: 13px; color: #64748b; margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px;"><strong>Vitals:</strong> ${visit.weight}</div>`;
+      }
+
+      if (visit.complaints || visit.diagnosis) {
+       html += `<div style="margin-bottom: 15px;">`;
+       if (visit.complaints)
+        html += `<div style="font-size: 14px; color: #334155; margin-bottom: 4px;"><strong>C/E:</strong> ${visit.complaints}</div>`;
+       if (visit.diagnosis)
+        html += `<div style="font-size: 14px; color: #0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
+       html += `</div>`;
+      }
+
+      if (visit.prescriptions && visit.prescriptions.length> 0) {
+       html += `<div style="margin-bottom: 15px;"><strong style="font-size: 14px; color: #0f172a;">Rx:</strong><ul style="list-style: none; padding-left: 0; margin-top: 5px; display: flex; flex-direction: column; gap: 8px;">`;
+       visit.prescriptions.forEach((rx) => {
+        html += `<li><strong style="color: #0f172a; font-size: 15px;">${rx.name}</strong><br><span style="color: #64748b; font-size: 13px;">${rx.instructions || ""}</span></li>`;
+       });
+       html += `</ul></div>`;
+      }
+
+      if (visit.tests_suggested) {
+       html += `<div style="font-size: 13px; color: #0284c7; padding-top: 10px; border-top: 1px dashed #cbd5e1;"><strong>Tests Suggested:</strong> ${visit.tests_suggested}</div>`;
+      }
+
+      html += `</div>`;
+      content.innerHTML += html;
+     });
+    } catch (e) {
+     content.innerHTML = "Error loading history.";
+    }
+   }
+
+   window.copyPastVisitToPad = function (visitIndex) {
+    const visit = activeHistoryVisits[visitIndex];
+    if (
+     !visit ||
+     !visit.prescriptions ||
+     visit.prescriptions.length === 0
+    ) {
+     alert("No medicines to copy from this visit.");
+     return;
+    }
+
+    // In the directory, we don't have an active dashboard pad.
+    // We can save the draft using the patient's ID so that next time they join the queue,
+    // or if they are currently in the queue, their pad can pick it up.
+    // However, the dashboard loads drafts based on `localToken`.
+    // So we will just alert the user that they should copy from the Workspace when the patient is in the queue,
+    // OR we can copy the medicines text directly to their system clipboard.
+
+    let rxText = visit.prescriptions
+     .map((rx) => `${rx.name} - ${rx.instructions || ""}`)
+     .join("\n");
+    navigator.clipboard
+     .writeText(rxText)
+     .then(() => {
+      alert(
+       "Prescription copied to clipboard! You can paste it anywhere.",
+      );
+     })
+     .catch(() => {
+      alert("Failed to copy to clipboard.");
+     });
+   };
+
+   async function printPastPrescription(visitIndex) {
+    const visit = activeHistoryVisits[visitIndex];
+    if (!visit) return;
+
+    const data = await loadClinicDetails();
+
+    const dateStr = new Date(visit.timestamp).toLocaleDateString("en-IN", {
+     day: "numeric",
+     month: "long",
+     year: "numeric",
+    });
+    const patientName =
+     document.getElementById("modal-patient-name").textContent;
+    const displayId = document
+     .getElementById("modal-patient-id")
+     .textContent.replace("Patient ID: ", "");
+
+    const printData = {
+     clinicName: data.clinic_name || "Clinic",
+     doctorName: data.doctor_name || "Doctor",
+     patientName: patientName,
+     displayId: displayId,
+     date: dateStr,
+     complaints: visit.complaints || "",
+     diagnosis: visit.diagnosis || "",
+     tests: visit.tests_suggested || "",
+     advice: visit.advice || "",
+     follow_up_days: visit.follow_up_days || 0,
+     vitals: visit.weight || "",
+     prescriptions: visit.prescriptions || [],
+    };
+
+    if (window.PrintEngine) {
+     window.PrintEngine.printRx(printData);
+    } else {
+     alert("PrintEngine not loaded.");
+    }
+   }
+
+   async function generatePastBill(visitIndex) {
+    const visit = activeHistoryVisits[visitIndex];
+    if (!visit) return;
+    const data = await loadClinicDetails();
+    const visitType =
+     visit.event_type === "followup"
+      ? "Follow-up Consultation"
+      : visit.event_type === "appointment"
+       ? "Appointment Consultation"
+       : "New Consultation";
+    const amount = visit.fee || "0";
+    document.getElementById("modal-bill-patient-name").value =
+     document.getElementById("modal-patient-name").textContent;
+    document.getElementById("modal-bill-display-id").value = document
+     .getElementById("modal-patient-id")
+     .textContent.replace("Patient ID: ", "");
+    document.getElementById("modal-bill-token-num").value =
+     `#${visit.daily_token_number || "--"}`;
+    document.getElementById("bill-modal-patient-info").textContent =
+     `Patient: ${document.getElementById("modal-patient-name").textContent} | ID: ${document.getElementById("modal-patient-id").textContent.replace("Patient ID: ", "")} | Token: #${visit.daily_token_number || "--"}`;
+    document.getElementById("modal-bill-service").value =
+     `Dr. ${data.doctor_name || "Doctor"}- ${visitType}`;
+    document.getElementById("modal-bill-amount").value = amount;
+    document.getElementById("modal-bill-mode").value = "CASH";
+    document.getElementById("bill-modal").style.display = "flex";
+   }
+
+   window.executePrintBill = function () {
+    const patientName = document.getElementById(
+     "modal-bill-patient-name",
+    ).value;
+    const displayId = document.getElementById(
+     "modal-bill-display-id",
+    ).value;
+    const tokenNum = document.getElementById("modal-bill-token-num").value;
+    const serviceName =
+     document.getElementById("modal-bill-service").value.trim() ||
+     "Consultation";
+    const amount =
+     document.getElementById("modal-bill-amount").value.trim() || "0";
+    const payMode = document.getElementById("modal-bill-mode").value;
+    const now = new Date();
+    document.getElementById("bill-clinic-name").textContent =
+     directoryClinicName;
+    document.getElementById("bill-patient-name").textContent = patientName;
+    document.getElementById("bill-patient-id").textContent = displayId;
+    document.getElementById("bill-date").textContent =
+     `${now.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}`;
+    document.getElementById("bill-number").textContent = tokenNum;
+    document.getElementById("bill-service-name").textContent = serviceName;
+    [
+     "bill-price",
+     "bill-net-price",
+     "bill-total-1",
+     "bill-total-2",
+     "bill-total-3",
+    ].forEach((id) => (document.getElementById(id).textContent = amount));
+    document.getElementById("bill-payment-mode").textContent = payMode;
+    document.getElementById("bill-amount-words").textContent =
+     numberToWords(amount);
+    document.getElementById("bill-modal").style.display = "none";
+    document.body.className = "mode-bill";
+    window.print();
+    setTimeout(
+     () => (document.body.className = isStaff ? "" : "dashboard-body"),
+     1000,
+    );
+   };
+
+   window.openVitalsEditor = async function (localToken) {
+    activeRecordToken = localToken;
+    if (!activeHistoryVisits.length) {
+     const response = await fetch(
+      `/api/events/history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
+     );
+     const data = await response.json();
+     activeHistoryVisits = data.history || [];
+    }
+    const vitals = (activeHistoryVisits[0] || {}).vitals || {};
+    [
+     "bp-sys",
+     "bp-dia",
+     "pr",
+     "wt",
+     "ht",
+     "temp",
+     "spo2",
+     "waist",
+     "hip",
+    ].forEach((id) => {
+     const input = document.getElementById(`vital-${id}`);
+     if (input) input.value = vitals[id.replace("-", "_")] || "";
+    });
+    document.getElementById("vitals-token").value = localToken;
+    document.getElementById("vitals-modal").style.display = "flex";
+   };
+
+   window.closeVitalsModal = function () {
+    document.getElementById("vitals-modal").style.display = "none";
+   };
+
+   window.saveDirectoryVitals = async function () {
+    const ids = [
+     "bp_sys",
+     "bp_dia",
+     "pr",
+     "wt",
+     "ht",
+     "temp",
+     "spo2",
+     "waist",
+     "hip",
+    ];
+    const vitals = {};
+    ids.forEach((id) => {
+     const input = document.getElementById(
+      `vital-${id.replace("_", "-")}`,
+     );
+     if (input && input.value.trim()) vitals[id] = input.value.trim();
+    });
+    try {
+     const response = await fetch("/api/events/vitals/history", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken, vitals }),
+     });
+     if (!response.ok) throw new Error("Vitals save failed");
+     closeVitalsModal();
+     openHistory(
+      activeRecordToken,
+      document
+       .getElementById("modal-patient-id")
+       .textContent.replace("Patient ID: ", ""),
+      document.getElementById("modal-patient-name").textContent,
+     );
+    } catch (error) {
+     alert("Unable to save vitals.");
+    }
+   };
+   window.submitVitals = window.saveDirectoryVitals;
+
+   window.openLabsEditor = async function (localToken, patientName) {
+    activeRecordToken = localToken;
+    document.getElementById("lab-modal-patient-name").textContent =
+     patientName || "Patient";
+    document.getElementById("lab-local-token").value = localToken;
+    document.getElementById("labs-modal").style.display = "flex";
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("lab-date").value = today;
+    const response = await fetch(
+     `/api/events/labs/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
+    );
+    const data = await response.json();
+    window.directoryLabRecords = data.labs || [];
+    document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+     if (
+      input.id !== "lab-date" &&
+      input.id !== "lab-local-token" &&
+      input.id !== "lab-search-input"
+     )
+      input.value = "";
+    });
+    populateLabInputsForDate(today);
+   };
+
+   window.closeLabsModal = function () {
+    document.getElementById("labs-modal").style.display = "none";
+   };
+
+   window.populateLabInputsForDate = function (date) {
+    const record = (window.directoryLabRecords || []).find(
+     (item) => item.test_date === date,
+    );
+    document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+     if (
+      !["lab-date", "lab-local-token", "lab-search-input"].includes(
+       input.id,
+      )
+     )
+      input.value = "";
+    });
+    Object.entries(record?.results || {}).forEach(([key, value]) => {
+     const input = document.getElementById(`lab-${key}`);
+     if (input) input.value = value;
+    });
+   };
+
+   window.filterLabFields = function () {};
+   window.checkRange = function () {};
+   window.updateChart = function () {};
+
+   window.saveLabs = async function () {
+    const date = document.getElementById("lab-date").value;
+    const results = {};
+    document.querySelectorAll('[id^="lab-"]').forEach((input) => {
+     if (
+      !["lab-date", "lab-local-token", "lab-search-input"].includes(
+       input.id,
+      ) &&
+      input.value.trim()
+     )
+      results[input.id.replace("lab-", "")] = input.value.trim();
+    });
+    const response = await fetch("/api/events/labs", {
+     method: "PUT",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ clinic_id: clinicId, local_token: activeRecordToken,
+      lab_record: { test_date: date, results },
+     }),
+    });
+    if (!response.ok) return alert("Unable to save lab results.");
+    closeLabsModal();
+    alert("Lab results saved.");
+   };
+
+   function searchDirectory() {
+    const searchVal = document.getElementById("search-input").value.trim();
+    if (searchVal) {
+     loadDirectory(null, searchVal);
+    } else {
+     loadDirectory(document.getElementById("date-filter").value);
+    }
+   }
+
+   function resetDirectory() {
+    document.getElementById("search-input").value = "";
+    document.getElementById("date-filter").valueAsDate = new Date();
+    loadDirectory(document.getElementById("date-filter").value);
+   }
+
+   document.getElementById("date-filter").addEventListener("change", (e) => {
+    document.getElementById("search-input").value = "";
+    loadDirectory(e.target.value);
+   });
+
+   loadDirectory(document.getElementById("date-filter").value);
+  </script>
+ </body>
 </html>

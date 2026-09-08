@@ -1,169 +1,169 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pharmacy Feed | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css" />
-    <link rel="stylesheet" href="/assets/css/base.css" />
-    <link rel="stylesheet" href="/assets/css/layout.css" />
-    <link rel="stylesheet" href="/assets/css/components.css" />
-    <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <style>
-      .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 0 20px; }
-      .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 16px; margin-bottom: 24px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
-      .rx-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary-color); }
-      .rx-card.packed { border-color: #e2e8f0; opacity: 0.6; box-shadow: none; background: #f8fafc; }
-      .rx-card.packed::before { background: #cbd5e1; }
-      .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px dashed #cbd5e1; }
-      .token-badge { font-size: 36px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.03em; line-height: 1; }
-      .packed .token-badge { color: #64748b; }
-      .med-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-      .med-item { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: background 0.2s; }
-      .rx-card:not(.packed) .med-item:hover { background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-      .med-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
-      .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 600; font-style: italic; }
-      .brand-header { display: flex; align-items: center; gap: 12px; }
-      .brand-logo { width: 38px; height: 32px; object-fit: contain; }
-      .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
-      .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
-      .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    </style>
-  </head>
-  <body style="background: #f1f5f9;">
-    
-    <header class="top-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
-      <div class="brand-header">
-        <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" />
-        <span class="brand-text">Tap2Med</span>
-        <div class="brand-divider"></div>
-        <span class="brand-role">Pharmacy</span>
-      </div>
-      <div style="display: flex; gap: 16px;">
-          <button onclick="clearPacked()" class="btn btn-secondary btn-sm" style="background: white;">Clear Packed History</button>
-          <button onclick="logout()" class="btn btn-ghost btn-sm" style="font-weight: 600;">Log Out</button>
-      </div>
-    </header>
+ <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pharmacy Feed | Tap2Med</title>
+  <link rel="stylesheet" href="/assets/css/variables.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/buttons.css" />
+  <style>
+   .pharmacy-grid { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+   .rx-card { background: var(--surface-color); border: 2px solid var(--primary-color); border-radius: 16px; margin-bottom: 24px; padding: 32px; box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+   .rx-card::before { content: ''; position: absolute; top: 0; left: 0; width: 6px; height: 100%; background: var(--primary-color); }
+   .rx-card.packed { border-color: #e2e8f0; opacity: 0.6; box-shadow: none; background: #f8fafc; }
+   .rx-card.packed::before { background: #cbd5e1; }
+   .rx-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px dashed #cbd5e1; }
+   .token-badge { font-size: 36px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.03em; line-height: 1; }
+   .packed .token-badge { color: #64748b; }
+   .med-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+   .med-item { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 20px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; transition: background 0.2s; }
+   .rx-card:not(.packed) .med-item:hover { background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+   .med-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
+   .med-instructions { font-size: 15px; color: var(--text-muted); font-weight: 600; font-style: italic; }
+   .brand-header { display: flex; align-items: center; gap: 12px; }
+   .brand-logo { width: 38px; height: 32px; object-fit: contain; }
+   .brand-text { font-size: 22px; font-weight: 800; color: var(--primary-color); letter-spacing: -0.02em; }
+   .brand-divider { width: 2px; height: 24px; background: #e2e8f0; margin: 0 8px; }
+   .brand-role { font-size: 15px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  </style>
+ </head>
+ <body style="background: #f1f5f9;">
+  
+  <header class="top-header" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 16px 32px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50;">
+   <div class="brand-header">
+    <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" />
+    <span class="brand-text">Tap2Med</span>
+    <div class="brand-divider"></div>
+    <span class="brand-role">Pharmacy</span>
+   </div>
+   <div style="display: flex; gap: 16px;">
+     <button onclick="clearPacked()" class="btn btn-secondary btn-sm" style="background: white;">Clear Packed History</button>
+     <button onclick="logout()" class="btn btn-ghost btn-sm" style="font-weight: 600;">Log Out</button>
+   </div>
+  </header>
 
-    <main class="pharmacy-grid">
-      <div style="margin-bottom: 30px;">
-        <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main);">Live Prescription Feed</h2>
-        <p style="margin: 8px 0 0; color: var(--text-muted); font-weight: 500;">Prescriptions sync instantly when the doctor saves them.</p>
-      </div>
-      <div id="rx-feed">
-        <p style="text-align: center; color: var(--text-muted); margin-top: 80px; font-weight: 500; font-size: 16px;">Waiting for prescriptions...</p>
-      </div>
-    </main>
+  <main class="pharmacy-grid">
+   <div style="margin-bottom: 30px;">
+    <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: var(--text-main);">Live Prescription Feed</h2>
+    <p style="margin: 8px 0 0; color: var(--text-muted); font-weight: 500;">Prescriptions sync instantly when the doctor saves them.</p>
+   </div>
+   <div id="rx-feed">
+    <p style="text-align: center; color: var(--text-muted); margin-top: 80px; font-weight: 500; font-size: 16px;">Waiting for prescriptions...</p>
+   </div>
+  </main>
 
-    <script>
-      const clinicId = localStorage.getItem("tap2med_clinic_id");
-      if (!clinicId) window.location.href = "/staff-login";
+  <script>
+   const clinicId = localStorage.getItem("tap2med_clinic_id");
+   if (!clinicId) window.location.href = "/staff-login";
 
-      function logout() {
-          localStorage.removeItem("tap2med_clinic_id");
-          localStorage.removeItem("tap2med_staff_role");
-          window.location.href = "/staff-login";
-      }
+   function logout() {
+     localStorage.removeItem("tap2med_clinic_id");
+     localStorage.removeItem("tap2med_staff_role");
+     window.location.href = "/staff-login";
+   }
 
-      function getShortCode(tokenNumber) {
-          const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
-          const letter = letters[(tokenNumber - 1) % 24]; 
-          return `${letter}-${tokenNumber}`; 
-      }
+   function getShortCode(tokenNumber) {
+     const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ"; 
+     const letter = letters[(tokenNumber - 1) % 24]; 
+     return `${letter}-${tokenNumber}`; 
+   }
 
-      function togglePackedStatus(localToken) {
-          let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
-          if (packedTokens.includes(localToken)) {
-              packedTokens = packedTokens.filter(t => t !== localToken);
-          } else {
-              packedTokens.push(localToken);
-          }
-          localStorage.setItem("tap2med_packed_rx", JSON.stringify(packedTokens));
-          
-          window.lastPharmacyDataString = null;
-          loadPharmacyFeed(); 
-      }
+   function togglePackedStatus(localToken) {
+     let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
+     if (packedTokens.includes(localToken)) {
+       packedTokens = packedTokens.filter(t => t !== localToken);
+     } else {
+       packedTokens.push(localToken);
+     }
+     localStorage.setItem("tap2med_packed_rx", JSON.stringify(packedTokens));
+     
+     window.lastPharmacyDataString = null;
+     loadPharmacyFeed(); 
+   }
 
-      function clearPacked() {
-          if(confirm("Are you sure you want to clear the packed history? This is usually done at the end of the day.")) {
-              localStorage.setItem("tap2med_packed_rx", JSON.stringify([]));
-              window.lastPharmacyDataString = null;
-              loadPharmacyFeed();
-          }
-      }
+   function clearPacked() {
+     if(confirm("Are you sure you want to clear the packed history? This is usually done at the end of the day.")) {
+       localStorage.setItem("tap2med_packed_rx", JSON.stringify([]));
+       window.lastPharmacyDataString = null;
+       loadPharmacyFeed();
+     }
+   }
 
-      async function loadPharmacyFeed() {
-          try {
-              const response = await fetch(`/api/clinics/pharmacy/${encodeURIComponent(clinicId)}`);
-              if (!response.ok) return;
-              
-              const data = await response.json();
-              let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
+   async function loadPharmacyFeed() {
+     try {
+       const response = await fetch(`/api/clinics/pharmacy/${encodeURIComponent(clinicId)}`);
+       if (!response.ok) return;
+       
+       const data = await response.json();
+       let packedTokens = JSON.parse(localStorage.getItem("tap2med_packed_rx") || "[]");
 
-              const currentStateString = JSON.stringify(data.feed) + JSON.stringify(packedTokens);
-              if (window.lastPharmacyDataString === currentStateString) {
-                  return; 
-              }
-              window.lastPharmacyDataString = currentStateString;
-              
-              const feedContainer = document.getElementById("rx-feed");
-              
-              if (!data.feed || data.feed.length === 0) {
-                  feedContainer.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500; margin-top: 20px;">No prescriptions generated yet today.</div>';
-                  return;
-              }
+       const currentStateString = JSON.stringify(data.feed) + JSON.stringify(packedTokens);
+       if (window.lastPharmacyDataString === currentStateString) {
+         return; 
+       }
+       window.lastPharmacyDataString = currentStateString;
+       
+       const feedContainer = document.getElementById("rx-feed");
+       
+       if (!data.feed || data.feed.length === 0) {
+         feedContainer.innerHTML = '<div style="text-align: center; padding: 60px 20px; background: white; border-radius: 16px; border: 1px dashed #cbd5e1; color: #94a3b8; font-weight: 500; margin-top: 20px;">No prescriptions generated yet today.</div>';
+         return;
+       }
 
-              feedContainer.innerHTML = "";
+       feedContainer.innerHTML = "";
 
-              data.feed.forEach((rx) => {
-                  const shortCode = getShortCode(rx.token_number);
-                  const isPacked = packedTokens.includes(rx.local_token);
-                  const displayName = rx.patient_name || 'Patient';
-                  const displayId = rx.display_id || '--';
-                  
-                  const card = document.createElement("div");
-                  card.className = `rx-card ${isPacked ? 'packed' : ''}`;
-                  
-                  let medHtml = '<ul class="med-list">';
-                  rx.medicines.forEach(m => {
-                      medHtml += `
-                          <li class="med-item">
-                              <span class="med-name">${m.name}</span>
-                              <span class="med-instructions">${m.instructions || ''}</span>
-                          </li>
-                      `;
-                  });
-                  medHtml += '</ul>';
+       data.feed.forEach((rx) => {
+         const shortCode = getShortCode(rx.token_number);
+         const isPacked = packedTokens.includes(rx.local_token);
+         const displayName = rx.patient_name || 'Patient';
+         const displayId = rx.display_id || '--';
+         
+         const card = document.createElement("div");
+         card.className = `rx-card ${isPacked ? 'packed' : ''}`;
+         
+         let medHtml = '<ul class="med-list">';
+         rx.medicines.forEach(m => {
+           medHtml += `
+             <li class="med-item">
+               <span class="med-name">${m.name}</span>
+               <span class="med-instructions">${m.instructions || ''}</span>
+             </li>
+           `;
+         });
+         medHtml += '</ul>';
 
-                  card.innerHTML = `
-                      <div class="rx-header">
-                          <div style="display: flex; align-items: center; gap: 16px;">
-                              <div class="token-badge">#${shortCode}</div>
-                              <div>
-                                  <strong style="font-size: 18px; color: var(--primary-color);">👤 ${displayName}</strong>
-                                  <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">ID: ${displayId}</div>
-                              </div>
-                          </div>
-                          <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? 'background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);' : 'background: var(--success-color); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); padding: 0 24px;'}">
-                              ${isPacked ? 'Undo' : '✓ Mark as Packed'}
-                          </button>
-                      </div>
-                      ${medHtml}
-                  `;
-                  
-                  if (isPacked) {
-                      feedContainer.appendChild(card);
-                  } else {
-                      feedContainer.insertBefore(card, feedContainer.firstChild);
-                  }
-              });
-          } catch (error) {
-              console.error("Pharmacy feed error:", error);
-          }
-      }
+         card.innerHTML = `
+           <div class="rx-header">
+             <div style="display: flex; align-items: center; gap: 16px;">
+               <div class="token-badge">#${shortCode}</div>
+               <div>
+                 <strong style="font-size: 18px; color: var(--primary-color);">${displayName}</strong>
+                 <div style="font-size: 13px; color: var(--text-muted); font-weight: 600;">ID: ${displayId}</div>
+               </div>
+             </div>
+             <button onclick="togglePackedStatus('${rx.local_token}')" class="btn ${isPacked ? 'btn-secondary' : 'btn-primary'}" style="${isPacked ? 'background: white; border-color: #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.02);' : 'background: var(--success-color); box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3); padding: 0 24px;'}">
+               ${isPacked ? 'Undo' : '✓ Mark as Packed'}
+             </button>
+           </div>
+           ${medHtml}
+         `;
+         
+         if (isPacked) {
+           feedContainer.appendChild(card);
+         } else {
+           feedContainer.insertBefore(card, feedContainer.firstChild);
+         }
+       });
+     } catch (error) {
+       console.error("Pharmacy feed error:", error);
+     }
+   }
 
-      loadPharmacyFeed();
-      setInterval(loadPharmacyFeed, 5000);
-    </script>
-  </body>
+   loadPharmacyFeed();
+   setInterval(loadPharmacyFeed, 5000);
+  </script>
+ </body>
 </html>

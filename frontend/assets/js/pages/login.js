@@ -16,119 +16,119 @@ const resetPassword = document.getElementById("reset-password");
 const messageBox = document.getElementById("message");
 
 function showMessage(msg, isError = false) {
-  messageBox.textContent = msg;
-  messageBox.style.color = isError ? "crimson" : "green";
+ messageBox.textContent = msg;
+ messageBox.style.color = isError ? "crimson" : "green";
 }
 
 btnPasswordLogin.addEventListener("click", async () => {
-  const payload = { email: emailInput.value, password: passwordInput.value };
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showMessage(data.detail || "Login failed", true);
-      return;
-    }
-    showMessage("Login successful");
-    // redirect to dashboard with clinic id
-    localStorage.setItem("tap2med_clinic_id", data.clinic_id);
-    localStorage.removeItem("tap2med_staff_role");
-    window.location = "/dashboard";
-  } catch (e) {
-    showMessage("Network error", true);
+ const payload = { email: emailInput.value, password: passwordInput.value };
+ try {
+  const res = await fetch("/api/auth/login", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+   showMessage(data.detail || "Login failed", true);
+   return;
   }
+  showMessage("Login successful");
+  // redirect to dashboard with clinic id
+  localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+  localStorage.removeItem("tap2med_staff_role");
+  window.location = "/dashboard";
+ } catch (e) {
+  showMessage("Network error", true);
+ }
 });
 
 btnSendLoginOtp.addEventListener("click", async () => {
-  const payload = { email: emailInput.value };
-  try {
-    const res = await fetch("/api/auth/login/send-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showMessage(data.detail || "Failed to send OTP", true);
-      return;
-    }
-    showMessage("OTP sent to email");
-    otpSection.style.display = "block";
-  } catch (e) {
-    showMessage("Network error", true);
+ const payload = { email: emailInput.value };
+ try {
+  const res = await fetch("/api/auth/login/send-otp", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+   showMessage(data.detail || "Failed to send OTP", true);
+   return;
   }
+  showMessage("OTP sent to email");
+  otpSection.style.display = "block";
+ } catch (e) {
+  showMessage("Network error", true);
+ }
 });
 
 btnVerifyOtp.addEventListener("click", async () => {
-  const payload = { email: emailInput.value, otp: otpInput.value };
-  try {
-    const res = await fetch("/api/auth/login/verify-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showMessage(data.detail || "Invalid OTP", true);
-      return;
-    }
-    showMessage("Login successful");
-    localStorage.setItem("tap2med_clinic_id", data.clinic_id);
-    localStorage.removeItem("tap2med_staff_role");
-    window.location = `/dashboard?clinic=${encodeURIComponent(data.clinic_id)}`;
-  } catch (e) {
-    showMessage("Network error", true);
+ const payload = { email: emailInput.value, otp: otpInput.value };
+ try {
+  const res = await fetch("/api/auth/login/verify-otp", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+   showMessage(data.detail || "Invalid OTP", true);
+   return;
   }
+  showMessage("Login successful");
+  localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+  localStorage.removeItem("tap2med_staff_role");
+  window.location = `/dashboard?clinic=${encodeURIComponent(data.clinic_id)}`;
+ } catch (e) {
+  showMessage("Network error", true);
+ }
 });
 
 forgotLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  forgotSection.style.display = "block";
+ e.preventDefault();
+ forgotSection.style.display = "block";
 });
 
 btnForgotSend.addEventListener("click", async () => {
-  const payload = { email: forgotEmail.value };
-  try {
-    const res = await fetch("/api/auth/forgot/send-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showMessage(data.detail || "Failed to send OTP", true);
-      return;
-    }
-    showMessage("Reset OTP sent");
-    resetSection.style.display = "block";
-  } catch (e) {
-    showMessage("Network error", true);
+ const payload = { email: forgotEmail.value };
+ try {
+  const res = await fetch("/api/auth/forgot/send-otp", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+   showMessage(data.detail || "Failed to send OTP", true);
+   return;
   }
+  showMessage("Reset OTP sent");
+  resetSection.style.display = "block";
+ } catch (e) {
+  showMessage("Network error", true);
+ }
 });
 
 btnResetSubmit.addEventListener("click", async () => {
-  const payload = {
-    email: forgotEmail.value,
-    otp: resetOtp.value,
-    new_password: resetPassword.value,
-  };
-  try {
-    const res = await fetch("/api/auth/forgot/reset", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      showMessage(data.detail || "Reset failed", true);
-      return;
-    }
-    showMessage("Password reset successful");
-  } catch (e) {
-    showMessage("Network error", true);
+ const payload = {
+  email: forgotEmail.value,
+  otp: resetOtp.value,
+  new_password: resetPassword.value,
+ };
+ try {
+  const res = await fetch("/api/auth/forgot/reset", {
+   method: "POST",
+   headers: { "Content-Type": "application/json" },
+   body: JSON.stringify(payload),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+   showMessage(data.detail || "Reset failed", true);
+   return;
   }
+  showMessage("Password reset successful");
+ } catch (e) {
+  showMessage("Network error", true);
+ }
 });

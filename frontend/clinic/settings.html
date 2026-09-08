@@ -1,473 +1,473 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clinic Settings | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css" />
-    <link rel="stylesheet" href="/assets/css/base.css" />
-    <link rel="stylesheet" href="/assets/css/layout.css" />
-    <link rel="stylesheet" href="/assets/css/components.css" />
-    <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <link rel="stylesheet" href="/assets/css/forms.css" />
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
-  </head>
-  <body class="dashboard-body">
-    <!-- Sidebar -->
-    <aside id="clinicSidebar" class="sidebar">
-      <div class="sidebar-header">
-        <div class="brand">
-          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
-          <span>Tap2Med</span>
-        </div>
+ <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clinic Settings | Tap2Med</title>
+  <link rel="stylesheet" href="/assets/css/variables.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/layout.css" />
+  <link rel="stylesheet" href="/assets/css/components.css" />
+  <link rel="stylesheet" href="/assets/css/buttons.css" />
+  <link rel="stylesheet" href="/assets/css/forms.css" />
+  <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+ </head>
+ <body class="dashboard-body">
+  <!-- Sidebar -->
+  <aside id="clinicSidebar" class="sidebar">
+   <div class="sidebar-header">
+    <div class="brand">
+     <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+     <span>Tap2Med</span>
+    </div>
+   </div>
+   <nav class="sidebar-nav">
+    <a href="/dashboard" class="nav-item">
+     <span style="font-size: 18px"></span> Workspace
+    </a>
+    <a href="/directory" class="nav-item">
+     <span style="font-size: 18px"></span> Patient Directory
+    </a>
+    <a href="/settings" class="nav-item active">
+     <span style="font-size: 18px"></span> Clinic Settings
+    </a>
+   </nav>
+   <div class="sidebar-footer">
+    <div class="doc-profile">
+     <div class="avatar"></div>
+     <div class="doc-info">
+      <strong id="doc-name">Doctor</strong>
+      <span id="clinic-name">Clinic</span>
+     </div>
+    </div>
+   </div>
+  </aside>
+
+  <main class="main-content">
+   <header class="top-header">
+    <h2 style="font-size: 18px; margin: 0; color: var(--primary-color)">
+     Clinic Preferences
+    </h2>
+   </header>
+
+   <div style="padding: 30px; max-width: 800px; margin: 0 auto">
+    <!-- Clinic Profile Card -->
+    <div class="consultation-card" style="margin-bottom: 24px">
+     <div
+      class="consultation-header"
+      style="margin-bottom: 20px; padding-bottom: 15px"
+    >
+      <h2 style="font-size: 20px">Clinic Profile (for Rx Print)</h2>
+     </div>
+
+     <div
+      style="
+       display: grid;
+       grid-template-columns: 1fr;
+       gap: 20px;
+       margin-bottom: 20px;
+      "
+    >
+      <div class="field">
+       <label
+        style="
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--text-muted);
+         display: block;
+         margin-bottom: 8px;
+        "
+       >Doctor Qualifications</label
+      >
+       <textarea
+        id="doc-qualifications"
+        class="input"
+        placeholder="e.g. MBBS, MD (Medicine)"
+        style="min-height: 80px; resize: vertical; padding: 10px"
+      ></textarea>
       </div>
-      <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item">
-          <span style="font-size: 18px">⚡</span> Workspace
-        </a>
-        <a href="/directory" class="nav-item">
-          <span style="font-size: 18px">👥</span> Patient Directory
-        </a>
-        <a href="/settings" class="nav-item active">
-          <span style="font-size: 18px">⚙️</span> Clinic Settings
-        </a>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="doc-profile">
-          <div class="avatar">🩺</div>
-          <div class="doc-info">
-            <strong id="doc-name">Doctor</strong>
-            <span id="clinic-name">Clinic</span>
-          </div>
-        </div>
+      <div class="field">
+       <label
+        style="
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--text-muted);
+         display: block;
+         margin-bottom: 8px;
+        "
+       >Clinic Address</label
+      >
+       <textarea
+        id="doc-address"
+        class="input"
+        placeholder="e.g. B-25, HIG, Sector-23, Sanjay Nagar"
+        style="min-height: 80px; resize: vertical; padding: 10px"
+      ></textarea>
       </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="top-header">
-        <h2 style="font-size: 18px; margin: 0; color: var(--primary-color)">
-          Clinic Preferences
-        </h2>
-      </header>
-
-      <div style="padding: 30px; max-width: 800px; margin: 0 auto">
-        <!-- Clinic Profile Card -->
-        <div class="consultation-card" style="margin-bottom: 24px">
-          <div
-            class="consultation-header"
-            style="margin-bottom: 20px; padding-bottom: 15px"
-          >
-            <h2 style="font-size: 20px">Clinic Profile (for Rx Print)</h2>
-          </div>
-
-          <div
-            style="
-              display: grid;
-              grid-template-columns: 1fr;
-              gap: 20px;
-              margin-bottom: 20px;
-            "
-          >
-            <div class="field">
-              <label
-                style="
-                  font-size: 13px;
-                  font-weight: 600;
-                  color: var(--text-muted);
-                  display: block;
-                  margin-bottom: 8px;
-                "
-                >Doctor Qualifications</label
-              >
-              <textarea
-                id="doc-qualifications"
-                class="input"
-                placeholder="e.g. MBBS, MD (Medicine)"
-                style="min-height: 80px; resize: vertical; padding: 10px"
-              ></textarea>
-            </div>
-            <div class="field">
-              <label
-                style="
-                  font-size: 13px;
-                  font-weight: 600;
-                  color: var(--text-muted);
-                  display: block;
-                  margin-bottom: 8px;
-                "
-                >Clinic Address</label
-              >
-              <textarea
-                id="doc-address"
-                class="input"
-                placeholder="e.g. B-25, HIG, Sector-23, Sanjay Nagar"
-                style="min-height: 80px; resize: vertical; padding: 10px"
-              ></textarea>
-            </div>
-            <div class="field">
-              <label
-                style="
-                  font-size: 13px;
-                  font-weight: 600;
-                  color: var(--text-muted);
-                  display: block;
-                  margin-bottom: 8px;
-                "
-                >Extra Notes / Timings</label
-              >
-              <textarea
-                id="doc-extra"
-                class="input"
-                placeholder="e.g. Timings: 11:00am - 02:30pm"
-                style="min-height: 80px; resize: vertical; padding: 10px"
-              ></textarea>
-            </div>
-          </div>
-
-          <button
-            onclick="saveSettings()"
-            class="btn btn-primary"
-            id="btn-save-settings"
-          >
-            Save Settings
-          </button>
-          <span
-            id="fee-status"
-            style="margin-left: 15px; font-size: 13px; font-weight: 600"
-          ></span>
-        </div>
-
-        <!-- Patient Privacy Card -->
-        <div class="consultation-card" style="margin-bottom: 24px">
-          <div
-            class="consultation-header"
-            style="margin-bottom: 20px; padding-bottom: 15px"
-          >
-            <h2 style="font-size: 20px">Patient Privacy</h2>
-          </div>
-          <label
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              cursor: pointer;
-              font-size: 16px;
-              font-weight: 500;
-              color: var(--text-main);
-            "
-          >
-            <input
-              type="checkbox"
-              id="save-patient-phone-toggle"
-              style="
-                width: 20px;
-                height: 20px;
-                accent-color: var(--primary-color);
-              "
-            />
-            Save patient phone numbers
-          </label>
-          <p
-            id="save-phone-status-text"
-            style="
-              margin-top: 8px;
-              margin-left: 32px;
-              font-size: 13px;
-              color: var(--text-muted);
-            "
-          >
-            Phone numbers are used for the current workflow but are not retained.
-          </p>
-        </div>
-
-        <!-- Print Settings Card -->
-        <div class="consultation-card" style="margin-bottom: 24px">
-          <div
-            class="consultation-header"
-            style="margin-bottom: 20px; padding-bottom: 15px"
-          >
-            <h2 style="font-size: 20px">Hardware & Printing</h2>
-          </div>
-          <label
-            style="
-              display: flex;
-              align-items: center;
-              gap: 12px;
-              cursor: pointer;
-              font-size: 16px;
-              font-weight: 500;
-              color: var(--text-main);
-            "
-          >
-            <input
-              type="checkbox"
-              id="print-toggle"
-              style="
-                width: 20px;
-                height: 20px;
-                accent-color: var(--primary-color);
-              "
-            />
-            Enable Auto-Print for Prescriptions
-          </label>
-          <p
-            style="
-              margin-top: 8px;
-              margin-left: 32px;
-              font-size: 13px;
-              color: var(--text-muted);
-            "
-          >
-            If connected to a printer, the print dialogue will automatically
-            open when you save a visit.
-          </p>
-        </div>
-
-        <!-- Staff & Operations Card -->
-        <div class="consultation-card">
-          <div
-            class="consultation-header"
-            style="margin-bottom: 20px; padding-bottom: 15px"
-          >
-            <h2 style="font-size: 20px">Staff & Operations</h2>
-          </div>
-
-          <!-- Staff Management -->
-          <div
-            style="
-              margin-top: 24px;
-              padding: 20px;
-              background: #f8fafc;
-              border: 1px solid var(--border-color);
-              border-radius: 12px;
-            "
-          >
-            <h3
-              style="
-                font-size: 16px;
-                margin-bottom: 15px;
-                color: var(--primary-color);
-              "
-            >
-              Staff Login (Queue Management)
-            </h3>
-            <div class="field" style="margin-bottom: 15px">
-              <input
-                type="text"
-                id="staff-username"
-                class="input"
-                placeholder="Staff Username"
-              />
-            </div>
-            <div class="field" style="margin-bottom: 20px">
-              <input
-                type="password"
-                id="staff-passcode"
-                class="input"
-                placeholder="4-Digit PIN"
-                maxlength="4"
-              />
-            </div>
-            <button
-              onclick="
-                saveRole(
-                  'staff',
-                  'staff-username',
-                  'staff-passcode',
-                  'staff-status',
-                )
-              "
-              class="btn btn-secondary"
-            >
-              Save Staff
-            </button>
-            <span
-              id="staff-status"
-              style="margin-left: 15px; font-size: 13px; font-weight: 600"
-            ></span>
-          </div>
-
-          <!-- Pharmacy Management -->
-          <div
-            style="
-              margin-top: 24px;
-              padding: 20px;
-              background: #f8fafc;
-              border: 1px solid var(--border-color);
-              border-radius: 12px;
-            "
-          >
-            <h3
-              style="
-                font-size: 16px;
-                margin-bottom: 15px;
-                color: var(--primary-color);
-              "
-            >
-              Pharmacy Login (Prescription View)
-            </h3>
-            <div class="field" style="margin-bottom: 15px">
-              <input
-                type="text"
-                id="phar-username"
-                class="input"
-                placeholder="Pharmacy Username"
-              />
-            </div>
-            <div class="field" style="margin-bottom: 20px">
-              <input
-                type="password"
-                id="phar-passcode"
-                class="input"
-                placeholder="4-Digit PIN"
-                maxlength="4"
-              />
-            </div>
-            <button
-              onclick="
-                saveRole(
-                  'pharmacy',
-                  'phar-username',
-                  'phar-passcode',
-                  'phar-status',
-                )
-              "
-              class="btn btn-secondary"
-            >
-              Save Pharmacy
-            </button>
-            <span
-              id="phar-status"
-              style="margin-left: 15px; font-size: 13px; font-weight: 600"
-            ></span>
-          </div>
-        </div>
+      <div class="field">
+       <label
+        style="
+         font-size: 13px;
+         font-weight: 600;
+         color: var(--text-muted);
+         display: block;
+         margin-bottom: 8px;
+        "
+       >Extra Notes / Timings</label
+      >
+       <textarea
+        id="doc-extra"
+        class="input"
+        placeholder="e.g. Timings: 11:00am - 02:30pm"
+        style="min-height: 80px; resize: vertical; padding: 10px"
+      ></textarea>
       </div>
-    </main>
+     </div>
 
-    <script>
-      const clinicId = localStorage.getItem("tap2med_clinic_id");
-      if (!clinicId) window.location.href = "/login";
+     <button
+      onclick="saveSettings()"
+      class="btn btn-primary"
+      id="btn-save-settings"
+    >
+      Save Settings
+     </button>
+     <span
+      id="fee-status"
+      style="margin-left: 15px; font-size: 13px; font-weight: 600"
+    ></span>
+    </div>
 
-      // Printer Toggle Logic
-      const printToggle = document.getElementById("print-toggle");
-      if (localStorage.getItem("tap2med_auto_print") === "true") {
-        printToggle.checked = true;
-      }
-      printToggle.addEventListener("change", (e) => {
-        localStorage.setItem("tap2med_auto_print", e.target.checked);
-      });
+    <!-- Patient Privacy Card -->
+    <div class="consultation-card" style="margin-bottom: 24px">
+     <div
+      class="consultation-header"
+      style="margin-bottom: 20px; padding-bottom: 15px"
+    >
+      <h2 style="font-size: 20px">Patient Privacy</h2>
+     </div>
+     <label
+      style="
+       display: flex;
+       align-items: center;
+       gap: 12px;
+       cursor: pointer;
+       font-size: 16px;
+       font-weight: 500;
+       color: var(--text-main);
+      "
+    >
+      <input
+       type="checkbox"
+       id="save-patient-phone-toggle"
+       style="
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary-color);
+       "
+      />
+      Save patient phone numbers
+     </label>
+     <p
+      id="save-phone-status-text"
+      style="
+       margin-top: 8px;
+       margin-left: 32px;
+       font-size: 13px;
+       color: var(--text-muted);
+      "
+    >
+      Phone numbers are used for the current workflow but are not retained.
+     </p>
+    </div>
 
+    <!-- Print Settings Card -->
+    <div class="consultation-card" style="margin-bottom: 24px">
+     <div
+      class="consultation-header"
+      style="margin-bottom: 20px; padding-bottom: 15px"
+    >
+      <h2 style="font-size: 20px">Hardware & Printing</h2>
+     </div>
+     <label
+      style="
+       display: flex;
+       align-items: center;
+       gap: 12px;
+       cursor: pointer;
+       font-size: 16px;
+       font-weight: 500;
+       color: var(--text-main);
+      "
+    >
+      <input
+       type="checkbox"
+       id="print-toggle"
+       style="
+        width: 20px;
+        height: 20px;
+        accent-color: var(--primary-color);
+       "
+      />
+      Enable Auto-Print for Prescriptions
+     </label>
+     <p
+      style="
+       margin-top: 8px;
+       margin-left: 32px;
+       font-size: 13px;
+       color: var(--text-muted);
+      "
+    >
+      If connected to a printer, the print dialogue will automatically
+      open when you save a visit.
+     </p>
+    </div>
+
+    <!-- Staff & Operations Card -->
+    <div class="consultation-card">
+     <div
+      class="consultation-header"
+      style="margin-bottom: 20px; padding-bottom: 15px"
+    >
+      <h2 style="font-size: 20px">Staff & Operations</h2>
+     </div>
+
+     <!-- Staff Management -->
+     <div
+      style="
+       margin-top: 24px;
+       padding: 20px;
+       background: #f8fafc;
+       border: 1px solid var(--border-color);
+       border-radius: 12px;
+      "
+    >
+      <h3
+       style="
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+       "
+     >
+       Staff Login (Queue Management)
+      </h3>
+      <div class="field" style="margin-bottom: 15px">
+       <input
+        type="text"
+        id="staff-username"
+        class="input"
+        placeholder="Staff Username"
+       />
+      </div>
+      <div class="field" style="margin-bottom: 20px">
+       <input
+        type="password"
+        id="staff-passcode"
+        class="input"
+        placeholder="4-Digit PIN"
+        maxlength="4"
+       />
+      </div>
+      <button
+       onclick="
+        saveRole(
+         'staff',
+         'staff-username',
+         'staff-passcode',
+         'staff-status',
+        )
+       "
+       class="btn btn-secondary"
+     >
+       Save Staff
+      </button>
+      <span
+       id="staff-status"
+       style="margin-left: 15px; font-size: 13px; font-weight: 600"
+     ></span>
+     </div>
+
+     <!-- Pharmacy Management -->
+     <div
+      style="
+       margin-top: 24px;
+       padding: 20px;
+       background: #f8fafc;
+       border: 1px solid var(--border-color);
+       border-radius: 12px;
+      "
+    >
+      <h3
+       style="
+        font-size: 16px;
+        margin-bottom: 15px;
+        color: var(--primary-color);
+       "
+     >
+       Pharmacy Login (Prescription View)
+      </h3>
+      <div class="field" style="margin-bottom: 15px">
+       <input
+        type="text"
+        id="phar-username"
+        class="input"
+        placeholder="Pharmacy Username"
+       />
+      </div>
+      <div class="field" style="margin-bottom: 20px">
+       <input
+        type="password"
+        id="phar-passcode"
+        class="input"
+        placeholder="4-Digit PIN"
+        maxlength="4"
+       />
+      </div>
+      <button
+       onclick="
+        saveRole(
+         'pharmacy',
+         'phar-username',
+         'phar-passcode',
+         'phar-status',
+        )
+       "
+       class="btn btn-secondary"
+     >
+       Save Pharmacy
+      </button>
+      <span
+       id="phar-status"
+       style="margin-left: 15px; font-size: 13px; font-weight: 600"
+     ></span>
+     </div>
+    </div>
+   </div>
+  </main>
+
+  <script>
+   const clinicId = localStorage.getItem("tap2med_clinic_id");
+   if (!clinicId) window.location.href = "/login";
+
+   // Printer Toggle Logic
+   const printToggle = document.getElementById("print-toggle");
+   if (localStorage.getItem("tap2med_auto_print") === "true") {
+    printToggle.checked = true;
+   }
+   printToggle.addEventListener("change", (e) => {
+    localStorage.setItem("tap2med_auto_print", e.target.checked);
+   });
+
+   const phoneToggle = document.getElementById("save-patient-phone-toggle");
+   function updatePhoneStatusText(isChecked) {
+    const p = document.getElementById("save-phone-status-text");
+    if (isChecked) {
+      p.textContent = "Phone numbers entered during registration can be stored in this clinic's patient records.";
+    } else {
+      p.textContent = "Phone numbers are used for the current workflow but are not retained.";
+    }
+   }
+   phoneToggle.addEventListener("change", (e) => {
+    updatePhoneStatusText(e.target.checked);
+    saveSettings();
+   });
+
+   // Role Save Logic
+   async function saveRole(roleType, userField, passField, statusField) {
+    const status = document.getElementById(statusField);
+    const username = document.getElementById(userField).value.trim();
+    const passcode = document.getElementById(passField).value.trim();
+
+    if (!username || passcode.length < 4) {
+     status.textContent = "Requires username and 4-digit PIN.";
+     status.style.color = "var(--error-color)";
+     return;
+    }
+
+    status.textContent = "Saving...";
+    status.style.color = "var(--text-muted)";
+
+    try {
+     const res = await fetch(
+      `/api/clinics/${encodeURIComponent(clinicId)}/roles`,
+      {
+       method: "PUT",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({
+        role_type: roleType,
+        username: username,
+        passcode: passcode,
+       }),
+      },
+     );
+
+     if (!res.ok) throw new Error("Failed");
+
+     status.textContent = "Saved successfully!";
+     status.style.color = "var(--success-color)";
+    } catch (err) {
+     status.textContent = "Error saving credentials.";
+     status.style.color = "var(--error-color)";
+    }
+   }
+
+   async function loadSettings() {
+    // Auto-apply DB fix if columns are missing
+    try {
+     await fetch("/api/clinics/fix_db");
+    } catch (e) {}
+
+    try {
+     const res = await fetch(`/api/clinics/${clinicId}/preferences`);
+     if (res.ok) {
+      const data = await res.json();
+      document.getElementById("doc-qualifications").value =
+       data.qualifications || "";
+      document.getElementById("doc-address").value = data.address || "";
+      document.getElementById("doc-extra").value = data.extra_notes || "";
       const phoneToggle = document.getElementById("save-patient-phone-toggle");
-      function updatePhoneStatusText(isChecked) {
-        const p = document.getElementById("save-phone-status-text");
-        if (isChecked) {
-            p.textContent = "Phone numbers entered during registration can be stored in this clinic's patient records.";
-        } else {
-            p.textContent = "Phone numbers are used for the current workflow but are not retained.";
-        }
-      }
-      phoneToggle.addEventListener("change", (e) => {
-        updatePhoneStatusText(e.target.checked);
-        saveSettings();
-      });
+      phoneToggle.checked = data.save_patient_phone || false;
+      updatePhoneStatusText(phoneToggle.checked);
+     }
+    } catch (e) {
+     console.error("Could not load settings");
+    }
+   }
 
-      // Role Save Logic
-      async function saveRole(roleType, userField, passField, statusField) {
-        const status = document.getElementById(statusField);
-        const username = document.getElementById(userField).value.trim();
-        const passcode = document.getElementById(passField).value.trim();
+   async function saveSettings() {
+    const status = document.getElementById("fee-status");
+    const payload = {
+     qualifications: document
+      .getElementById("doc-qualifications")
+      .value.trim(),
+     address: document.getElementById("doc-address").value.trim(),
+     address: document.getElementById("doc-address").value.trim(),
+     extra_notes: document.getElementById("doc-extra").value.trim(),
+     save_patient_phone: document.getElementById("save-patient-phone-toggle").checked,
+    };
 
-        if (!username || passcode.length < 4) {
-          status.textContent = "Requires username and 4-digit PIN.";
-          status.style.color = "var(--error-color)";
-          return;
-        }
+    status.textContent = "Saving...";
+    status.style.color = "var(--text-muted)";
 
-        status.textContent = "Saving...";
-        status.style.color = "var(--text-muted)";
+    try {
+     const res = await fetch(`/api/clinics/${clinicId}/preferences`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+     });
+     if (!res.ok) throw new Error("Failed");
 
-        try {
-          const res = await fetch(
-            `/api/clinics/${encodeURIComponent(clinicId)}/roles`,
-            {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                role_type: roleType,
-                username: username,
-                passcode: passcode,
-              }),
-            },
-          );
+     status.textContent = "Settings saved successfully!";
+     status.style.color = "var(--success-color)";
+     setTimeout(() => (status.textContent = ""), 3000);
+    } catch (err) {
+     status.textContent = "Error saving settings.";
+     status.style.color = "var(--error-color)";
+    }
+   }
 
-          if (!res.ok) throw new Error("Failed");
-
-          status.textContent = "Saved successfully!";
-          status.style.color = "var(--success-color)";
-        } catch (err) {
-          status.textContent = "Error saving credentials.";
-          status.style.color = "var(--error-color)";
-        }
-      }
-
-      async function loadSettings() {
-        // Auto-apply DB fix if columns are missing
-        try {
-          await fetch("/api/clinics/fix_db");
-        } catch (e) {}
-
-        try {
-          const res = await fetch(`/api/clinics/${clinicId}/preferences`);
-          if (res.ok) {
-            const data = await res.json();
-            document.getElementById("doc-qualifications").value =
-              data.qualifications || "";
-            document.getElementById("doc-address").value = data.address || "";
-            document.getElementById("doc-extra").value = data.extra_notes || "";
-            const phoneToggle = document.getElementById("save-patient-phone-toggle");
-            phoneToggle.checked = data.save_patient_phone || false;
-            updatePhoneStatusText(phoneToggle.checked);
-          }
-        } catch (e) {
-          console.error("Could not load settings");
-        }
-      }
-
-      async function saveSettings() {
-        const status = document.getElementById("fee-status");
-        const payload = {
-          qualifications: document
-            .getElementById("doc-qualifications")
-            .value.trim(),
-          address: document.getElementById("doc-address").value.trim(),
-          address: document.getElementById("doc-address").value.trim(),
-          extra_notes: document.getElementById("doc-extra").value.trim(),
-          save_patient_phone: document.getElementById("save-patient-phone-toggle").checked,
-        };
-
-        status.textContent = "Saving...";
-        status.style.color = "var(--text-muted)";
-
-        try {
-          const res = await fetch(`/api/clinics/${clinicId}/preferences`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          });
-          if (!res.ok) throw new Error("Failed");
-
-          status.textContent = "Settings saved successfully!";
-          status.style.color = "var(--success-color)";
-          setTimeout(() => (status.textContent = ""), 3000);
-        } catch (err) {
-          status.textContent = "Error saving settings.";
-          status.style.color = "var(--error-color)";
-        }
-      }
-
-      // Trigger load when the page opens
-      loadSettings();
-    </script>
-  </body>
+   // Trigger load when the page opens
+   loadSettings();
+  </script>
+ </body>
 </html>

@@ -1,136 +1,136 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Clinic Login | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css" />
-    <link rel="stylesheet" href="/assets/css/base.css" />
-    <link rel="stylesheet" href="/assets/css/forms.css" />
-    <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <style>
-      .auth-wrapper {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--bg-canvas);
-        padding: 20px;
-      }
-      .auth-card {
-        background: var(--surface-color);
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        width: 100%;
-        max-width: 400px;
-        border: 1px solid var(--border-color);
-      }
-      .brand {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-family: var(--font-family);
-        font-size: 24px;
-        font-weight: 700;
-        color: var(--primary-color);
-        text-align: center;
-        margin: 0 auto 30px;
-        letter-spacing: 0;
-        line-height: 1;
-      }
-      .brand-logo {
-        width: 42px;
-        height: 32px;
-        object-fit: contain;
-      }
-    </style>
-  </head>
-  <body>
-    <main class="auth-wrapper">
-      <div class="auth-card">
-        <div class="brand">
-          <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
-          <span>Tap2Med</span>
-        </div>
-        <div
-          id="message"
-          role="status"
-          style="margin-bottom: 15px; font-size: 14px; text-align: center"
-        ></div>
+ <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Clinic Login | Tap2Med</title>
+  <link rel="stylesheet" href="/assets/css/variables.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/forms.css" />
+  <link rel="stylesheet" href="/assets/css/buttons.css" />
+  <style>
+   .auth-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-canvas);
+    padding: 20px;
+   }
+   .auth-card {
+    background: var(--surface-color);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid var(--border-color);
+   }
+   .brand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--font-family);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+    margin: 0 auto 30px;
+    letter-spacing: 0;
+    line-height: 1;
+   }
+   .brand-logo {
+    width: 42px;
+    height: 32px;
+    object-fit: contain;
+   }
+  </style>
+ </head>
+ <body>
+  <main class="auth-wrapper">
+   <div class="auth-card">
+    <div class="brand">
+     <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+     <span>Tap2Med</span>
+    </div>
+    <div
+     id="message"
+     role="status"
+     style="margin-bottom: 15px; font-size: 14px; text-align: center"
+   ></div>
 
-        <section id="password-login" class="input-group">
-          <label class="label">Email</label>
-          <input id="email" type="email" class="input" autocomplete="email" />
-          <label class="label" style="margin-top: 10px">Password</label>
-          <input
-            id="password"
-            type="password"
-            class="input"
-            autocomplete="current-password"
-          />
-          <button
-            id="btn-password-login"
-            class="btn btn-primary btn-block"
-            style="margin-top: 20px"
-          >
-            Sign in
-          </button>
-          <p style="text-align: center; margin-top: 15px; font-size: 14px">
-            <a href="#" id="forgot-link" style="color: var(--primary-color)"
-              >Forgot password?</a
-            >
-          </p>
-          <div
-            style="text-align: center; margin: 15px 0; color: var(--text-muted)"
-          >
-            or
-          </div>
-          <button id="btn-send-login-otp" class="btn btn-secondary btn-block">
-            Send login OTP
-          </button>
-        </section>
+    <section id="password-login" class="input-group">
+     <label class="label">Email</label>
+     <input id="email" type="email" class="input" autocomplete="email" />
+     <label class="label" style="margin-top: 10px">Password</label>
+     <input
+      id="password"
+      type="password"
+      class="input"
+      autocomplete="current-password"
+     />
+     <button
+      id="btn-password-login"
+      class="btn btn-primary btn-block"
+      style="margin-top: 20px"
+    >
+      Sign in
+     </button>
+     <p style="text-align: center; margin-top: 15px; font-size: 14px">
+      <a href="#" id="forgot-link" style="color: var(--primary-color)"
+      >Forgot password?</a
+     >
+     </p>
+     <div
+      style="text-align: center; margin: 15px 0; color: var(--text-muted)"
+    >
+      or
+     </div>
+     <button id="btn-send-login-otp" class="btn btn-secondary btn-block">
+      Send login OTP
+     </button>
+    </section>
 
-        <section id="otp-section" class="input-group" style="display: none">
-          <label class="label">Enter OTP</label>
-          <input id="otp" type="text" class="input" maxlength="6" />
-          <button
-            id="btn-verify-otp"
-            class="btn btn-primary btn-block"
-            style="margin-top: 20px"
-          >
-            Verify OTP
-          </button>
-        </section>
+    <section id="otp-section" class="input-group" style="display: none">
+     <label class="label">Enter OTP</label>
+     <input id="otp" type="text" class="input" maxlength="6" />
+     <button
+      id="btn-verify-otp"
+      class="btn btn-primary btn-block"
+      style="margin-top: 20px"
+    >
+      Verify OTP
+     </button>
+    </section>
 
-        <section id="forgot-section" class="input-group" style="display: none">
-          <label class="label">Email</label>
-          <input id="forgot-email" type="email" class="input" />
-          <button
-            id="btn-forgot-send"
-            class="btn btn-primary btn-block"
-            style="margin-top: 20px"
-          >
-            Send reset OTP
-          </button>
-        </section>
+    <section id="forgot-section" class="input-group" style="display: none">
+     <label class="label">Email</label>
+     <input id="forgot-email" type="email" class="input" />
+     <button
+      id="btn-forgot-send"
+      class="btn btn-primary btn-block"
+      style="margin-top: 20px"
+    >
+      Send reset OTP
+     </button>
+    </section>
 
-        <section id="reset-section" class="input-group" style="display: none">
-          <label class="label">OTP</label>
-          <input id="reset-otp" type="text" class="input" maxlength="6" />
-          <label class="label" style="margin-top: 10px">New Password</label>
-          <input id="reset-password" type="password" class="input" />
-          <button
-            id="btn-reset-submit"
-            class="btn btn-primary btn-block"
-            style="margin-top: 20px"
-          >
-            Reset Password
-          </button>
-        </section>
-      </div>
-    </main>
-    <script src="/assets/js/pages/login.js"></script>
-  </body>
+    <section id="reset-section" class="input-group" style="display: none">
+     <label class="label">OTP</label>
+     <input id="reset-otp" type="text" class="input" maxlength="6" />
+     <label class="label" style="margin-top: 10px">New Password</label>
+     <input id="reset-password" type="password" class="input" />
+     <button
+      id="btn-reset-submit"
+      class="btn btn-primary btn-block"
+      style="margin-top: 20px"
+    >
+      Reset Password
+     </button>
+    </section>
+   </div>
+  </main>
+  <script src="/assets/js/pages/login.js"></script>
+ </body>
 </html>
