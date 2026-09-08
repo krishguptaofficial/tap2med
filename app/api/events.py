@@ -309,7 +309,7 @@ def get_patient_status(local_token: str, clinic_id: uuid.UUID, db: Session = Dep
         today_end = now_ist.replace(hour=23, minute=59, second=59, microsecond=999999)
         
         current_visit = db.query(models.Event).filter(
-            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == local_token,
+            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
             models.Event.timestamp >= today_start,
             models.Event.timestamp <= today_end
         ).order_by(models.Event.timestamp.desc()).first()
@@ -437,7 +437,7 @@ def complete_event(payload: CompleteRequest, db: Session = Depends(get_db)):
 def get_patient_history(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     try:
         past_visits = db.query(models.Event).filter(
-            models.Event.clinic_id == payload.clinic_id, models.Event.local_token == local_token,
+            models.Event.clinic_id == clinic_id, models.Event.local_token == local_token,
             models.Event.status == "completed" 
         ).order_by(models.Event.timestamp.desc()).all()    
          
