@@ -322,6 +322,7 @@ def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db:
         clinic.qualifications = payload.qualifications
         clinic.address = payload.address
         clinic.extra_notes = payload.extra_notes
+        clinic.save_patient_phone = payload.save_patient_phone
         
         db.commit()
         return {"status": "success"}
@@ -340,8 +341,9 @@ def get_preferences(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "followup_days": str(clinic.followup_days) if clinic.followup_days else "",
                 "qualifications": clinic.qualifications or "",
                 "address": clinic.address or "",
-                "extra_notes": clinic.extra_notes or ""
+                "extra_notes": clinic.extra_notes or "",
+                "save_patient_phone": getattr(clinic, 'save_patient_phone', False)
             }
-        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": "", "qualifications": "", "address": "", "extra_notes": ""}
+        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": "", "qualifications": "", "address": "", "extra_notes": "", "save_patient_phone": False}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
