@@ -1,528 +1,585 @@
 <!doctype html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Clinic Workspace | Tap2Med</title>
-  <link rel="stylesheet" href="/assets/css/variables.css" />
-  <link rel="stylesheet" href="/assets/css/base.css" />
-  <link rel="stylesheet" href="/assets/css/layout.css" />
-  <link rel="stylesheet" href="/assets/css/components.css" />
-  <link rel="stylesheet" href="/assets/css/buttons.css" />
-  <link rel="stylesheet" href="/assets/css/forms.css" />
-  <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
-  <link rel="stylesheet" href="/assets/css/print.css" />
- </head>
- <body class="dashboard-body">
-  <!-- Sidebar -->
-  <aside id="clinicSidebar" class="sidebar">
-   <div class="sidebar-header">
-    <div class="brand">
-     <img
-      src="/assets/logo/tap2med_logo.png"
-      alt=""
-      class="brand-logo"
-      onerror="this.style.display = 'none'"
-     />
-     <span>Tap2Med</span>
-    </div>
-   </div>
-   <nav class="sidebar-nav">
-    <a href="/dashboard" class="nav-item active"
-    ><span style="font-size: 18px"></span> Workspace</a
-   >
-    <a href="/directory" class="nav-item"
-    ><span style="font-size: 18px"></span> Patient Directory</a
-   >
-    <a href="/settings" class="nav-item"
-    ><span style="font-size: 18px"></span> Clinic Settings</a
-   >
-   </nav>
-   <div class="sidebar-footer">
-    <div class="doc-profile">
-     <div class="avatar"></div>
-     <div class="doc-info">
-      <strong id="doc-name">Doctor</strong>
-      <span id="clinic-name">Clinic</span>
-     </div>
-    </div>
-   </div>
-  </aside>
-
-  <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
-
-  <main class="main-content">
-   <header class="top-header">
-    <button id="sidebarToggle" class="btn-toggle" style="display: none">
-     ☰
-    </button>
-    <div
-     class="header-status"
-     style="display: flex; align-items: center; gap: 15px"
-   >
-     <button
-      onclick="showQRCode()"
-      class="btn btn-secondary"
-      style="padding: 6px 12px; font-size: 14px"
-    >
-      Print Clinic QR
-     </button>
-     <div style="display: flex; align-items: center; gap: 5px">
-      <span class="pulse-dot"></span>Live Queue Active
-     </div>
-    </div>
-   </header>
-
-   <div class="dashboard-layout">
-    <!-- Left Column: Queue -->
-    <div class="queue-section">
-     <div class="section-header">
-      <h2>Waiting Room</h2>
-      <span class="badge badge-info" id="queue-count">Live</span>
-     </div>
-     <div class="queue-list" id="queue-list">
-      <div class="queue-card active">
-       <div class="token-number" id="current-token">#--</div>
-       <div class="patient-details">
-        <strong>Current Patient</strong>
-        <span>Ready for consultation</span>
-       </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clinic Workspace | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/layout.css" />
+    <link rel="stylesheet" href="/assets/css/components.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+    <link rel="stylesheet" href="/assets/css/print.css" />
+  </head>
+  <body class="dashboard-body">
+    <!-- Sidebar -->
+    <aside id="clinicSidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <img
+            src="/assets/logo/tap2med_logo.png"
+            alt=""
+            class="brand-logo"
+            onerror="this.style.display = 'none'"
+          />
+          <span>Tap2Med</span>
+        </div>
       </div>
-     </div>
+      <nav class="sidebar-nav">
+        <a href="/dashboard" class="nav-item active"
+          ><span style="font-size: 18px"></span> Workspace</a
+        >
+        <a href="/directory" class="nav-item"
+          ><span style="font-size: 18px"></span> Patient Directory</a
+        >
+        <a href="/settings" class="nav-item"
+          ><span style="font-size: 18px"></span> Clinic Settings</a
+        >
+      </nav>
+      <div class="sidebar-footer">
+        <div class="doc-profile">
+          <div class="avatar"></div>
+          <div class="doc-info">
+            <strong id="doc-name">Doctor</strong>
+            <span id="clinic-name">Clinic</span>
+          </div>
+        </div>
+      </div>
+    </aside>
 
-     <div
-      class="section-header"
-      style="
-       margin-top: 40px;
-       border-top: 2px dashed #e2e8f0;
-       padding-top: 20px;
-      "
-    >
-      <h2 style="font-size: 16px; color: var(--text-muted)">
-       Completed Today
-      </h2>
-     </div>
-     <div class="queue-list" id="completed-list"></div>
-    </div>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
-    <!-- Right Column: Consultation -->
-    <div class="consultation-section">
-     <div class="consultation-card">
-      <div class="consultation-header">
-       <div>
-        <span class="eyebrow">Active Token</span>
-        <div style="display: flex; align-items: center; gap: 12px">
-         <h2 style="margin: 0">Prescription Pad</h2>
-         <button
-          onclick="openVitalsModal()"
-          class="btn btn-ghost"
+    <main class="main-content">
+      <header class="top-header">
+        <button id="sidebarToggle" class="btn-toggle" style="display: none">
+          ☰
+        </button>
+        <div
+          class="header-status"
+          style="display: flex; align-items: center; gap: 15px"
+        >
+          <button
+            onclick="showQRCode()"
+            class="btn btn-secondary"
+            style="padding: 6px 12px; font-size: 14px"
+          >
+            Print Clinic QR
+          </button>
+          <div style="display: flex; align-items: center; gap: 5px">
+            <span class="pulse-dot"></span>Live Queue Active
+          </div>
+        </div>
+      </header>
+
+      <div class="dashboard-layout">
+        <!-- Left Column: Queue -->
+        <div class="queue-section">
+          <div class="section-header">
+            <h2>Waiting Room</h2>
+            <span class="badge badge-info" id="queue-count">Live</span>
+          </div>
+          <div class="queue-list" id="queue-list">
+            <div class="queue-card active">
+              <div class="token-number" id="current-token">#--</div>
+              <div class="patient-details">
+                <strong>Current Patient</strong>
+                <span>Ready for consultation</span>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="section-header"
+            style="
+              margin-top: 40px;
+              border-top: 2px dashed #e2e8f0;
+              padding-top: 20px;
+            "
+          >
+            <h2 style="font-size: 16px; color: var(--text-muted)">
+              Completed Today
+            </h2>
+          </div>
+          <div class="queue-list" id="completed-list"></div>
+        </div>
+
+        <!-- Right Column: Consultation -->
+        <div class="consultation-section">
+          <div class="consultation-card">
+            <div class="consultation-header">
+              <div>
+                <span class="eyebrow">Active Token</span>
+                <div style="display: flex; align-items: center; gap: 12px">
+                  <h2 style="margin: 0">Prescription Pad</h2>
+                  <button
+                    onclick="openVitalsModal()"
+                    class="btn btn-ghost"
+                    style="
+                      padding: 4px 8px;
+                      font-size: 12px;
+                      color: var(--primary-color);
+                      border: 1px dashed var(--primary-color);
+                    "
+                  >
+                    Update Vitals
+                  </button>
+                </div>
+              </div>
+              <span id="prescription-status" class="badge badge-warning"
+                >Waiting...</span
+              >
+            </div>
+
+            <div
+              id="doctor-vitals-display"
+              style="
+                background: #f8fafc;
+                padding: 12px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-size: 14px;
+                display: none;
+                border: 1px solid #e2e8f0;
+              "
+            ></div>
+
+            <div class="visit-history-preview">
+              <details>
+                <summary>View Patient Medical History</summary>
+                <div class="history-data" id="history-content">
+                  <p class="text-sm text-muted">Waiting for patient scan...</p>
+                </div>
+              </details>
+            </div>
+
+            <div style="margin-bottom: 20px">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >General Examination</label
+              >
+              <textarea
+                id="patient-complaints"
+                class="textarea"
+                placeholder="e.g. Fever since 3 days, BP 120/80, chest clear..."
+                style="min-height: 60px; font-size: 14px; background: white"
+              ></textarea>
+            </div>
+            <div style="margin-bottom: 30px">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >Diagnosis</label
+              >
+              <input
+                type="text"
+                id="patient-diagnosis"
+                class="input"
+                placeholder="e.g. Viral Pyrexia"
+                style="font-size: 14px; font-weight: 600; background: white"
+              />
+            </div>
+
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 800;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                display: block;
+                margin-bottom: 8px;
+              "
+              >Medicines</label
+            >
+            <div
+              style="
+                overflow-x: auto;
+                margin-bottom: 12px;
+                border-radius: 8px;
+                border: 1px solid #e2e8f0;
+                background: #fafafa;
+                padding: 10px;
+              "
+            >
+              <div
+                class="rx-table-header"
+                style="
+                  min-width: 820px;
+                  display: grid;
+                  grid-template-columns: 28px 85px minmax(
+                      180px,
+                      2fr
+                    ) 75px 125px 125px 95px minmax(140px, 1.5fr) 36px;
+                  gap: 8px;
+                  padding: 8px 10px;
+                  background: #f1f5f9;
+                  border-radius: 6px;
+                  font-size: 11px;
+                  font-weight: 700;
+                  color: #475569;
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  margin-bottom: 10px;
+                  align-items: center;
+                "
+              >
+                <div style="text-align: center">#</div>
+                <div>Type</div>
+                <div>Medicine</div>
+                <div>Dose</div>
+                <div>When</div>
+                <div>Frequency</div>
+                <div>Duration</div>
+                <div>Notes / Instructions</div>
+                <div></div>
+              </div>
+              <div
+                class="prescription-builder"
+                id="rx-container"
+                style="min-width: 820px"
+              ></div>
+            </div>
+            <button
+              id="add-row-btn"
+              class="btn btn-ghost btn-block add-medicine-btn"
+            >
+              + Add Medicine
+            </button>
+
+            <div
+              style="
+                margin-top: 30px;
+                padding-top: 20px;
+                border-top: 1px dashed #cbd5e1;
+              "
+            >
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: #0284c7;
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >Tests Requested</label
+              >
+              <textarea
+                id="patient-tests"
+                class="textarea"
+                placeholder="e.g. CBC, Dengue NS1"
+                style="
+                  min-height: 60px;
+                  font-size: 14px;
+                  border-color: #bae6fd;
+                  background: #f0f9ff;
+                "
+              ></textarea>
+            </div>
+
+            <div style="margin-top: 20px">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >Advice</label
+              >
+              <textarea
+                id="patient-advice"
+                class="textarea"
+                placeholder="e.g. BED REST 5 DAYS"
+                style="min-height: 60px; font-size: 14px; background: white"
+              ></textarea>
+            </div>
+
+            <div style="margin-top: 20px">
+              <label
+                style="
+                  font-size: 12px;
+                  font-weight: 800;
+                  color: var(--text-muted);
+                  text-transform: uppercase;
+                  letter-spacing: 0.05em;
+                  display: block;
+                  margin-bottom: 8px;
+                "
+                >Next Visit</label
+              >
+              <div style="display: flex; align-items: center; gap: 10px">
+                <input
+                  type="number"
+                  id="patient-followup"
+                  class="input"
+                  value="3"
+                  min="0"
+                  style="
+                    width: 80px;
+                    font-size: 14px;
+                    background: white;
+                    text-align: center;
+                  "
+                />
+                <span
+                  style="
+                    font-size: 14px;
+                    color: var(--text-muted);
+                    font-weight: 600;
+                  "
+                  >Days</span
+                >
+              </div>
+            </div>
+
+            <div class="consultation-actions" style="margin-top: 25px">
+              <button id="print-btn" class="btn btn-primary btn-lg btn-block">
+                Save & Send to WhatsApp
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- WhatsApp Send Confirmation Modal -->
+    <div id="send-confirm-modal" class="backdrop" style="display: none">
+      <div
+        style="
+          background: white;
+          width: 100%;
+          max-width: 440px;
+          border-radius: 18px;
+          box-shadow: 0 20px 50px -22px rgba(15, 23, 42, 0.45);
+          overflow: hidden;
+        "
+      >
+        <div
           style="
-           padding: 4px 8px;
-           font-size: 12px;
-           color: var(--primary-color);
-           border: 1px dashed var(--primary-color);
+            padding: 24px 24px 18px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
           "
         >
-          Update Vitals
-         </button>
+          <div>
+            <div
+              style="
+                font-size: 12px;
+                color: #64748b;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 6px;
+              "
+            >
+              Tap2Med says
+            </div>
+            <h3
+              style="
+                margin: 0;
+                font-size: 22px;
+                color: var(--primary-color);
+                font-weight: 800;
+              "
+            >
+              Send prescription?
+            </h3>
+          </div>
+          <button
+            onclick="closeSendConfirmModal()"
+            style="
+              background: transparent;
+              border: none;
+              font-size: 28px;
+              color: #64748b;
+              cursor: pointer;
+              line-height: 1;
+            "
+          >
+            &times;
+          </button>
         </div>
-       </div>
-       <span id="prescription-status" class="badge badge-warning"
-       >Waiting...</span
-      >
-      </div>
-
-      <div
-       id="doctor-vitals-display"
-       style="
-        background: #f8fafc;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        font-size: 14px;
-        display: none;
-        border: 1px solid #e2e8f0;
-       "
-     ></div>
-
-      <div class="visit-history-preview">
-       <details>
-        <summary>View Patient Medical History</summary>
-        <div class="history-data" id="history-content">
-         <p class="text-sm text-muted">Waiting for patient scan...</p>
+        <div style="padding: 24px">
+          <p
+            style="
+              margin: 0 0 20px;
+              font-size: 15px;
+              color: #334155;
+              line-height: 1.6;
+            "
+          >
+            This prescription will be sent to the patient on WhatsApp and cannot
+            be sent again afterwards.
+          </p>
+          <div
+            style="
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 14px 16px;
+              margin-bottom: 20px;
+              color: #0f172a;
+              font-size: 14px;
+              font-weight: 600;
+            "
+          >
+            Patient: <span id="send-confirm-patient-name">Current patient</span>
+          </div>
+          <div style="display: flex; gap: 12px; justify-content: flex-end">
+            <button
+              onclick="closeSendConfirmModal()"
+              class="btn btn-ghost"
+              style="min-width: 100px"
+            >
+              No
+            </button>
+            <button
+              onclick="confirmSendPrescription()"
+              class="btn btn-primary"
+              style="min-width: 140px"
+            >
+              Yes, send
+            </button>
+          </div>
         </div>
-       </details>
       </div>
+    </div>
 
-      <div style="margin-bottom: 20px">
-       <label
-        style="
-         font-size: 12px;
-         font-weight: 800;
-         color: var(--text-muted);
-         text-transform: uppercase;
-         letter-spacing: 0.05em;
-         display: block;
-         margin-bottom: 8px;
-        "
-       >Chief Complaints</label
-      >
-       <textarea
-        id="patient-complaints"
-        class="textarea"
-        placeholder="e.g. Fever since 3 days, body ache..."
-        style="min-height: 60px; font-size: 14px; background: white"
-      ></textarea>
-      </div>
-      <div style="margin-bottom: 30px">
-       <label
-        style="
-         font-size: 12px;
-         font-weight: 800;
-         color: var(--text-muted);
-         text-transform: uppercase;
-         letter-spacing: 0.05em;
-         display: block;
-         margin-bottom: 8px;
-        "
-       >Diagnosis</label
-      >
-       <input
-        type="text"
-        id="patient-diagnosis"
-        class="input"
-        placeholder="e.g. Viral Pyrexia"
-        style="font-size: 14px; font-weight: 600; background: white"
-       />
-      </div>
-
-      <label
-       style="
-        font-size: 12px;
-        font-weight: 800;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        display: block;
-        margin-bottom: 8px;
-       "
-      >Medicines</label
-     >
-      <div class="prescription-builder" id="rx-container"></div>
-      <button
-       id="add-row-btn"
-       class="btn btn-ghost btn-block add-medicine-btn"
-     >
-       + Add Medicine
-      </button>
-
+    <!-- QR Code Standee Modal -->
+    <div id="qrModal" class="backdrop">
       <div
-       style="
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px dashed #cbd5e1;
-       "
-     >
-       <label
         style="
-         font-size: 12px;
-         font-weight: 800;
-         color: #0284c7;
-         text-transform: uppercase;
-         letter-spacing: 0.05em;
-         display: block;
-         margin-bottom: 8px;
+          background: white;
+          padding: 40px;
+          border-radius: 16px;
+          text-align: center;
+          max-width: 380px;
         "
-       >Tests Suggested</label
       >
-       <textarea
-        id="patient-tests"
-        class="textarea"
-        placeholder="e.g. CBC, Dengue NS1"
-        style="
-         min-height: 60px;
-         font-size: 14px;
-         border-color: #bae6fd;
-         background: #f0f9ff;
-        "
-      ></textarea>
+        <h2 style="margin-bottom: 5px; color: var(--primary-color)">
+          Clinic Check-In QR
+        </h2>
+        <p
+          style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px"
+        >
+          Display at reception for self check-in
+        </p>
+        <div
+          id="dashboardQRCode"
+          style="display: flex; justify-content: center; margin-bottom: 25px"
+        ></div>
+        <button
+          onclick="printQRCode()"
+          class="btn btn-primary btn-block"
+          style="background-color: var(--success-color)"
+        >
+          Print Check-In Poster
+        </button>
+        <button
+          onclick="document.getElementById('qrModal').style.display = 'none'"
+          class="btn btn-ghost btn-block"
+          style="margin-top: 10px"
+        >
+          Close
+        </button>
       </div>
+    </div>
 
-      <div style="margin-top: 20px;">
-       <label
+    <!-- Hidden Printable QR Code Standee Layout -->
+    <div id="print-qr-layout" class="print-only">
+      <div
         style="
-         font-size: 12px;
-         font-weight: 800;
-         color: var(--text-muted);
-         text-transform: uppercase;
-         letter-spacing: 0.05em;
-         display: block;
-         margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 12px;
         "
-      >Advice</label>
-       <textarea
-        id="patient-advice"
-        class="textarea"
-        placeholder="e.g. BED REST 5 DAYS"
-        style="min-height: 60px; font-size: 14px; background: white"
-      ></textarea>
-      </div>
-
-      <div style="margin-top: 20px;">
-       <label
-        style="
-         font-size: 12px;
-         font-weight: 800;
-         color: var(--text-muted);
-         text-transform: uppercase;
-         letter-spacing: 0.05em;
-         display: block;
-         margin-bottom: 8px;
-        "
-      >Schedule Follow-up</label>
-       <div style="display: flex; align-items: center; gap: 10px;">
-        <input
-         type="number"
-         id="patient-followup"
-         class="input"
-         value="3"
-         min="0"
-         style="width: 80px; font-size: 14px; background: white; text-align: center;"
+      >
+        <img
+          src="/assets/logo/tap2med_logo.png"
+          style="width: 50px; height: 40px; object-fit: contain"
+          onerror="this.style.display = 'none'"
         />
-        <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">Days</span>
-       </div>
+        <span
+          style="
+            font-size: 32px;
+            font-weight: 800;
+            color: #0284c7;
+            font-family: &quot;Inter&quot;, sans-serif;
+          "
+          >Tap2Med</span
+        >
       </div>
-
-      <div class="consultation-actions" style="margin-top: 25px">
-       <button id="print-btn" class="btn btn-primary btn-lg btn-block">
-        Save & Send to WhatsApp
-       </button>
-      </div>
-     </div>
-    </div>
-   </div>
-  </main>
-
-  
-
-  <!-- WhatsApp Send Confirmation Modal -->
-  <div id="send-confirm-modal" class="backdrop" style="display: none">
-   <div
-    style="
-     background: white;
-     width: 100%;
-     max-width: 440px;
-     border-radius: 18px;
-     box-shadow: 0 20px 50px -22px rgba(15, 23, 42, 0.45);
-     overflow: hidden;
-    "
-  >
-    <div
-     style="
-      padding: 24px 24px 18px;
-      border-bottom: 1px solid #e2e8f0;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 16px;
-     "
-   >
-     <div>
+      <p
+        style="
+          font-size: 18px;
+          color: #64748b;
+          margin-top: 0;
+          margin-bottom: 20px;
+          font-weight: 600;
+        "
+      >
+        Clinic Check-In
+      </p>
+      <h1
+        style="
+          font-size: 34px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 30px;
+        "
+      >
+        Scan to Check-In
+      </h1>
       <div
-       style="
-        font-size: 12px;
-        color: #64748b;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 6px;
-       "
-     >
-       Tap2Med says
-      </div>
-      <h3
-       style="
-        margin: 0;
-        font-size: 22px;
-        color: var(--primary-color);
-        font-weight: 800;
-       "
-     >
-       Send prescription?
-      </h3>
-     </div>
-     <button
-      onclick="closeSendConfirmModal()"
-      style="
-       background: transparent;
-       border: none;
-       font-size: 28px;
-       color: #64748b;
-       cursor: pointer;
-       line-height: 1;
-      "
-    >
-      &times;
-     </button>
+        id="print-qr-target"
+        style="display: flex; justify-content: center; margin-bottom: 30px"
+      ></div>
+      <h2
+        id="print-qr-clinic-name"
+        style="
+          font-size: 28px;
+          font-weight: 800;
+          color: #0284c7;
+          margin-bottom: 8px;
+        "
+      >
+        Clinic Name
+      </h2>
+      <p style="font-size: 15px; color: #64748b; font-weight: 500">
+        Powered by Tap2Med
+      </p>
     </div>
-    <div style="padding: 24px">
-     <p
-      style="
-       margin: 0 0 20px;
-       font-size: 15px;
-       color: #334155;
-       line-height: 1.6;
-      "
-    >
-      This prescription will be sent to the patient on WhatsApp and cannot
-      be sent again afterwards.
-     </p>
-     <div
-      style="
-       background: #f8fafc;
-       border: 1px solid #e2e8f0;
-       border-radius: 12px;
-       padding: 14px 16px;
-       margin-bottom: 20px;
-       color: #0f172a;
-       font-size: 14px;
-       font-weight: 600;
-      "
-    >
-      Patient: <span id="send-confirm-patient-name">Current patient</span>
-     </div>
-     <div style="display: flex; gap: 12px; justify-content: flex-end">
-      <button
-       onclick="closeSendConfirmModal()"
-       class="btn btn-ghost"
-       style="min-width: 100px"
-     >
-       No
-      </button>
-      <button
-       onclick="confirmSendPrescription()"
-       class="btn btn-primary"
-       style="min-width: 140px"
-     >
-       Yes, send
-      </button>
-     </div>
-    </div>
-   </div>
-  </div>
-
-  <!-- QR Code Standee Modal -->
-  <div id="qrModal" class="backdrop">
-   <div
-    style="
-     background: white;
-     padding: 40px;
-     border-radius: 16px;
-     text-align: center;
-     max-width: 380px;
-    "
-  >
-    <h2 style="margin-bottom: 5px; color: var(--primary-color)">
-     Clinic Check-In QR
-    </h2>
-    <p
-     style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px"
-   >
-     Display at reception for self check-in
-    </p>
-    <div
-     id="dashboardQRCode"
-     style="display: flex; justify-content: center; margin-bottom: 25px"
-   ></div>
-    <button
-     onclick="printQRCode()"
-     class="btn btn-primary btn-block"
-     style="background-color: var(--success-color)"
-   >
-     Print Check-In Poster
-    </button>
-    <button
-     onclick="document.getElementById('qrModal').style.display = 'none'"
-     class="btn btn-ghost btn-block"
-     style="margin-top: 10px"
-   >
-     Close
-    </button>
-   </div>
-  </div>
-
-  
-
-  <!-- Hidden Printable QR Code Standee Layout -->
-  <div id="print-qr-layout" class="print-only">
-   <div
-    style="
-     display: flex;
-     align-items: center;
-     justify-content: center;
-     gap: 10px;
-     margin-bottom: 12px;
-    "
-  >
-    <img
-     src="/assets/logo/tap2med_logo.png"
-     style="width: 50px; height: 40px; object-fit: contain"
-     onerror="this.style.display = 'none'"
-    />
-    <span
-     style="
-      font-size: 32px;
-      font-weight: 800;
-      color: #0284c7;
-      font-family: &quot;Inter&quot;, sans-serif;
-     "
-    >Tap2Med</span
-   >
-   </div>
-   <p
-    style="
-     font-size: 18px;
-     color: #64748b;
-     margin-top: 0;
-     margin-bottom: 20px;
-     font-weight: 600;
-    "
-  >
-    Clinic Check-In
-   </p>
-   <h1
-    style="
-     font-size: 34px;
-     font-weight: 800;
-     color: #0f172a;
-     margin-bottom: 30px;
-    "
-  >
-    Scan to Check-In
-   </h1>
-   <div
-    id="print-qr-target"
-    style="display: flex; justify-content: center; margin-bottom: 30px"
-  ></div>
-   <h2
-    id="print-qr-clinic-name"
-    style="
-     font-size: 28px;
-     font-weight: 800;
-     color: #0284c7;
-     margin-bottom: 8px;
-    "
-  >
-    Clinic Name
-   </h2>
-   <p style="font-size: 15px; color: #64748b; font-weight: 500">
-    Powered by Tap2Med
-   </p>
-  </div>
-  <script src="/assets/js/print_engine.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="/assets/js/pages/dashboard.js"></script>
- <script src="/assets/js/load_layouts.js"></script>
- </body>
+    <script src="/assets/js/print_engine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/assets/js/pages/dashboard.js"></script>
+    <script src="/assets/js/load_layouts.js"></script>
+  </body>
 </html>

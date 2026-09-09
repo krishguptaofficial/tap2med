@@ -154,37 +154,140 @@ function toggleSidebar() {
   localStorage.setItem("tap2med_sidebar_state", isClosed ? "closed" : "open");
 }
 
+window.removePrescriptionRow = function (btn) {
+  const row = btn.closest(".prescription-row");
+  if (row) {
+    row.remove();
+    updateRowNumbers();
+    if (typeof savePrescriptionDraft === "function") savePrescriptionDraft();
+  }
+};
+
+function updateRowNumbers() {
+  const container = document.getElementById("rx-container");
+  if (!container) return;
+  const rows = container.querySelectorAll(".prescription-row");
+  rows.forEach((row, index) => {
+    const idxEl = row.querySelector(".rx-index");
+    if (idxEl) idxEl.textContent = index + 1;
+  });
+}
+
 window.updateFreq = function (el) {
   const row = el.closest(".prescription-row");
-  const dosage = row.querySelector(".rx-dosage").value.trim();
-  const days = row.querySelector(".rx-days").value.trim();
-  const remarks = row.querySelector(".rx-remarks").value.trim();
+  if (!row) return;
 
-  let inst = dosage;
-  if (days) inst += (inst ? " for " : "") + days;
-  if (remarks) inst += (inst ? " | " : "") + remarks;
+  const dose = row.querySelector(".rx-dose")?.value.trim() || "";
+  const when = row.querySelector(".rx-when")?.value || "";
+  const freq = row.querySelector(".rx-freq-select")?.value || "";
+  const days = row.querySelector(".rx-days")?.value.trim() || "";
+  const remarks = row.querySelector(".rx-remarks")?.value.trim() || "";
 
-  row.querySelector(".rx-freq").value = inst;
+  let dosageParts = [];
+  if (dose) dosageParts.push(dose);
+  if (freq) dosageParts.push(freq);
+  if (when) dosageParts.push(`(${when})`);
+
+  let dosageStr = dosageParts.join(" ");
+  if (days) {
+    dosageStr += (dosageStr ? " for " : "") + days;
+  }
+
+  const dosageHidden = row.querySelector(".rx-dosage");
+  if (dosageHidden) dosageHidden.value = dosageStr;
+
+  let fullInstructions = dosageStr;
+  if (remarks) {
+    fullInstructions += (fullInstructions ? " | " : "") + remarks;
+  }
+
+  const freqHidden = row.querySelector(".rx-freq");
+  if (freqHidden) freqHidden.value = fullInstructions;
 };
 
 window.addPrescriptionRow = function () {
   const container = document.getElementById("rx-container");
+  if (!container) return;
+  const count = container.querySelectorAll(".prescription-row").length + 1;
+
   const row = document.createElement("div");
   row.className = "prescription-row";
   row.style.display = "grid";
-  // Adjusted grid to fit the new remarks column
-  row.style.gridTemplateColumns = "2fr 1fr 1fr 1.5fr auto";
-  row.style.gap = "10px";
-  row.style.marginBottom = "15px";
+  row.style.gridTemplateColumns =
+    "28px 85px minmax(180px, 2fr) 75px 125px 125px 95px minmax(140px, 1.5fr) 36px";
+  row.style.gap = "8px";
+  row.style.marginBottom = "8px";
+  row.style.alignItems = "center";
+
   row.innerHTML = `
-    <div class="field"><input type="text" class="input rx-med" placeholder="Medicine" autocomplete="off" value="TAB. " /></div>
-    <div class="field"><input type="text" class="input rx-dosage" placeholder="Dosage" autocomplete="off" oninput="updateFreq(this)" /></div>
-    <div class="field"><input type="text" class="input rx-days" placeholder="Days" autocomplete="off" oninput="updateFreq(this)" /></div>
-    <div class="field"><input type="text" class="input rx-remarks" placeholder="Remarks (e.g. after food)" autocomplete="off" oninput="updateFreq(this)" /></div>
-    <button type="button" class="btn btn-ghost" onclick="this.closest('.prescription-row').remove()" style="color: #ef4444; padding: 8px;">✕</button>
+    <div class="rx-index" style="font-size: 13px; font-weight: 700; color: #64748b; text-align: center;">${count}</div>
+    <div>
+      <select class="input rx-type" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; font-weight: 600; background: white;">
+        <option value="TAB" selected>TAB</option>
+        <option value="CAP">CAP</option>
+        <option value="SYP">SYP</option>
+        <option value="INJ">INJ</option>
+        <option value="OINT">OINT</option>
+        <option value="GEL">GEL</option>
+        <option value="CRM">CRM</option>
+        <option value="DROPS">DROPS</option>
+        <option value="SUSP">SUSP</option>
+        <option value="INH">INH</option>
+        <option value="RESP">RESP</option>
+        <option value="POW">POW</option>
+        <option value="LOT">LOT</option>
+        <option value="SACH">SACH</option>
+        <option value="OTHER">OTHER</option>
+      </select>
+    </div>
+    <div>
+      <input type="text" class="input rx-med" placeholder="Medicine Name" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 10px; font-size: 13px; font-weight: 600;" />
+    </div>
+    <div>
+      <input type="text" class="input rx-dose" placeholder="1" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
+    </div>
+    <div>
+      <select class="input rx-when" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; background: white;">
+        <option value="">-- When --</option>
+        <option value="After Food" selected>After Food</option>
+        <option value="Before Food">Before Food</option>
+        <option value="With Food">With Food</option>
+        <option value="Empty Stomach">Empty Stomach</option>
+        <option value="At Bedtime">At Bedtime</option>
+        <option value="Anytime">Anytime</option>
+      </select>
+    </div>
+    <div>
+      <select class="input rx-freq-select" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; background: white;">
+        <option value="">-- Freq --</option>
+        <option value="1-0-1" selected>1-0-1</option>
+        <option value="1-1-1">1-1-1</option>
+        <option value="1-0-0">1-0-0</option>
+        <option value="0-0-1">0-0-1</option>
+        <option value="0-1-0">0-1-0</option>
+        <option value="1-0-1-0">1-0-1-0</option>
+        <option value="Once Daily">Once Daily</option>
+        <option value="Twice Daily">Twice Daily</option>
+        <option value="Thrice Daily">Thrice Daily</option>
+        <option value="SOS / As needed">SOS / As needed</option>
+        <option value="Alternate Days">Alternate Days</option>
+        <option value="Weekly">Weekly</option>
+      </select>
+    </div>
+    <div>
+      <input type="text" class="input rx-days" placeholder="5 Days" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
+    </div>
+    <div>
+      <input type="text" class="input rx-remarks" placeholder="Notes (optional)" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 10px; font-size: 13px;" />
+    </div>
+    <div style="text-align: center;">
+      <button type="button" class="btn btn-ghost" onclick="removePrescriptionRow(this)" style="color: #ef4444; padding: 6px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Remove row">✕</button>
+    </div>
     <input type="hidden" class="rx-freq" />
+    <input type="hidden" class="rx-dosage" />
   `;
   container.appendChild(row);
+  updateFreq(row.querySelector(".rx-med"));
 };
 
 function populatePrescriptionPad(prescriptions) {
@@ -197,26 +300,116 @@ function populatePrescriptionPad(prescriptions) {
     return;
   }
 
+  const typesList = [
+    "TAB",
+    "CAP",
+    "SYP",
+    "INJ",
+    "OINT",
+    "GEL",
+    "CRM",
+    "DROPS",
+    "SUSP",
+    "INH",
+    "RESP",
+    "POW",
+    "LOT",
+    "SACH",
+    "OTHER",
+  ];
+
   prescriptions.forEach((med) => {
     addPrescriptionRow();
     const row = container.lastElementChild;
-    const dosage = med.dosage || "";
-    const duration = med.duration || "";
-    let instructions = med.raw_instructions || "";
+    let name = (med.name || "").trim();
 
-    if (!instructions) {
-      const parts = (med.instructions || "").split(" | ");
-      if (dosage && parts[0] === dosage) parts.shift();
-      if (duration && parts[0] === duration) parts.shift();
-      instructions = parts.join(" | ");
+    let detectedType = "TAB";
+    for (const t of typesList) {
+      const regex = new RegExp(`^${t}\\.?\\s*`, "i");
+      if (regex.test(name)) {
+        detectedType = t;
+        name = name.replace(regex, "");
+        break;
+      }
     }
 
-    row.querySelector(".rx-med").value = med.name || "";
-    row.querySelector(".rx-dosage").value = dosage;
-    row.querySelector(".rx-days").value = duration;
-    row.querySelector(".rx-remarks").value = instructions;
-    updateFreq(row.querySelector(".rx-remarks"));
+    if (row.querySelector(".rx-type"))
+      row.querySelector(".rx-type").value = detectedType;
+    if (row.querySelector(".rx-med")) row.querySelector(".rx-med").value = name;
+
+    let fullInstructions = med.instructions || "";
+    let remarks = "";
+    let dosage = med.dosage || "";
+    let days = med.duration || "";
+
+    if (fullInstructions.includes(" | ")) {
+      const parts = fullInstructions.split(" | ");
+      dosage = parts[0].trim();
+      remarks = parts.slice(1).join(" | ").trim();
+    } else {
+      dosage = fullInstructions.trim();
+    }
+
+    if (dosage.includes(" for ")) {
+      const dParts = dosage.split(" for ");
+      dosage = dParts[0].trim();
+      days = dParts[1].trim();
+    }
+
+    const whenOptions = [
+      "After Food",
+      "Before Food",
+      "With Food",
+      "Empty Stomach",
+      "At Bedtime",
+      "Anytime",
+    ];
+    let detectedWhen = "";
+    for (const w of whenOptions) {
+      if (dosage.includes(w)) {
+        detectedWhen = w;
+        dosage = dosage.replace(`(${w})`, "").replace(w, "").trim();
+        break;
+      }
+    }
+
+    const freqOptions = [
+      "1-0-1-0",
+      "1-0-1",
+      "1-1-1",
+      "1-0-0",
+      "0-0-1",
+      "0-1-0",
+      "Once Daily",
+      "Twice Daily",
+      "Thrice Daily",
+      "SOS / As needed",
+      "Alternate Days",
+      "Weekly",
+    ];
+    let detectedFreq = "";
+    for (const f of freqOptions) {
+      if (dosage.includes(f)) {
+        detectedFreq = f;
+        dosage = dosage.replace(f, "").trim();
+        break;
+      }
+    }
+
+    if (row.querySelector(".rx-dose"))
+      row.querySelector(".rx-dose").value = dosage.trim();
+    if (row.querySelector(".rx-when"))
+      row.querySelector(".rx-when").value = detectedWhen || "After Food";
+    if (row.querySelector(".rx-freq-select"))
+      row.querySelector(".rx-freq-select").value = detectedFreq || "1-0-1";
+    if (row.querySelector(".rx-days"))
+      row.querySelector(".rx-days").value = days;
+    if (row.querySelector(".rx-remarks"))
+      row.querySelector(".rx-remarks").value = remarks;
+
+    updateFreq(row.querySelector(".rx-med"));
   });
+  updateRowNumbers();
 }
 
 window.copyVisitToPad = function (prescriptions) {
@@ -243,6 +436,7 @@ function clearPrescription() {
   if (tEl) tEl.value = "";
   if (aEl) aEl.value = "";
   if (fEl) fEl.value = "3";
+  updateRowNumbers();
   setPrescriptionStatus("Waiting...", "warning");
 }
 
@@ -664,57 +858,7 @@ window.editRx = async function (
           ? visit.follow_up_days
           : "3";
 
-    const rxContainer = document.getElementById("rx-container");
-    if (rxContainer) {
-      rxContainer.innerHTML = "";
-      if (
-        visit.prescriptions &&
-        Array.isArray(visit.prescriptions) &&
-        visit.prescriptions.length > 0
-      ) {
-        visit.prescriptions.forEach((med) => {
-          addPrescriptionRow();
-          const rows = rxContainer.querySelectorAll(".prescription-row");
-          if (rows.length > 0) {
-            const lastRow = rows[rows.length - 1];
-            if (lastRow.querySelector(".rx-med"))
-              lastRow.querySelector(".rx-med").value = med.name || "";
-
-            let fullInstructions = med.instructions || "";
-            let dosage = "",
-              days = "",
-              remarks = "";
-
-            // Parse out the remarks if they exist
-            if (fullInstructions.includes(" | ")) {
-              const parts = fullInstructions.split(" | ");
-              remarks = parts[1];
-              fullInstructions = parts[0];
-            }
-
-            // Parse out the days if they exist
-            if (fullInstructions.includes(" for ")) {
-              const parts = fullInstructions.split(" for ");
-              dosage = parts[0];
-              days = parts[1];
-            } else {
-              dosage = fullInstructions;
-            }
-
-            if (lastRow.querySelector(".rx-dosage"))
-              lastRow.querySelector(".rx-dosage").value = dosage || "";
-            if (lastRow.querySelector(".rx-days"))
-              lastRow.querySelector(".rx-days").value = days || "";
-            if (lastRow.querySelector(".rx-remarks"))
-              lastRow.querySelector(".rx-remarks").value = remarks || "";
-            if (lastRow.querySelector(".rx-freq"))
-              lastRow.querySelector(".rx-freq").value = med.instructions || "";
-          }
-        });
-      } else {
-        addPrescriptionRow();
-      }
-    }
+    populatePrescriptionPad(visit.prescriptions);
 
     fetchActiveVitals();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -751,9 +895,17 @@ async function completeVisit() {
   const medicines = [];
 
   prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
-    const name = row.querySelector(".rx-med")?.value.trim() || "";
+    let name = row.querySelector(".rx-med")?.value.trim() || "";
+    const type = row.querySelector(".rx-type")?.value || "";
     const instructions = row.querySelector(".rx-freq")?.value.trim() || "";
-    if (name) medicines.push({ name, instructions });
+    if (name) {
+      let prefix = type ? `${type}. ` : "";
+      if (prefix && name.toUpperCase().startsWith(type.toUpperCase())) {
+        medicines.push({ name, instructions });
+      } else {
+        medicines.push({ name: `${prefix}${name}`.trim(), instructions });
+      }
+    }
   });
 
   const complaints =

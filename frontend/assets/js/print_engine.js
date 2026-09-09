@@ -46,10 +46,9 @@ class PrintEngine {
             const parts = fullInstructions.split(" | ");
             dosageText = parts[0].trim();
             remarksText = parts.slice(1).join(" | ").trim();
-          } else if (fullInstructions.includes(" for ")) {
-            dosageText = fullInstructions.trim();
           } else {
-            remarksText = fullInstructions.trim();
+            dosageText = fullInstructions.trim();
+            remarksText = "";
           }
         } else {
           remarksText = fullInstructions.trim();
@@ -59,7 +58,7 @@ class PrintEngine {
         }
 
         if (!dosageText) dosageText = "--";
-        if (!remarksText) remarksText = "As directed";
+        if (!remarksText) remarksText = "";
 
         medsHtml += `
           <tr style="border-bottom: 1px solid #cbd5e1;">
