@@ -98,7 +98,7 @@ class LabRecordPayload(BaseModel):
     results: dict
 
 class LabUpdatePayload(BaseModel):
-    clinic_id: uuid.UUID
+    clinic_id: Optional[uuid.UUID] = None
     local_token: str
     lab_record: LabRecordPayload
 
@@ -561,8 +561,18 @@ def update_historical_vitals(payload: VitalsUpdate, db: Session = Depends(get_db
 @router.put("/labs")
 def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)):
     try:
+        clinic_id = payload.clinic_id
+        if not clinic_id:
+            any_record = db.query(models.ClinicPatientRecord).filter(
+                models.ClinicPatientRecord.local_token == payload.local_token
+            ).first()
+            if any_record:
+                clinic_id = any_record.clinic_id
+            else:
+                raise HTTPException(status_code=404, detail="Patient record not found")
+
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == payload.local_token
+            models.ClinicPatientRecord.clinic_id == clinic_id, models.ClinicPatientRecord.local_token == payload.local_token
         ).first()
         if not record:
             raise HTTPException(status_code=404, detail="Patient record not found")
@@ -570,7 +580,7 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         test_date_obj = datetime.strptime(payload.lab_record.test_date, "%Y-%m-%d").replace(tzinfo=IST)
         
         lab_record = db.query(models.ClinicPatientLabRecord).filter(
-            models.ClinicPatientLabRecord.clinic_id == payload.clinic_id, models.ClinicPatientLabRecord.local_token == payload.local_token,
+            models.ClinicPatientLabRecord.clinic_id == clinic_id, models.ClinicPatientLabRecord.local_token == payload.local_token,
             func.date(models.ClinicPatientLabRecord.test_date) == test_date_obj.date()
         ).first()
         
