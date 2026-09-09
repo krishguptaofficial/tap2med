@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/assets/css/components.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
     <link rel="stylesheet" href="/assets/css/forms.css" />
-    <link rel="stylesheet" href="/assets/css/pages/dashboard.css" />
+    <link rel="stylesheet" href="/assets/css/pages/dashboard.css?v=20260909_4" />
     <link rel="stylesheet" href="/assets/css/print.css" />
   </head>
   <body class="dashboard-body">
@@ -209,51 +209,56 @@
               >Medicines</label
             >
             <div
+              class="rx-table-wrap"
               style="
-                overflow-x: auto;
                 margin-bottom: 12px;
                 border-radius: 8px;
                 border: 1px solid #e2e8f0;
                 background: #fafafa;
-                padding: 10px;
+                padding: 6px;
+                width: 100%;
+                min-width: 0;
+                box-sizing: border-box;
+                overflow-x: auto;
               "
             >
               <div
                 class="rx-table-header"
                 style="
-                  min-width: 820px;
                   display: grid;
-                  grid-template-columns: 28px 85px minmax(
-                      180px,
+                  grid-template-columns: 22px 64px minmax(
+                      100px,
                       2fr
-                    ) 75px 125px 125px 95px minmax(140px, 1.5fr) 36px;
-                  gap: 8px;
-                  padding: 8px 10px;
+                    ) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px;
+                  gap: 5px;
+                  padding: 6px 4px;
                   background: #f1f5f9;
                   border-radius: 6px;
                   font-size: 11px;
                   font-weight: 700;
                   color: #475569;
                   text-transform: uppercase;
-                  letter-spacing: 0.05em;
-                  margin-bottom: 10px;
+                  letter-spacing: 0.03em;
+                  margin-bottom: 6px;
                   align-items: center;
+                  width: 100%;
+                  box-sizing: border-box;
                 "
               >
                 <div style="text-align: center">#</div>
                 <div>Type</div>
                 <div>Medicine</div>
-                <div>Dose</div>
+                <div style="text-align: center">Dose</div>
                 <div>When</div>
                 <div>Frequency</div>
-                <div>Duration</div>
-                <div>Notes / Instructions</div>
+                <div style="text-align: center">Duration</div>
+                <div>Notes</div>
                 <div></div>
               </div>
               <div
                 class="prescription-builder"
                 id="rx-container"
-                style="min-width: 820px"
+                style="width: 100%; min-width: 0; box-sizing: border-box"
               ></div>
             </div>
             <button
@@ -576,10 +581,10 @@
         Powered by Tap2Med
       </p>
     </div>
-    <script src="/assets/js/print_engine.js"></script>
+    <script src="/assets/js/print_engine.js?v=20260909_4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/assets/js/pages/dashboard.js"></script>
+    <script src="/assets/js/pages/dashboard.js?v=20260909_4"></script>
     <script src="/assets/js/load_layouts.js"></script>
   </body>
 </html>

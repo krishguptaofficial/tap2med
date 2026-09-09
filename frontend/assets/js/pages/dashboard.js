@@ -281,15 +281,18 @@ window.addPrescriptionRow = function () {
   row.className = "prescription-row";
   row.style.display = "grid";
   row.style.gridTemplateColumns =
-    "28px 85px minmax(180px, 2fr) 75px 125px 125px 95px minmax(140px, 1.5fr) 36px";
-  row.style.gap = "8px";
-  row.style.marginBottom = "8px";
+    "22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px";
+  row.style.gap = "5px";
+  row.style.marginBottom = "6px";
   row.style.alignItems = "center";
+  row.style.width = "100%";
+  row.style.minWidth = "0";
+  row.style.boxSizing = "border-box";
 
   row.innerHTML = `
-    <div class="rx-index" style="font-size: 13px; font-weight: 700; color: #64748b; text-align: center;">${count}</div>
-    <div class="rx-dropdown-wrap" style="position: relative;">
-      <select class="input rx-type" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; font-weight: 600; background: white; width: 100%;">
+    <div class="rx-index" style="min-width: 0; font-size: 11px; font-weight: 700; color: #64748b; text-align: center;">${count}</div>
+    <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
+      <select class="input rx-type" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; font-weight: 600; background: white; width: 100%; box-sizing: border-box;">
         <option value="TAB" selected>TAB</option>
         <option value="CAP">CAP</option>
         <option value="SYP">SYP</option>
@@ -304,21 +307,21 @@ window.addPrescriptionRow = function () {
         <option value="POW">POW</option>
         <option value="LOT">LOT</option>
         <option value="SACH">SACH</option>
-        <option value="__OTHER__">+ Other (Type)...</option>
+        <option value="__OTHER__">+ Other</option>
       </select>
       <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
-        <input type="text" class="input rx-custom-input rx-type-custom" placeholder="e.g. PATCH" style="padding: 6px 22px 6px 6px; font-size: 12px; font-weight: 600; width: 100%;" oninput="updateFreq(this)" />
-        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+        <input type="text" class="input rx-custom-input rx-type-custom" placeholder="Type" style="min-width: 0; height: 32px; padding: 4px 18px 4px 4px; font-size: 11.5px; font-weight: 600; width: 100%; box-sizing: border-box;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold;">✕</span>
       </div>
     </div>
-    <div>
-      <input type="text" class="input rx-med" placeholder="Medicine Name" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 10px; font-size: 13px; font-weight: 600;" />
+    <div style="min-width: 0;">
+      <input type="text" class="input rx-med" placeholder="Medicine Name" autocomplete="off" oninput="updateFreq(this)" style="min-width: 0; height: 32px; padding: 4px 6px; font-size: 12px; font-weight: 600; width: 100%; box-sizing: border-box;" />
     </div>
-    <div>
-      <input type="text" class="input rx-dose" placeholder="1" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
+    <div style="min-width: 0;">
+      <input type="text" class="input rx-dose" placeholder="1" autocomplete="off" oninput="updateFreq(this)" style="min-width: 0; height: 32px; padding: 4px 2px; font-size: 12px; text-align: center; width: 100%; box-sizing: border-box;" />
     </div>
-    <div class="rx-dropdown-wrap" style="position: relative;">
-      <select class="input rx-when" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; background: white; width: 100%;">
+    <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
+      <select class="input rx-when" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; background: white; width: 100%; box-sizing: border-box;">
         <option value="">-- When --</option>
         <option value="After Food" selected>After Food</option>
         <option value="Before Food">Before Food</option>
@@ -326,15 +329,15 @@ window.addPrescriptionRow = function () {
         <option value="Empty Stomach">Empty Stomach</option>
         <option value="At Bedtime">At Bedtime</option>
         <option value="Anytime">Anytime</option>
-        <option value="__OTHER__">+ Other (Type)...</option>
+        <option value="__OTHER__">+ Other</option>
       </select>
       <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
-        <input type="text" class="input rx-custom-input rx-when-custom" placeholder="e.g. Every 4h" style="padding: 6px 22px 6px 6px; font-size: 12px; width: 100%;" oninput="updateFreq(this)" />
-        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+        <input type="text" class="input rx-custom-input rx-when-custom" placeholder="e.g. 4h" style="min-width: 0; height: 32px; padding: 4px 18px 4px 4px; font-size: 11.5px; width: 100%; box-sizing: border-box;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold;">✕</span>
       </div>
     </div>
-    <div class="rx-dropdown-wrap" style="position: relative;">
-      <select class="input rx-freq-select" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; background: white; width: 100%;">
+    <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
+      <select class="input rx-freq-select" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; background: white; width: 100%; box-sizing: border-box;">
         <option value="">-- Freq --</option>
         <option value="1-0-1" selected>1-0-1</option>
         <option value="1-1-1">1-1-1</option>
@@ -345,24 +348,24 @@ window.addPrescriptionRow = function () {
         <option value="Once Daily">Once Daily</option>
         <option value="Twice Daily">Twice Daily</option>
         <option value="Thrice Daily">Thrice Daily</option>
-        <option value="SOS / As needed">SOS / As needed</option>
+        <option value="SOS">SOS</option>
         <option value="Alternate Days">Alternate Days</option>
         <option value="Weekly">Weekly</option>
-        <option value="__OTHER__">+ Other (Type)...</option>
+        <option value="__OTHER__">+ Other</option>
       </select>
       <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
-        <input type="text" class="input rx-custom-input rx-freq-custom" placeholder="e.g. 1-0-1-1" style="padding: 6px 22px 6px 6px; font-size: 12px; width: 100%;" oninput="updateFreq(this)" />
-        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+        <input type="text" class="input rx-custom-input rx-freq-custom" placeholder="e.g. 1-0-1-1" style="min-width: 0; height: 32px; padding: 4px 18px 4px 4px; font-size: 11.5px; width: 100%; box-sizing: border-box;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold;">✕</span>
       </div>
     </div>
-    <div>
-      <input type="text" class="input rx-days" placeholder="5 Days" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
+    <div style="min-width: 0;">
+      <input type="text" class="input rx-days" placeholder="5 Days" autocomplete="off" oninput="updateFreq(this)" style="min-width: 0; height: 32px; padding: 4px 2px; font-size: 12px; text-align: center; width: 100%; box-sizing: border-box;" />
     </div>
-    <div>
-      <input type="text" class="input rx-remarks" placeholder="Notes (optional)" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 10px; font-size: 13px;" />
+    <div style="min-width: 0;">
+      <input type="text" class="input rx-remarks" placeholder="Notes (optional)" autocomplete="off" oninput="updateFreq(this)" style="min-width: 0; height: 32px; padding: 4px 6px; font-size: 12px; width: 100%; box-sizing: border-box;" />
     </div>
-    <div style="text-align: center;">
-      <button type="button" class="btn btn-ghost" onclick="removePrescriptionRow(this)" style="color: #ef4444; padding: 6px; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px;" title="Remove row">✕</button>
+    <div style="min-width: 0; text-align: center;">
+      <button type="button" class="btn btn-ghost" onclick="removePrescriptionRow(this)" style="color: #ef4444; padding: 0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; font-size: 12px;" title="Remove row">✕</button>
     </div>
     <input type="hidden" class="rx-freq" />
     <input type="hidden" class="rx-dosage" />
@@ -472,6 +475,13 @@ function populatePrescriptionPad(prescriptions) {
         break;
       }
     }
+    if (!detectedWhen) {
+      const parenMatch = dosage.match(/\((.*?)\)/);
+      if (parenMatch) {
+        detectedWhen = parenMatch[1].trim();
+        dosage = dosage.replace(parenMatch[0], "").trim();
+      }
+    }
 
     const freqOptions = [
       "1-0-1-0",
@@ -484,13 +494,14 @@ function populatePrescriptionPad(prescriptions) {
       "Twice Daily",
       "Thrice Daily",
       "SOS / As needed",
+      "SOS",
       "Alternate Days",
       "Weekly",
     ];
     let detectedFreq = "";
     for (const f of freqOptions) {
       if (dosage.includes(f)) {
-        detectedFreq = f;
+        detectedFreq = f === "SOS / As needed" ? "SOS" : f;
         dosage = dosage.replace(f, "").trim();
         break;
       }
@@ -500,10 +511,35 @@ function populatePrescriptionPad(prescriptions) {
       row.querySelector(".rx-dose").value = dosage.trim();
 
     const whenSelect = row.querySelector(".rx-when");
-    if (whenSelect) whenSelect.value = detectedWhen || "After Food";
+    const whenWrap = whenSelect?.closest(".rx-dropdown-wrap");
+    const whenCustom = whenWrap?.querySelector(".rx-when-custom");
+    const whenCustomCont = whenWrap?.querySelector(".rx-custom-container");
+
+    if (detectedWhen) {
+      if (whenOptions.includes(detectedWhen)) {
+        if (whenSelect) whenSelect.value = detectedWhen;
+      } else {
+        if (whenSelect) {
+          whenSelect.value = "__OTHER__";
+          whenSelect.style.display = "none";
+        }
+        if (whenCustomCont) whenCustomCont.style.display = "block";
+        if (whenCustom) whenCustom.value = detectedWhen;
+      }
+    } else {
+      if (whenSelect) whenSelect.value = "After Food";
+    }
 
     const freqSelect = row.querySelector(".rx-freq-select");
-    if (freqSelect) freqSelect.value = detectedFreq || "1-0-1";
+    const freqWrap = freqSelect?.closest(".rx-dropdown-wrap");
+    const freqCustom = freqWrap?.querySelector(".rx-freq-custom");
+    const freqCustomCont = freqWrap?.querySelector(".rx-custom-container");
+
+    if (detectedFreq) {
+      if (freqSelect) freqSelect.value = detectedFreq;
+    } else {
+      if (freqSelect) freqSelect.value = "1-0-1";
+    }
 
     if (row.querySelector(".rx-days"))
       row.querySelector(".rx-days").value = days;
