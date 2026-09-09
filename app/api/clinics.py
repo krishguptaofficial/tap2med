@@ -21,6 +21,9 @@ def fix_db(db: Session = Depends(get_db)):
         "ALTER TABLE clinics ADD COLUMN qualifications TEXT;",
         "ALTER TABLE clinics ADD COLUMN address TEXT;",
         "ALTER TABLE clinics ADD COLUMN extra_notes TEXT;",
+        "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS save_patient_phone BOOLEAN NOT NULL DEFAULT FALSE;",
+        "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS print_header BOOLEAN NOT NULL DEFAULT TRUE;",
+        "ALTER TABLE clinic_patient_records ADD COLUMN IF NOT EXISTS phone_number TEXT;",
         "ALTER TABLE events ADD COLUMN advice TEXT;",
         "ALTER TABLE events ADD COLUMN follow_up_days INTEGER DEFAULT 3;"
     ]
@@ -344,8 +347,9 @@ def get_preferences(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
                 "qualifications": clinic.qualifications or "",
                 "address": clinic.address or "",
                 "extra_notes": clinic.extra_notes or "",
-                "save_patient_phone": getattr(clinic, 'save_patient_phone', False)
+                "save_patient_phone": getattr(clinic, 'save_patient_phone', False),
+                "print_header": getattr(clinic, 'print_header', True)
             }
-        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": "", "qualifications": "", "address": "", "extra_notes": "", "save_patient_phone": False}
+        return {"appointment_fee": "", "walkin_fee": "", "followup_fee": "", "followup_days": "", "qualifications": "", "address": "", "extra_notes": "", "save_patient_phone": False, "print_header": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
