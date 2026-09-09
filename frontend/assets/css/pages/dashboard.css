@@ -262,27 +262,54 @@
   min-width: 0;
   box-sizing: border-box;
   overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 .prescription-builder {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
 }
-.rx-table-header,
-.prescription-row {
+.rx-table-header {
   display: grid !important;
-  grid-template-columns: 22px 64px minmax(
-      100px,
-      2fr
-    ) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
+  grid-template-columns: 22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
   gap: 5px !important;
   width: 100% !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   align-items: center !important;
+  background: #f8fafc;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding: 8px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.prescription-row {
+  display: grid !important;
+  grid-template-columns: 22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  align-items: center !important;
+  padding: 5px 6px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  transition: background-color 0.15s ease;
+}
+.prescription-row:last-child {
+  border-bottom: none;
+}
+.prescription-row:hover {
+  background-color: #f8fafc;
 }
 .rx-table-header > div,
 .prescription-row > div,
@@ -302,8 +329,29 @@
   box-sizing: border-box !important;
   padding: 4px 6px !important;
   font-size: 12px !important;
-  border-radius: 6px !important;
-  border: 1px solid #cbd5e1 !important;
+  border-radius: 5px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.prescription-row .input:focus,
+.prescription-row select:focus,
+.prescription-row input:focus {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12) !important;
+  outline: none !important;
+}
+.prescription-row .rx-med {
+  font-weight: 600 !important;
+}
+.prescription-row .btn-ghost {
+  color: #94a3b8 !important;
+  transition: all 0.15s ease;
+}
+.prescription-row .btn-ghost:hover {
+  color: #ef4444 !important;
+  background: #fee2e2 !important;
 }
 
 @media (max-width: 768px) {
@@ -312,15 +360,19 @@
   }
 }
 .add-medicine-btn {
-  margin-top: 16px;
+  margin-top: 10px;
   border: 1px dashed #cbd5e1;
-  color: var(--text-muted);
+  color: var(--primary-color);
   font-weight: 600;
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8fafc;
+  transition: all 0.2s ease;
 }
 .add-medicine-btn:hover {
   border-color: var(--primary-color);
   color: var(--primary-color);
-  background: rgba(2, 132, 199, 0.04);
+  background: rgba(2, 132, 199, 0.08);
 }
 .consultation-actions {
   margin-top: 40px;

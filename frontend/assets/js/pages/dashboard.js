@@ -278,7 +278,8 @@ window.addPrescriptionRow = function () {
   row.style.gridTemplateColumns =
     "22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px";
   row.style.gap = "5px";
-  row.style.marginBottom = "6px";
+  row.style.padding = "5px 6px";
+  row.style.borderBottom = "1px solid #f1f5f9";
   row.style.alignItems = "center";
   row.style.width = "100%";
   row.style.minWidth = "0";
