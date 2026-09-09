@@ -200,12 +200,7 @@ window.revertToSelect = function (btn) {
     if (customContainer) customContainer.style.display = "none";
     if (selectEl) {
       selectEl.style.display = "block";
-      if (selectEl.classList.contains("rx-type")) selectEl.value = "TAB";
-      else if (selectEl.classList.contains("rx-when"))
-        selectEl.value = "After Food";
-      else if (selectEl.classList.contains("rx-freq-select"))
-        selectEl.value = "1-0-1";
-      else selectEl.selectedIndex = 0;
+      selectEl.value = "";
       updateFreq(selectEl);
     }
   }
@@ -293,7 +288,8 @@ window.addPrescriptionRow = function () {
     <div class="rx-index" style="min-width: 0; font-size: 11px; font-weight: 700; color: #64748b; text-align: center;">${count}</div>
     <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
       <select class="input rx-type" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; font-weight: 600; background: white; width: 100%; box-sizing: border-box;">
-        <option value="TAB" selected>TAB</option>
+        <option value="" selected></option>
+        <option value="TAB">TAB</option>
         <option value="CAP">CAP</option>
         <option value="SYP">SYP</option>
         <option value="INJ">INJ</option>
@@ -322,8 +318,8 @@ window.addPrescriptionRow = function () {
     </div>
     <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
       <select class="input rx-when" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; background: white; width: 100%; box-sizing: border-box;">
-        <option value="">-- When --</option>
-        <option value="After Food" selected>After Food</option>
+        <option value="" selected></option>
+        <option value="After Food">After Food</option>
         <option value="Before Food">Before Food</option>
         <option value="With Food">With Food</option>
         <option value="Empty Stomach">Empty Stomach</option>
@@ -338,8 +334,8 @@ window.addPrescriptionRow = function () {
     </div>
     <div class="rx-dropdown-wrap" style="min-width: 0; position: relative;">
       <select class="input rx-freq-select" onchange="handleOtherToggle(this)" style="min-width: 0; height: 32px; padding: 4px 2px 4px 4px; font-size: 11.5px; background: white; width: 100%; box-sizing: border-box;">
-        <option value="">-- Freq --</option>
-        <option value="1-0-1" selected>1-0-1</option>
+        <option value="" selected></option>
+        <option value="1-0-1">1-0-1</option>
         <option value="1-1-1">1-1-1</option>
         <option value="1-0-0">1-0-0</option>
         <option value="0-0-1">0-0-1</option>
@@ -434,7 +430,7 @@ function populatePrescriptionPad(prescriptions) {
         if (typeCustom) typeCustom.value = prefixMatch[1].toUpperCase();
         name = prefixMatch[2];
       } else {
-        if (typeSelect) typeSelect.value = "TAB";
+        if (typeSelect) typeSelect.value = "";
       }
     }
 
@@ -527,7 +523,7 @@ function populatePrescriptionPad(prescriptions) {
         if (whenCustom) whenCustom.value = detectedWhen;
       }
     } else {
-      if (whenSelect) whenSelect.value = "After Food";
+      if (whenSelect) whenSelect.value = "";
     }
 
     const freqSelect = row.querySelector(".rx-freq-select");
@@ -538,7 +534,7 @@ function populatePrescriptionPad(prescriptions) {
     if (detectedFreq) {
       if (freqSelect) freqSelect.value = detectedFreq;
     } else {
-      if (freqSelect) freqSelect.value = "1-0-1";
+      if (freqSelect) freqSelect.value = "";
     }
 
     if (row.querySelector(".rx-days"))
