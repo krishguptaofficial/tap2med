@@ -274,7 +274,10 @@
 .rx-table-header,
 .prescription-row {
   display: grid !important;
-  grid-template-columns: 22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
+  grid-template-columns: 22px 64px minmax(
+      100px,
+      2fr
+    ) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
   gap: 5px !important;
   width: 100% !important;
   min-width: 0 !important;
