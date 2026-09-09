@@ -307,6 +307,7 @@ class ClinicSettingsPayload(BaseModel):
     address: str = ""
     extra_notes: str = ""
     save_patient_phone: bool = False
+    print_header: bool = True
 
 @router.put("/{clinic_id}/preferences")
 def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db: Session = Depends(get_db)):
@@ -323,6 +324,7 @@ def update_preferences(clinic_id: uuid.UUID, payload: ClinicSettingsPayload, db:
         clinic.address = payload.address
         clinic.extra_notes = payload.extra_notes
         clinic.save_patient_phone = payload.save_patient_phone
+        clinic.print_header = payload.print_header
         
         db.commit()
         return {"status": "success"}

@@ -147,7 +147,8 @@ def lookup_patient(payload: LookupRequest, db: Session = Depends(get_db)):
         local_token = hashing.generate_local_token(payload.phone, payload.member_id, str(clinic.clinic_salt))
 
         record = db.query(models.ClinicPatientRecord).filter(
-            models.ClinicPatientRecord.clinic_id == payload.clinic_id, models.ClinicPatientRecord.local_token == local_token
+            models.ClinicPatientRecord.clinic_id == payload.clinic_id, 
+            models.ClinicPatientRecord.local_token == local_token
         ).first()
 
         if record:

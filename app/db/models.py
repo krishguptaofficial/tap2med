@@ -34,6 +34,7 @@ class Clinic(Base):
     address = Column(Text, nullable=True)
     extra_notes = Column(Text, nullable=True)
     save_patient_phone = Column(Boolean, nullable=False, default=False)
+    print_header = Column(Boolean, nullable=False, default=True)
     
 class EmailVerification(Base):
     __tablename__ = "email_verifications"

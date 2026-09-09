@@ -427,6 +427,11 @@
       document.getElementById("doc-extra").value = data.extra_notes || "";
       const phoneToggle = document.getElementById("save-patient-phone-toggle");
       phoneToggle.checked = data.save_patient_phone || false;
+      if (data.print_header !== false) {
+        document.getElementById("print-header-toggle").checked = true;
+      } else {
+        document.getElementById("hide-header-toggle").checked = true;
+      }
       updatePhoneStatusText(phoneToggle.checked);
      }
     } catch (e) {
@@ -444,6 +449,7 @@
      address: document.getElementById("doc-address").value.trim(),
      extra_notes: document.getElementById("doc-extra").value.trim(),
      save_patient_phone: document.getElementById("save-patient-phone-toggle").checked,
+     print_header: document.getElementById("print-header-toggle").checked,
     };
 
     status.textContent = "Saving...";

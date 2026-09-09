@@ -1,66 +1,67 @@
 class PrintEngine {
- static setupContainer() {
-  let container = document.getElementById("tap2med-print-container");
-  if (!container) {
-   container = document.createElement("div");
-   container.id = "tap2med-print-container";
-   container.className = "print-only";
-   document.body.appendChild(container);
-  }
-  return container;
- }
-
- static async printRx(data) {
-  const container = this.setupContainer();
-
-  // Dynamically fetch clinic preferences for the header (qualifications, address, extra_notes)
-  const clinicId = localStorage.getItem("tap2med_clinic_id");
-  let prefs = {};
-  if (clinicId) {
-   try {
-    const res = await fetch(`/api/clinics/${clinicId}/preferences`);
-    if (res.ok) {
-     prefs = await res.json();
+  static setupContainer() {
+    let container = document.getElementById("tap2med-print-container");
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "tap2med-print-container";
+      container.className = "print-only";
+      document.body.appendChild(container);
     }
-   } catch (e) {
-    console.error("Failed to fetch clinic preferences for print", e);
-   }
+    return container;
   }
 
-  // Merge fetched preferences with the provided data (data overrides prefs)
-  data.qualifications = data.qualifications || prefs.qualifications || "";
-  data.address = data.address || prefs.address || "";
-  data.extra_notes = data.extra_notes || prefs.extra_notes || "";
+  static async printRx(data) {
+    const container = this.setupContainer();
 
-  let medsHtml = "";
-  if (data.prescriptions && data.prescriptions.length> 0) {
-   data.prescriptions.forEach((med, index) => {
-    let fullInstructions = med.instructions || "";
-    let dosageText = med.dosage || "";
-    let remarksText = "";
-
-    // If dosage is not explicitly provided, extract from merged instructions
-    if (!dosageText) {
-     if (fullInstructions.includes(" | ")) {
-      const parts = fullInstructions.split(" | ");
-      dosageText = parts[0].trim();
-      remarksText = parts.slice(1).join(" | ").trim();
-     } else if (fullInstructions.includes(" for ")) {
-      dosageText = fullInstructions.trim();
-     } else {
-      remarksText = fullInstructions.trim();
-     }
-    } else {
-     remarksText = fullInstructions.trim();
-     if (med.duration) {
-      dosageText += ` for ${med.duration}`;
-     }
+    // Dynamically fetch clinic preferences for the header (qualifications, address, extra_notes)
+    const clinicId = localStorage.getItem("tap2med_clinic_id");
+    let prefs = {};
+    if (clinicId) {
+      try {
+        const res = await fetch(`/api/clinics/${clinicId}/preferences`);
+        if (res.ok) {
+          prefs = await res.json();
+        }
+      } catch (e) {
+        console.error("Failed to fetch clinic preferences for print", e);
+      }
     }
 
-    if (!dosageText) dosageText = "--";
-    if (!remarksText) remarksText = "As directed";
+    // Merge fetched preferences with the provided data (data overrides prefs)
+    data.qualifications = data.qualifications || prefs.qualifications || "";
+    data.address = data.address || prefs.address || "";
+    data.extra_notes = data.extra_notes || prefs.extra_notes || "";
+    const printHeader = prefs.print_header !== false;
 
-    medsHtml += `
+    let medsHtml = "";
+    if (data.prescriptions && data.prescriptions.length > 0) {
+      data.prescriptions.forEach((med, index) => {
+        let fullInstructions = med.instructions || "";
+        let dosageText = med.dosage || "";
+        let remarksText = "";
+
+        // If dosage is not explicitly provided, extract from merged instructions
+        if (!dosageText) {
+          if (fullInstructions.includes(" | ")) {
+            const parts = fullInstructions.split(" | ");
+            dosageText = parts[0].trim();
+            remarksText = parts.slice(1).join(" | ").trim();
+          } else if (fullInstructions.includes(" for ")) {
+            dosageText = fullInstructions.trim();
+          } else {
+            remarksText = fullInstructions.trim();
+          }
+        } else {
+          remarksText = fullInstructions.trim();
+          if (med.duration) {
+            dosageText += ` for ${med.duration}`;
+          }
+        }
+
+        if (!dosageText) dosageText = "--";
+        if (!remarksText) remarksText = "As directed";
+
+        medsHtml += `
           <tr style="border-bottom: 1px solid #cbd5e1;">
             <td style="padding: 10px 5px;">
               ${index + 1}) <strong>${med.name.toUpperCase()}</strong>
@@ -69,20 +70,20 @@ class PrintEngine {
             <td style="padding: 10px 5px;">${remarksText}</td>
           </tr>
         `;
-   });
-  }
+      });
+    }
 
-  const vitalsHtml = data.vitals
-   ? `<div style="display: flex; gap: 20px; font-size: 13px; font-weight: 600; margin-bottom: 8px;">${data.vitals}</div>`
-   : "";
-  const diagnosisHtml = data.diagnosis
-   ? `<div style="font-size: 14px; font-weight: 700; font-style: italic;">Diagnosis: ${data.diagnosis.toUpperCase()}</div>`
-   : "";
-  const complaintsHtml = data.complaints
-   ? `<div style="font-size: 13px; margin-bottom: 8px;">Complaints: ${data.complaints}</div>`
-   : "";
+    const vitalsHtml = data.vitals
+      ? `<div style="display: flex; gap: 20px; font-size: 13px; font-weight: 600; margin-bottom: 8px;">${data.vitals}</div>`
+      : "";
+    const diagnosisHtml = data.diagnosis
+      ? `<div style="font-size: 14px; font-weight: 700; font-style: italic;">Diagnosis: ${data.diagnosis.toUpperCase()}</div>`
+      : "";
+    const complaintsHtml = data.complaints
+      ? `<div style="font-size: 13px; margin-bottom: 8px;">Complaints: ${data.complaints}</div>`
+      : "";
 
-  container.innerHTML = `
+    container.innerHTML = `
       <style>
        @media print {
         body * { visibility: hidden; }
@@ -102,6 +103,9 @@ class PrintEngine {
        }
       </style>
       <div style="font-family: 'Inter', sans-serif; color: #0f172a; background: white; padding: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+        ${
+          printHeader
+            ? `
         <!-- Header -->
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
          <div>
@@ -117,6 +121,12 @@ class PrintEngine {
 
         <!-- Thick Primary Colored Line -->
         <div style="height: 6px; background-color: #0284c7; margin-bottom: 20px;"></div>
+        `
+            : `
+        <!-- Pre-printed Letterhead Margin Spacer -->
+        <div style="height: 140px; width: 100%;"></div>
+        `
+        }
 
         <!-- Patient Banner -->
         <div style="display: flex; justify-content: space-between; background-color: #f8fafc; padding: 10px 15px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; font-weight: 700;">
@@ -157,7 +167,7 @@ class PrintEngine {
         <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; font-size: 14px;">
           <div style="flex: 1;">
             ${data.advice ? `<div style="font-weight: 600; font-style: italic;">Advice:</div><div style="text-transform: uppercase; white-space: pre-wrap; margin-bottom: 10px;">${data.advice}</div>` : ""}
-            ${data.follow_up_days && data.follow_up_days> 0 ? `<div style="font-weight: 600;">Follow-up Date: ${new Date(Date.now() + data.follow_up_days * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} (${data.follow_up_days} Days)</div>` : ""}
+            ${data.follow_up_days && data.follow_up_days > 0 ? `<div style="font-weight: 600;">Follow-up Date: ${new Date(Date.now() + data.follow_up_days * 24 * 60 * 60 * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })} (${data.follow_up_days} Days)</div>` : ""}
           </div>
           <div style="text-align: center; width: 200px;">
             <div style="border-bottom: 1px solid #0f172a; height: 50px; margin-bottom: 8px;"></div>
@@ -172,12 +182,12 @@ class PrintEngine {
       </div>
     `;
 
-  window.print();
+    window.print();
 
-  setTimeout(() => {
-   container.innerHTML = "";
-  }, 1000);
- }
+    setTimeout(() => {
+      container.innerHTML = "";
+    }, 1000);
+  }
 }
 
 window.PrintEngine = PrintEngine;
