@@ -173,13 +173,80 @@ function updateRowNumbers() {
   });
 }
 
+window.handleOtherToggle = function (selectEl) {
+  if (selectEl.value === "__OTHER__") {
+    const wrapper = selectEl.closest(".rx-dropdown-wrap");
+    if (wrapper) {
+      const customContainer = wrapper.querySelector(".rx-custom-container");
+      const customInput = wrapper.querySelector(".rx-custom-input");
+      selectEl.style.display = "none";
+      if (customContainer) customContainer.style.display = "block";
+      if (customInput) {
+        customInput.value = "";
+        customInput.focus();
+      }
+    }
+  }
+  updateFreq(selectEl);
+};
+
+window.revertToSelect = function (btn) {
+  const wrapper = btn.closest(".rx-dropdown-wrap");
+  if (wrapper) {
+    const selectEl = wrapper.querySelector("select");
+    const customContainer = wrapper.querySelector(".rx-custom-container");
+    const customInput = wrapper.querySelector(".rx-custom-input");
+    if (customInput) customInput.value = "";
+    if (customContainer) customContainer.style.display = "none";
+    if (selectEl) {
+      selectEl.style.display = "block";
+      if (selectEl.classList.contains("rx-type")) selectEl.value = "TAB";
+      else if (selectEl.classList.contains("rx-when"))
+        selectEl.value = "After Food";
+      else if (selectEl.classList.contains("rx-freq-select"))
+        selectEl.value = "1-0-1";
+      else selectEl.selectedIndex = 0;
+      updateFreq(selectEl);
+    }
+  }
+};
+
 window.updateFreq = function (el) {
   const row = el.closest(".prescription-row");
   if (!row) return;
 
   const dose = row.querySelector(".rx-dose")?.value.trim() || "";
-  const when = row.querySelector(".rx-when")?.value || "";
-  const freq = row.querySelector(".rx-freq-select")?.value || "";
+
+  // When: custom or select
+  let when = "";
+  const whenSelect = row.querySelector(".rx-when");
+  const whenCustom = row.querySelector(".rx-when-custom");
+  if (
+    whenSelect &&
+    whenSelect.value === "__OTHER__" &&
+    whenCustom &&
+    whenCustom.value.trim()
+  ) {
+    when = whenCustom.value.trim();
+  } else if (whenSelect && whenSelect.value !== "__OTHER__") {
+    when = whenSelect.value;
+  }
+
+  // Freq: custom or select
+  let freq = "";
+  const freqSelect = row.querySelector(".rx-freq-select");
+  const freqCustom = row.querySelector(".rx-freq-custom");
+  if (
+    freqSelect &&
+    freqSelect.value === "__OTHER__" &&
+    freqCustom &&
+    freqCustom.value.trim()
+  ) {
+    freq = freqCustom.value.trim();
+  } else if (freqSelect && freqSelect.value !== "__OTHER__") {
+    freq = freqSelect.value;
+  }
+
   const days = row.querySelector(".rx-days")?.value.trim() || "";
   const remarks = row.querySelector(".rx-remarks")?.value.trim() || "";
 
@@ -221,8 +288,8 @@ window.addPrescriptionRow = function () {
 
   row.innerHTML = `
     <div class="rx-index" style="font-size: 13px; font-weight: 700; color: #64748b; text-align: center;">${count}</div>
-    <div>
-      <select class="input rx-type" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; font-weight: 600; background: white;">
+    <div class="rx-dropdown-wrap" style="position: relative;">
+      <select class="input rx-type" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; font-weight: 600; background: white; width: 100%;">
         <option value="TAB" selected>TAB</option>
         <option value="CAP">CAP</option>
         <option value="SYP">SYP</option>
@@ -237,8 +304,12 @@ window.addPrescriptionRow = function () {
         <option value="POW">POW</option>
         <option value="LOT">LOT</option>
         <option value="SACH">SACH</option>
-        <option value="OTHER">OTHER</option>
+        <option value="__OTHER__">+ Other (Type)...</option>
       </select>
+      <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
+        <input type="text" class="input rx-custom-input rx-type-custom" placeholder="e.g. PATCH" style="padding: 6px 22px 6px 6px; font-size: 12px; font-weight: 600; width: 100%;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+      </div>
     </div>
     <div>
       <input type="text" class="input rx-med" placeholder="Medicine Name" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 10px; font-size: 13px; font-weight: 600;" />
@@ -246,8 +317,8 @@ window.addPrescriptionRow = function () {
     <div>
       <input type="text" class="input rx-dose" placeholder="1" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
     </div>
-    <div>
-      <select class="input rx-when" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; background: white;">
+    <div class="rx-dropdown-wrap" style="position: relative;">
+      <select class="input rx-when" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; background: white; width: 100%;">
         <option value="">-- When --</option>
         <option value="After Food" selected>After Food</option>
         <option value="Before Food">Before Food</option>
@@ -255,10 +326,15 @@ window.addPrescriptionRow = function () {
         <option value="Empty Stomach">Empty Stomach</option>
         <option value="At Bedtime">At Bedtime</option>
         <option value="Anytime">Anytime</option>
+        <option value="__OTHER__">+ Other (Type)...</option>
       </select>
+      <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
+        <input type="text" class="input rx-custom-input rx-when-custom" placeholder="e.g. Every 4h" style="padding: 6px 22px 6px 6px; font-size: 12px; width: 100%;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+      </div>
     </div>
-    <div>
-      <select class="input rx-freq-select" onchange="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; background: white;">
+    <div class="rx-dropdown-wrap" style="position: relative;">
+      <select class="input rx-freq-select" onchange="handleOtherToggle(this)" style="padding: 6px 8px; font-size: 13px; background: white; width: 100%;">
         <option value="">-- Freq --</option>
         <option value="1-0-1" selected>1-0-1</option>
         <option value="1-1-1">1-1-1</option>
@@ -272,7 +348,12 @@ window.addPrescriptionRow = function () {
         <option value="SOS / As needed">SOS / As needed</option>
         <option value="Alternate Days">Alternate Days</option>
         <option value="Weekly">Weekly</option>
+        <option value="__OTHER__">+ Other (Type)...</option>
       </select>
+      <div class="rx-custom-container" style="display: none; width: 100%; position: relative;">
+        <input type="text" class="input rx-custom-input rx-freq-custom" placeholder="e.g. 1-0-1-1" style="padding: 6px 22px 6px 6px; font-size: 12px; width: 100%;" oninput="updateFreq(this)" />
+        <span onclick="revertToSelect(this)" title="Back to dropdown" style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #94a3b8; font-size: 11px; font-weight: bold; padding: 2px;">✕</span>
+      </div>
     </div>
     <div>
       <input type="text" class="input rx-days" placeholder="5 Days" autocomplete="off" oninput="updateFreq(this)" style="padding: 6px 8px; font-size: 13px; text-align: center;" />
@@ -315,7 +396,6 @@ function populatePrescriptionPad(prescriptions) {
     "POW",
     "LOT",
     "SACH",
-    "OTHER",
   ];
 
   prescriptions.forEach((med) => {
@@ -323,7 +403,7 @@ function populatePrescriptionPad(prescriptions) {
     const row = container.lastElementChild;
     let name = (med.name || "").trim();
 
-    let detectedType = "TAB";
+    let detectedType = null;
     for (const t of typesList) {
       const regex = new RegExp(`^${t}\\.?\\s*`, "i");
       if (regex.test(name)) {
@@ -333,8 +413,28 @@ function populatePrescriptionPad(prescriptions) {
       }
     }
 
-    if (row.querySelector(".rx-type"))
-      row.querySelector(".rx-type").value = detectedType;
+    const typeSelect = row.querySelector(".rx-type");
+    const typeWrap = typeSelect?.closest(".rx-dropdown-wrap");
+    const typeCustom = typeWrap?.querySelector(".rx-type-custom");
+    const typeCustomCont = typeWrap?.querySelector(".rx-custom-container");
+
+    if (detectedType) {
+      if (typeSelect) typeSelect.value = detectedType;
+    } else {
+      const prefixMatch = name.match(/^([A-Za-z0-9]+)\.\s*(.*)/);
+      if (prefixMatch) {
+        if (typeSelect) {
+          typeSelect.value = "__OTHER__";
+          typeSelect.style.display = "none";
+        }
+        if (typeCustomCont) typeCustomCont.style.display = "block";
+        if (typeCustom) typeCustom.value = prefixMatch[1].toUpperCase();
+        name = prefixMatch[2];
+      } else {
+        if (typeSelect) typeSelect.value = "TAB";
+      }
+    }
+
     if (row.querySelector(".rx-med")) row.querySelector(".rx-med").value = name;
 
     let fullInstructions = med.instructions || "";
@@ -398,10 +498,13 @@ function populatePrescriptionPad(prescriptions) {
 
     if (row.querySelector(".rx-dose"))
       row.querySelector(".rx-dose").value = dosage.trim();
-    if (row.querySelector(".rx-when"))
-      row.querySelector(".rx-when").value = detectedWhen || "After Food";
-    if (row.querySelector(".rx-freq-select"))
-      row.querySelector(".rx-freq-select").value = detectedFreq || "1-0-1";
+
+    const whenSelect = row.querySelector(".rx-when");
+    if (whenSelect) whenSelect.value = detectedWhen || "After Food";
+
+    const freqSelect = row.querySelector(".rx-freq-select");
+    if (freqSelect) freqSelect.value = detectedFreq || "1-0-1";
+
     if (row.querySelector(".rx-days"))
       row.querySelector(".rx-days").value = days;
     if (row.querySelector(".rx-remarks"))
@@ -896,7 +999,21 @@ async function completeVisit() {
 
   prescriptionList.querySelectorAll(".prescription-row").forEach((row) => {
     let name = row.querySelector(".rx-med")?.value.trim() || "";
-    const type = row.querySelector(".rx-type")?.value || "";
+
+    let type = "";
+    const typeSelect = row.querySelector(".rx-type");
+    const typeCustom = row.querySelector(".rx-type-custom");
+    if (
+      typeSelect &&
+      typeSelect.value === "__OTHER__" &&
+      typeCustom &&
+      typeCustom.value.trim()
+    ) {
+      type = typeCustom.value.trim();
+    } else if (typeSelect && typeSelect.value !== "__OTHER__") {
+      type = typeSelect.value;
+    }
+
     const instructions = row.querySelector(".rx-freq")?.value.trim() || "";
     if (name) {
       let prefix = type ? `${type}. ` : "";
