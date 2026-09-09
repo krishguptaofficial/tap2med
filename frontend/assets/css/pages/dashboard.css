@@ -277,7 +277,10 @@
 }
 .rx-table-header {
   display: grid !important;
-  grid-template-columns: 22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
+  grid-template-columns: 22px 64px minmax(
+      100px,
+      2fr
+    ) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
   gap: 5px !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -294,7 +297,10 @@
 }
 .prescription-row {
   display: grid !important;
-  grid-template-columns: 22px 64px minmax(100px, 2fr) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
+  grid-template-columns: 22px 64px minmax(
+      100px,
+      2fr
+    ) 44px 86px 82px 60px minmax(80px, 1.2fr) 26px !important;
   gap: 5px !important;
   width: 100% !important;
   min-width: 0 !important;
@@ -333,7 +339,9 @@
   border: 1px solid #e2e8f0 !important;
   background: #ffffff !important;
   color: #0f172a !important;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 .prescription-row .input:focus,
 .prescription-row select:focus,
