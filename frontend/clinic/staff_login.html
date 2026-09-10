@@ -1,0 +1,94 @@
+_<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Staff Login | Tap2Med</title>
+  <link rel="stylesheet" href="/assets/css/variables.css" />
+  <link rel="stylesheet" href="/assets/css/base.css" />
+  <link rel="stylesheet" href="/assets/css/forms.css" />
+  <link rel="stylesheet" href="/assets/css/buttons.css" />
+  <style>
+   .auth-wrapper { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg-canvas); padding: 20px; }
+   .auth-card { background: var(--surface-color); padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05); width: 100%; max-width: 400px; border: 1px solid var(--border-color); }
+   .brand { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-family); font-size: 24px; font-weight: 700; color: var(--primary-color); text-align: center; margin: 0 auto 10px; line-height: 1; }
+   .brand-logo { width: 42px; height: 32px; object-fit: contain; }
+   .subtitle { text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
+  </style>
+ </head>
+ <body>
+  <main class="auth-wrapper">
+   <div class="auth-card">
+    <div style="text-align: center;">
+     <div class="brand">
+      <img src="/assets/logo/tap2med_logo.png" alt="" class="brand-logo" />
+      <span>Tap2Med</span>
+     </div>
+     <div class="subtitle">Staff & Pharmacy Portal</div>
+    </div>
+    
+    <div id="message" style="margin-bottom: 15px; font-size: 14px; text-align: center; font-weight: 600;"></div>
+
+    <section class="input-group">
+     <label class="label">Username</label>
+     <input id="username" type="text" class="input" placeholder="e.g. staff_abc" />
+     
+     <label class="label" style="margin-top: 15px">4-Digit PIN</label>
+     <input id="passcode" type="password" class="input" placeholder="Enter PIN" maxlength="4" />
+     
+     <button id="btn-login" class="btn btn-primary btn-block" style="margin-top: 25px">
+      Login
+     </button>
+    </section>
+   </div>
+  </main>
+
+  <script>
+   document.getElementById("btn-login").addEventListener("click", async () => {
+    const username = document.getElementById("username").value.trim();
+    const passcode = document.getElementById("passcode").value.trim();
+    const msgBox = document.getElementById("message");
+    const btn = document.getElementById("btn-login");
+
+    if (!username || passcode.length < 4) {
+      msgBox.textContent = "Please enter username and 4-digit PIN.";
+      msgBox.style.color = "var(--error-color)";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Authenticating...";
+
+    try {
+      const res = await fetch("/api/auth/staff-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, passcode })
+      });
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.detail || "Login failed");
+      
+      // Store credentials securely in local storage
+      localStorage.setItem("tap2med_clinic_id", data.clinic_id);
+      localStorage.setItem("tap2med_staff_role", data.role);
+      
+      msgBox.textContent = "Success! Redirecting...";
+      msgBox.style.color = "var(--success-color)";
+      
+      // Route based on role
+      if (data.role === "pharmacy") {
+        window.location.href = "/pharmacy";
+      } else {
+        window.location.href = "/staff-dashboard";
+      }
+    } catch (e) {
+      msgBox.textContent = e.message;
+      msgBox.style.color = "var(--error-color)";
+      btn.disabled = false;
+      btn.textContent = "Login";
+    }
+   });
+  </script>
+ </body>
+</html>

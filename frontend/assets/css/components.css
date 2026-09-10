@@ -1,0 +1,68 @@
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-4);
+}
+
+.card-title {
+    font-size: var(--text-lg);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+
+
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background: var(--color-border);
+}
+
+
+
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+}
+
+.badge-success {
+    color: var(--color-success);
+    background: rgba(22, 163, 74, 0.12);
+}
+
+.badge-warning {
+    color: var(--color-warning);
+    background: rgba(234, 88, 12, 0.12);
+}
+
+.badge-danger {
+    color: var(--color-danger);
+    background: rgba(220, 38, 38, 0.12);
+}
+
+.badge-info {
+    color: var(--color-info);
+    background: rgba(2, 132, 199, 0.12);
+}

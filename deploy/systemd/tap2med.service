@@ -1,0 +1,30 @@
+[Unit]
+Description=Tap2Med FastAPI Backend
+After=network.target
+
+[Service]
+User=krish
+Group=krish
+
+WorkingDirectory=/home/krish/tap2med
+
+Environment="PATH=/home/krish/tap2med/venv/bin"
+
+ExecStart=/home/krish/tap2med/venv/bin/gunicorn \
+    --workers 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --bind 127.0.0.1:8000 \
+    app.main:app
+
+Restart=always
+RestartSec=5
+
+# Give Gunicorn time to shut down gracefully
+TimeoutStopSec=30
+
+# Logs go to journalctl
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
