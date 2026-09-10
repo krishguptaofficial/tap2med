@@ -109,17 +109,8 @@ class PrintEngine {
         let doseQty = dosageText.trim();
 
         // Build clean display strings
-        let freqDisplay = "";
-        if (doseQty && freqText) {
-          freqDisplay = `${freqText} (${doseQty})`;
-        } else if (freqText) {
-          freqDisplay = freqText;
-        } else if (doseQty) {
-          freqDisplay = doseQty;
-        } else {
-          freqDisplay = "--";
-        }
-
+        let doseDisplay = doseQty || "--";
+        let freqDisplay = freqText || "--";
         let whenDisplay = whenText || "--";
         let durationDisplay = durationText || "--";
         let remarksDisplay = remarksText || "";
@@ -132,13 +123,16 @@ class PrintEngine {
             <td style="padding: 8px 8px; vertical-align: middle;">
               <strong style="color: #0f172a; font-size: 13px;">${med.name.toUpperCase()}</strong>
             </td>
-            <td style="padding: 8px 8px; font-weight: 600; color: #0284c7; vertical-align: middle;">
-              ${freqDisplay}
+            <td style="padding: 8px 8px; text-align: center; font-weight: 600; color: #0f172a; vertical-align: middle;">
+              ${doseDisplay}
             </td>
             <td style="padding: 8px 8px; color: #334155; vertical-align: middle;">
               ${whenDisplay}
             </td>
-            <td style="padding: 8px 8px; color: #334155; font-weight: 500; vertical-align: middle;">
+            <td style="padding: 8px 8px; text-align: center; font-weight: 600; color: #0284c7; vertical-align: middle;">
+              ${freqDisplay}
+            </td>
+            <td style="padding: 8px 8px; text-align: center; color: #334155; font-weight: 500; vertical-align: middle;">
               ${durationDisplay}
             </td>
             <td style="padding: 8px 8px; color: #475569; vertical-align: middle;">
@@ -228,14 +222,15 @@ class PrintEngine {
           <tr style="border-top: 1.5px solid #0f172a; border-bottom: 1.5px solid #0f172a; background-color: #f8fafc;">
            <th style="padding: 8px 6px; font-weight: 700; width: 26px; text-align: center; color: #1e293b;">#</th>
            <th style="padding: 8px 8px; font-weight: 700; color: #1e293b;">Medicine</th>
-           <th style="padding: 8px 8px; font-weight: 700; width: 16%; color: #1e293b;">Frequency</th>
-           <th style="padding: 8px 8px; font-weight: 700; width: 16%; color: #1e293b;">When</th>
-           <th style="padding: 8px 8px; font-weight: 700; width: 14%; color: #1e293b;">Duration</th>
-           <th style="padding: 8px 8px; font-weight: 700; width: 20%; color: #1e293b;">Instructions</th>
+           <th style="padding: 8px 8px; font-weight: 700; width: 12%; text-align: center; color: #1e293b;">Dosage</th>
+           <th style="padding: 8px 8px; font-weight: 700; width: 15%; color: #1e293b;">When</th>
+           <th style="padding: 8px 8px; font-weight: 700; width: 13%; text-align: center; color: #1e293b;">Frequency</th>
+           <th style="padding: 8px 8px; font-weight: 700; width: 12%; text-align: center; color: #1e293b;">Duration</th>
+           <th style="padding: 8px 8px; font-weight: 700; width: 18%; color: #1e293b;">Instructions</th>
           </tr>
          </thead>
          <tbody>
-          ${medsHtml || '<tr><td colspan="6" style="padding: 12px; text-align: center; color: #64748b;">No medicines prescribed</td></tr>'}
+          ${medsHtml || '<tr><td colspan="7" style="padding: 12px; text-align: center; color: #64748b;">No medicines prescribed</td></tr>'}
          </tbody>
         </table>
 
