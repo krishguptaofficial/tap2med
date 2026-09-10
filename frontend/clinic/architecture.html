@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tap2Med — Security Architecture</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Tap2Med — Architecture</title>
     <style>
       *,
       *::before,
@@ -12,1884 +12,1000 @@
         margin: 0;
         padding: 0;
       }
-
-      :root {
-        --blue: #0ea5e9;
-        --indigo: #6366f1;
-        --green: #10b981;
-        --amber: #f59e0b;
-        --red: #ef4444;
-        --purple: #a855f7;
-        --cyan: #06b6d4;
-        --bg: #0a0e1a;
-        --surface: #111827;
-        --card: #1a2235;
-        --border: #1e2d45;
-        --text: #e2e8f0;
-        --muted: #64748b;
-        --radius: 12px;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
+      html,
       body {
-        font-family:
-          "Segoe UI",
-          system-ui,
-          -apple-system,
-          sans-serif;
-        background: var(--bg);
-        color: var(--text);
-        line-height: 1.6;
-        overflow-x: hidden;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05080f;
+        font-family: "Segoe UI", system-ui, sans-serif;
       }
 
-      /* ── BACKGROUND GRID ── */
-      body::before {
-        content: "";
+      canvas#bg {
         position: fixed;
         inset: 0;
-        background-image:
-          linear-gradient(rgba(14, 165, 233, 0.03) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(14, 165, 233, 0.03) 1px, transparent 1px);
-        background-size: 40px 40px;
-        pointer-events: none;
         z-index: 0;
+        pointer-events: none;
+      }
+      canvas#flow {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
       }
 
-      /* ── NAV ── */
-      nav {
+      #stage {
+        position: relative;
+        z-index: 2;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* ── TOP BAR ── */
+      #topbar {
         position: fixed;
         top: 0;
         left: 0;
         right: 0;
-        z-index: 100;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 40px;
-        height: 64px;
-        background: rgba(10, 14, 26, 0.85);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border);
+        padding: 0 32px;
+        height: 56px;
+        background: rgba(5, 8, 15, 0.8);
+        backdrop-filter: blur(16px);
+        border-bottom: 1px solid rgba(14, 165, 233, 0.15);
+        z-index: 10;
       }
-
-      .nav-logo {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--blue);
-        letter-spacing: -0.3px;
-      }
-
-      .nav-logo span {
-        color: var(--text);
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 8px;
-        list-style: none;
-      }
-
-      .nav-links a {
-        color: var(--muted);
-        text-decoration: none;
-        font-size: 0.85rem;
-        padding: 6px 14px;
-        border-radius: 6px;
-        transition:
-          color 0.2s,
-          background 0.2s;
-      }
-
-      .nav-links a:hover {
-        color: var(--text);
-        background: var(--card);
-      }
-
-      .badge-live {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(16, 185, 129, 0.12);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-      }
-
-      .badge-live::before {
-        content: "";
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--green);
-        animation: pulse-dot 1.5s ease-in-out infinite;
-      }
-
-      @keyframes pulse-dot {
-        0%,
-        100% {
-          opacity: 1;
-          transform: scale(1);
-        }
-        50% {
-          opacity: 0.5;
-          transform: scale(0.8);
-        }
-      }
-
-      /* ── SECTIONS ── */
-      section {
-        position: relative;
-        z-index: 1;
-        padding: 80px 40px;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      section:first-of-type {
-        padding-top: 120px;
-      }
-
-      .section-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: var(--blue);
-        margin-bottom: 16px;
-      }
-
-      .section-label::before {
-        content: "";
-        width: 20px;
-        height: 2px;
-        background: var(--blue);
-      }
-
-      h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        font-weight: 800;
-        line-height: 1.1;
-        letter-spacing: -1px;
-        margin-bottom: 20px;
-      }
-
-      h2 {
-        font-size: clamp(1.4rem, 3vw, 2rem);
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 8px;
-      }
-
-      .gradient-text {
-        background: linear-gradient(135deg, var(--blue) 0%, var(--purple) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-      }
-
-      .subtitle {
-        font-size: 1.1rem;
-        color: var(--muted);
-        max-width: 640px;
-        margin-bottom: 48px;
-      }
-
-      /* ── HERO STATS ── */
-      .hero-stats {
-        display: flex;
-        gap: 32px;
-        flex-wrap: wrap;
-        margin-bottom: 64px;
-      }
-
-      .stat-pill {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        padding: 10px 20px;
-        border-radius: 40px;
-      }
-
-      .stat-pill .icon {
-        font-size: 1.1rem;
-      }
-      .stat-pill .val {
-        font-weight: 700;
+      .logo {
         font-size: 1rem;
-        color: var(--text);
+        font-weight: 800;
+        color: #0ea5e9;
+        letter-spacing: -0.5px;
       }
-      .stat-pill .key {
-        font-size: 0.8rem;
-        color: var(--muted);
+      .logo span {
+        color: #94a3b8;
       }
-
-      /* ── CRYPTO FLOW ── */
-      .crypto-flow {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-        margin-top: 40px;
-      }
-
-      .flow-step {
-        display: grid;
-        grid-template-columns: 200px 1fr;
-        gap: 24px;
-        align-items: start;
-        padding: 32px 0;
-        border-bottom: 1px solid var(--border);
-        opacity: 0;
-        transform: translateY(20px);
-        transition:
-          opacity 0.5s ease,
-          transform 0.5s ease;
-      }
-
-      .flow-step.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .flow-step:last-child {
-        border-bottom: none;
-      }
-
-      .step-left {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        padding-top: 4px;
-      }
-
-      .step-number {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        font-weight: 700;
-      }
-
-      .step-label {
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-
-      .step-right {
-      }
-
-      .step-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-      }
-
-      .step-desc {
-        font-size: 0.88rem;
-        color: var(--muted);
-        margin-bottom: 16px;
-        max-width: 560px;
-      }
-
-      /* ── CODE BLOCK ── */
-      .code-block {
-        background: #0d1117;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 20px 24px;
-        font-family: "Cascadia Code", "Fira Code", "Courier New", monospace;
-        font-size: 0.82rem;
-        line-height: 1.8;
-        overflow-x: auto;
-        position: relative;
-      }
-
-      .code-block .comment {
-        color: #6e7681;
-      }
-      .code-block .keyword {
-        color: #ff7b72;
-      }
-      .code-block .fn {
-        color: #d2a8ff;
-      }
-      .code-block .str {
-        color: #a5d6ff;
-      }
-      .code-block .var {
-        color: #79c0ff;
-      }
-      .code-block .op {
-        color: #ff7b72;
-      }
-      .code-block .num {
-        color: #f8c555;
-      }
-      .code-block .arrow {
-        color: var(--green);
-      }
-      .code-block .result {
-        color: var(--green);
-        font-weight: 600;
-      }
-
-      /* ── VISUAL TOKEN DEMO ── */
-      .token-demo {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 24px;
-        margin-top: 16px;
-      }
-
-      .token-demo-label {
+      .tagline {
         font-size: 0.72rem;
-        font-weight: 700;
+        color: #334155;
         text-transform: uppercase;
-        letter-spacing: 1px;
-        color: var(--muted);
-        margin-bottom: 12px;
+        letter-spacing: 2px;
       }
-
-      .token-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 10px;
-        flex-wrap: wrap;
-      }
-
-      .token-row:last-child {
-        margin-bottom: 0;
-      }
-
-      .token-label {
-        font-size: 0.78rem;
-        color: var(--muted);
-        width: 130px;
-        flex-shrink: 0;
-      }
-
-      .token-value {
-        font-family: "Cascadia Code", monospace;
-        font-size: 0.75rem;
-        padding: 4px 10px;
-        border-radius: 6px;
+      .btn-sim {
+        background: linear-gradient(135deg, #0ea5e9, #6366f1);
+        border: none;
+        color: #fff;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 0 20px rgba(14, 165, 233, 0.3);
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
         letter-spacing: 0.3px;
       }
-
-      .token-input {
-        background: rgba(14, 165, 233, 0.1);
-        color: var(--blue);
-        border: 1px solid rgba(14, 165, 233, 0.3);
+      .btn-sim:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 32px rgba(14, 165, 233, 0.5);
       }
-      .token-hash {
-        background: rgba(168, 85, 247, 0.1);
-        color: var(--purple);
-        border: 1px solid rgba(168, 85, 247, 0.3);
-      }
-      .token-local {
-        background: rgba(16, 185, 129, 0.1);
-        color: var(--green);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-      .token-net {
-        background: rgba(245, 158, 11, 0.1);
-        color: var(--amber);
-        border: 1px solid rgba(245, 158, 11, 0.3);
-      }
-      .token-never {
-        background: rgba(239, 68, 68, 0.1);
-        color: var(--red);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-        text-decoration: line-through;
+      .btn-sim:active {
+        transform: scale(0.97);
       }
 
-      .arrow-right {
-        color: var(--muted);
-        font-size: 1rem;
-      }
-
-      /* ── DATABASE SCHEMA ── */
-      .schema-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 20px;
-        margin-top: 40px;
-      }
-
-      .db-table {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(16px);
-        transition:
-          opacity 0.5s ease,
-          transform 0.5s ease,
-          border-color 0.2s;
-      }
-
-      .db-table:hover {
-        border-color: var(--blue);
-      }
-      .db-table.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .db-table-header {
-        padding: 12px 16px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        border-bottom: 1px solid var(--border);
-      }
-
-      .db-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.9rem;
-      }
-
-      .db-table-name {
-        font-size: 0.85rem;
-        font-weight: 700;
-        font-family: monospace;
-        color: var(--text);
-      }
-
-      .db-fields {
-        padding: 8px 0;
-      }
-
-      .db-field {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 6px 16px;
-        transition: background 0.15s;
-      }
-
-      .db-field:hover {
-        background: rgba(255, 255, 255, 0.03);
-      }
-
-      .db-field-name {
-        font-family: monospace;
-        font-size: 0.78rem;
-        color: var(--text);
-      }
-
-      .db-field-name.pk {
-        color: var(--amber);
-      }
-      .db-field-name.fk {
-        color: var(--blue);
-      }
-      .db-field-name.secure {
-        color: var(--green);
-      }
-      .db-field-name.computed {
-        color: var(--purple);
-      }
-
-      .db-field-type {
-        font-family: monospace;
-        font-size: 0.72rem;
-        color: var(--muted);
-        padding: 2px 6px;
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 4px;
-      }
-
-      .field-tag {
-        font-size: 0.62rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        padding: 1px 5px;
-        border-radius: 3px;
-        margin-left: 4px;
-      }
-
-      .tag-pk {
-        background: rgba(245, 158, 11, 0.15);
-        color: var(--amber);
-      }
-      .tag-fk {
-        background: rgba(14, 165, 233, 0.15);
-        color: var(--blue);
-      }
-      .tag-enc {
-        background: rgba(16, 185, 129, 0.15);
-        color: var(--green);
-      }
-      .tag-idx {
-        background: rgba(100, 116, 139, 0.15);
-        color: var(--muted);
-      }
-
-      /* ── SECURITY LAYERS ── */
-      .layers-stack {
+      /* ── NODES ── */
+      .node {
+        position: absolute;
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        margin-top: 40px;
-      }
-
-      .layer-card {
-        display: grid;
-        grid-template-columns: 56px 1fr auto;
         align-items: center;
-        gap: 20px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px 24px;
-        cursor: pointer;
-        transition:
-          border-color 0.2s,
-          transform 0.2s;
-        opacity: 0;
-        transform: translateX(-20px);
+        transform: translate(-50%, -50%);
+        cursor: default;
+        transition: transform 0.2s;
+      }
+      .node:hover {
+        transform: translate(-50%, -50%) scale(1.06);
       }
 
-      .layer-card:hover {
-        border-color: var(--blue);
-        transform: translateX(4px);
-      }
-      .layer-card.visible {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
-      .layer-num {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 1.1rem;
-      }
-
-      .layer-body {
-      }
-
-      .layer-title {
-        font-weight: 700;
-        font-size: 0.95rem;
-        margin-bottom: 2px;
-      }
-
-      .layer-detail {
-        font-size: 0.82rem;
-        color: var(--muted);
-      }
-
-      .layer-tech {
-        font-family: monospace;
-        font-size: 0.75rem;
-        padding: 4px 10px;
-        border-radius: 6px;
-        white-space: nowrap;
-      }
-
-      /* ── FUTURE SCOPE ── */
-      .future-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 24px;
-        margin-top: 40px;
-      }
-
-      @media (max-width: 768px) {
-        .future-grid {
-          grid-template-columns: 1fr;
-        }
-        section {
-          padding: 60px 20px;
-        }
-        .flow-step {
-          grid-template-columns: 1fr;
-        }
-        nav {
-          padding: 0 20px;
-        }
-        .nav-links {
-          display: none;
-        }
-      }
-
-      .future-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 28px;
+      .node-card {
+        background: rgba(15, 23, 42, 0.85);
+        border-radius: 16px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        text-align: center;
+        min-width: 110px;
         position: relative;
         overflow: hidden;
-        opacity: 0;
-        transform: translateY(20px);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
         transition:
-          opacity 0.5s ease,
-          transform 0.5s ease,
-          border-color 0.2s;
+          border-color 0.3s,
+          box-shadow 0.3s;
       }
 
-      .future-card:hover {
-        border-color: var(--purple);
-      }
-      .future-card.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .future-card::before {
+      .node-card::before {
         content: "";
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 2px;
+        inset: 0;
+        border-radius: 16px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.04),
+          transparent
+        );
+        pointer-events: none;
       }
 
-      .future-card.purple::before {
-        background: linear-gradient(90deg, var(--purple), var(--indigo));
-      }
-      .future-card.green::before {
-        background: linear-gradient(90deg, var(--green), var(--cyan));
-      }
-      .future-card.amber::before {
-        background: linear-gradient(90deg, var(--amber), var(--red));
-      }
-      .future-card.blue::before {
-        background: linear-gradient(90deg, var(--blue), var(--indigo));
+      .node.active .node-card {
+        animation: node-pulse 0.4s ease-out;
       }
 
-      .future-icon {
-        font-size: 2rem;
-        margin-bottom: 16px;
+      @keyframes node-pulse {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.08);
+        }
+        100% {
+          transform: scale(1);
+        }
       }
 
-      .future-title {
-        font-size: 1rem;
-        font-weight: 700;
-        margin-bottom: 8px;
+      .node-icon {
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+        display: block;
       }
-
-      .future-desc {
-        font-size: 0.85rem;
-        color: var(--muted);
-        line-height: 1.7;
-      }
-
-      .future-tag {
-        display: inline-block;
-        margin-top: 14px;
+      .node-title {
         font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.8px;
+        color: #e2e8f0;
+        margin-bottom: 2px;
+      }
+      .node-sub {
+        font-size: 0.63rem;
+        color: #475569;
+        letter-spacing: 0.3px;
+      }
+
+      /* color accents per type */
+      .node[data-type="patient"] .node-card {
+        border-color: rgba(14, 165, 233, 0.4);
+        box-shadow: 0 4px 32px rgba(14, 165, 233, 0.15);
+      }
+      .node[data-type="scan"] .node-card {
+        border-color: rgba(99, 102, 241, 0.4);
+        box-shadow: 0 4px 32px rgba(99, 102, 241, 0.15);
+      }
+      .node[data-type="api"] .node-card {
+        border-color: rgba(245, 158, 11, 0.4);
+        box-shadow: 0 4px 32px rgba(245, 158, 11, 0.15);
+      }
+      .node[data-type="hmac"] .node-card {
+        border-color: rgba(168, 85, 247, 0.5);
+        box-shadow: 0 4px 40px rgba(168, 85, 247, 0.25);
+      }
+      .node[data-type="rate"] .node-card {
+        border-color: rgba(239, 68, 68, 0.4);
+        box-shadow: 0 4px 32px rgba(239, 68, 68, 0.15);
+      }
+      .node[data-type="auth"] .node-card {
+        border-color: rgba(16, 185, 129, 0.4);
+        box-shadow: 0 4px 32px rgba(16, 185, 129, 0.15);
+      }
+      .node[data-type="db"] .node-card {
+        border-color: rgba(6, 182, 212, 0.4);
+        box-shadow: 0 4px 40px rgba(6, 182, 212, 0.25);
+      }
+      .node[data-type="doctor"] .node-card {
+        border-color: rgba(14, 165, 233, 0.35);
+        box-shadow: 0 4px 24px rgba(14, 165, 233, 0.1);
+      }
+      .node[data-type="staff"] .node-card {
+        border-color: rgba(99, 102, 241, 0.35);
+        box-shadow: 0 4px 24px rgba(99, 102, 241, 0.1);
+      }
+      .node[data-type="pharmacy"] .node-card {
+        border-color: rgba(16, 185, 129, 0.35);
+        box-shadow: 0 4px 24px rgba(16, 185, 129, 0.1);
+      }
+
+      /* glow ring */
+      .node-ring {
+        position: absolute;
+        inset: -8px;
+        border-radius: 22px;
+        border: 1px solid transparent;
+        pointer-events: none;
+        animation: none;
+      }
+      .node.active .node-ring {
+        animation: ring-expand 0.5s ease-out forwards;
+      }
+      @keyframes ring-expand {
+        0% {
+          inset: -4px;
+          opacity: 0.9;
+          border-color: inherit;
+        }
+        100% {
+          inset: -18px;
+          opacity: 0;
+          border-color: inherit;
+        }
+      }
+
+      /* ── LABELS ── */
+      .edge-label {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
         padding: 3px 8px;
-        border-radius: 4px;
+        border-radius: 6px;
+        pointer-events: none;
+        z-index: 3;
+        opacity: 0.85;
       }
 
-      .tag-roadmap {
-        background: rgba(168, 85, 247, 0.15);
-        color: var(--purple);
-      }
-      .tag-wip {
-        background: rgba(245, 158, 11, 0.15);
-        color: var(--amber);
-      }
-      .tag-research {
-        background: rgba(14, 165, 233, 0.15);
-        color: var(--blue);
-      }
-
-      /* ── ZKP VISUAL ── */
-      .zkp-visual {
-        background: #0d1117;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 16px;
-        font-family: monospace;
-        font-size: 0.78rem;
-        line-height: 1.9;
-      }
-
-      .zkp-line {
-        display: flex;
-        align-items: baseline;
-        gap: 8px;
-      }
-      .zkp-client {
-        color: var(--blue);
-      }
-      .zkp-server {
-        color: var(--purple);
-      }
-      .zkp-db {
-        color: var(--muted);
-      }
-      .zkp-arrow {
-        color: var(--green);
-      }
-      .zkp-lock {
-        color: var(--amber);
-      }
-
-      /* ── FOOTER ── */
-      footer {
-        text-align: center;
-        padding: 40px;
-        color: var(--muted);
-        font-size: 0.82rem;
-        border-top: 1px solid var(--border);
-        position: relative;
-        z-index: 1;
-      }
-
-      footer strong {
-        color: var(--blue);
-      }
-
-      /* ── ANIMATED HASH DISPLAY ── */
-      .live-hash-demo {
-        background: #0d1117;
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 20px;
-        margin-top: 16px;
-      }
-
-      .hash-input-row {
+      /* ── STATS BAR ── */
+      #statsbar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 16px;
+        justify-content: center;
+        gap: 48px;
+        padding: 12px 32px;
+        height: 52px;
+        background: rgba(5, 8, 15, 0.85);
+        backdrop-filter: blur(16px);
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+        z-index: 10;
       }
-
-      .hash-label {
-        font-size: 0.78rem;
-        color: var(--muted);
-        width: 90px;
-        flex-shrink: 0;
-      }
-
-      .hash-input {
-        flex: 1;
-        background: rgba(14, 165, 233, 0.08);
-        border: 1px solid rgba(14, 165, 233, 0.25);
-        border-radius: 6px;
-        padding: 7px 12px;
-        color: var(--blue);
-        font-family: monospace;
-        font-size: 0.82rem;
-        outline: none;
-      }
-
-      .hash-input:focus {
-        border-color: var(--blue);
-      }
-
-      .hash-output-row {
+      .stat {
         display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        margin-bottom: 10px;
+        align-items: center;
+        gap: 10px;
+      }
+      .stat-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .stat-val {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #e2e8f0;
+      }
+      .stat-key {
+        font-size: 0.7rem;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
       }
 
-      .hash-output-label {
-        font-size: 0.72rem;
-        color: var(--muted);
-        width: 90px;
-        flex-shrink: 0;
-        padding-top: 4px;
-      }
-
-      .hash-output-val {
-        flex: 1;
-        font-family: monospace;
-        font-size: 0.75rem;
-        word-break: break-all;
-        padding: 8px 12px;
-        border-radius: 6px;
-        min-height: 36px;
-      }
-
-      .hash-never {
-        background: rgba(239, 68, 68, 0.08);
-        color: var(--muted);
-        border: 1px solid rgba(239, 68, 68, 0.15);
-        font-size: 0.75rem;
-        font-style: italic;
-        padding: 8px 12px;
-        border-radius: 6px;
-      }
-
-      .section-divider {
-        max-width: 1200px;
-        margin: 0 auto;
-        border: none;
-        border-top: 1px solid var(--border);
-      }
-
-      /* ── SCROLL PROGRESS ── */
-      .progress-bar {
+      /* ── HASH TOOLTIP ── */
+      #hashtooltip {
         position: fixed;
-        top: 64px;
-        left: 0;
-        height: 3px;
-        background: linear-gradient(90deg, var(--blue), var(--purple));
-        z-index: 99;
-        transition: width 0.1s;
+        background: rgba(10, 14, 26, 0.97);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        border-radius: 12px;
+        padding: 16px 20px;
+        font-family: "Cascadia Code", "Fira Code", monospace;
+        font-size: 0.7rem;
+        line-height: 2;
+        pointer-events: none;
+        z-index: 20;
+        opacity: 0;
+        transition: opacity 0.25s;
+        box-shadow:
+          0 8px 32px rgba(0, 0, 0, 0.6),
+          0 0 32px rgba(168, 85, 247, 0.15);
+        max-width: 360px;
+      }
+      #hashtooltip.show {
+        opacity: 1;
+      }
+      .ht-row {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+      }
+      .ht-label {
+        color: #475569;
+        width: 110px;
+        flex-shrink: 0;
+      }
+      .ht-val-phone {
+        color: #ef4444;
+        text-decoration: line-through;
+      }
+      .ht-val-hash {
+        color: #a855f7;
+        word-break: break-all;
+      }
+      .ht-val-local {
+        color: #10b981;
+      }
+      .ht-val-net {
+        color: #f59e0b;
+      }
+
+      /* ── LAYER LABELS ── */
+      .layer-label {
+        position: absolute;
+        right: calc(50% + 420px);
+        font-size: 0.62rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #1e293b;
+        transform: translateY(-50%);
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .layer-label::after {
+        content: "";
+        width: 24px;
+        height: 1px;
+        background: currentColor;
       }
     </style>
   </head>
   <body>
-    <!-- NAV -->
-    <nav>
-      <div class="nav-logo">Tap2Med <span>· Security Architecture</span></div>
-      <ul class="nav-links">
-        <li><a href="#privacy">Privacy</a></li>
-        <li><a href="#database">Database</a></li>
-        <li><a href="#layers">Security</a></li>
-        <li><a href="#future">Future Scope</a></li>
-      </ul>
-      <div class="badge-live">Production Live</div>
-    </nav>
+    <canvas id="bg"></canvas>
+    <canvas id="flow"></canvas>
 
-    <!-- SCROLL PROGRESS -->
-    <div class="progress-bar" id="progressBar"></div>
-
-    <!-- ═══════════════════════════════════════════════════ HERO ═══ -->
-    <section>
-      <div class="section-label">India Health Protocol</div>
-      <h1>
-        Privacy by Design.<br /><span class="gradient-text"
-          >Zero Knowledge Architecture.</span
-        >
-      </h1>
-      <p class="subtitle">
-        Tap2Med stores
-        <strong style="color: var(--text)"
-          >zero plaintext patient identifiers</strong
-        >. Phone numbers are cryptographically hashed before they touch the
-        database — making patient re-identification mathematically impossible.
-      </p>
-
-      <div class="hero-stats">
-        <div class="stat-pill">
-          <span class="icon">🔐</span>
-          <span class="val">HMAC-SHA256</span>
-          <span class="key">Token hashing</span>
-        </div>
-        <div class="stat-pill">
-          <span class="icon">🔑</span>
-          <span class="val">200,000 iter</span>
-          <span class="key">PBKDF2 passwords</span>
-        </div>
-        <div class="stat-pill">
-          <span class="icon">🛡️</span>
-          <span class="val">Per-clinic salts</span>
-          <span class="key">Data isolation</span>
-        </div>
-        <div class="stat-pill">
-          <span class="icon">⚡</span>
-          <span class="val">FastAPI + PostgreSQL</span>
-          <span class="key">Production stack</span>
-        </div>
-        <div class="stat-pill">
-          <span class="icon">🇮🇳</span>
-          <span class="val">DPDP Aligned</span>
-          <span class="key">India data law</span>
-        </div>
+    <div id="topbar">
+      <div>
+        <div class="logo">Tap2Med <span>· System Architecture</span></div>
       </div>
-    </section>
+      <div class="tagline">India Health Protocol · Privacy by Design</div>
+      <button class="btn-sim" onclick="triggerManualFlow()">
+        ▶ Simulate Patient Visit
+      </button>
+    </div>
 
-    <hr class="section-divider" />
+    <div id="stage">
+      <!-- Nodes injected by JS -->
+    </div>
 
-    <!-- ══════════════════════════════════════════ CRYPTO FLOW ═══ -->
-    <section id="privacy">
-      <div class="section-label">Cryptographic Privacy</div>
-      <h2>
-        How a phone number becomes <span class="gradient-text">unhackable</span>
-      </h2>
-      <p class="subtitle">
-        Every patient identifier passes through a one-way cryptographic
-        transformation. No lookup table. No reverse function.
-      </p>
+    <div id="hashtooltip">
+      <div class="ht-row">
+        <span class="ht-label">phone input</span
+        ><span class="ht-val-phone" id="ht-phone">9876543210</span>
+      </div>
+      <div class="ht-row">
+        <span class="ht-label">stored in DB</span
+        ><span style="color: #ef4444; font-size: 0.65rem"
+          >❌ never persisted</span
+        >
+      </div>
+      <div class="ht-row">
+        <span class="ht-label">lookup_hash</span
+        ><span class="ht-val-hash" id="ht-lookup">computing…</span>
+      </div>
+      <div class="ht-row">
+        <span class="ht-label">local_token</span
+        ><span class="ht-val-local" id="ht-local">computing…</span>
+      </div>
+      <div class="ht-row">
+        <span class="ht-label">network_token</span
+        ><span class="ht-val-net" id="ht-net">computing…</span>
+      </div>
+    </div>
 
-      <!-- LIVE INTERACTIVE DEMO -->
-      <div class="live-hash-demo">
+    <div id="statsbar">
+      <div class="stat">
         <div
-          style="
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--muted);
-            margin-bottom: 14px;
-          "
-        >
-          🔬 Live Demo — Type any phone number
-        </div>
-        <div class="hash-input-row">
-          <div class="hash-label">Phone number</div>
-          <input
-            class="hash-input"
-            id="phoneInput"
-            type="text"
-            placeholder="9876543210"
-            maxlength="10"
-            value="9876543210"
-          />
-        </div>
-        <div class="hash-output-row">
-          <div class="hash-output-label">Stored in DB</div>
-          <div class="hash-never">
-            ❌ Never stored — deleted from memory after hashing
-          </div>
-        </div>
-        <div class="hash-output-row">
-          <div class="hash-output-label">lookup_hash</div>
-          <div
-            class="hash-output-val"
-            id="lookupHashOut"
-            style="
-              background: rgba(168, 85, 247, 0.08);
-              color: var(--purple);
-              border: 1px solid rgba(168, 85, 247, 0.2);
-            "
-          >
-            computing…
-          </div>
-        </div>
-        <div class="hash-output-row">
-          <div class="hash-output-label">local_token</div>
-          <div
-            class="hash-output-val"
-            id="localTokenOut"
-            style="
-              background: rgba(16, 185, 129, 0.08);
-              color: var(--green);
-              border: 1px solid rgba(16, 185, 129, 0.2);
-            "
-          >
-            computing…
-          </div>
-        </div>
-        <div class="hash-output-row">
-          <div class="hash-output-label">network_token</div>
-          <div
-            class="hash-output-val"
-            id="networkTokenOut"
-            style="
-              background: rgba(245, 158, 11, 0.08);
-              color: var(--amber);
-              border: 1px solid rgba(245, 158, 11, 0.2);
-            "
-          >
-            computing…
-          </div>
-        </div>
-        <div style="font-size: 0.72rem; color: var(--muted); margin-top: 12px">
-          * This demo uses SHA-256 via Web Crypto API. Production uses
-          HMAC-SHA256 with server-side secret keys. Change the input — tokens
-          change completely (avalanche effect).
-        </div>
+          class="stat-dot"
+          style="background: #0ea5e9; box-shadow: 0 0 8px #0ea5e9"
+        ></div>
+        <div class="stat-val" id="s-patients">0</div>
+        <div class="stat-key">Patients Processed</div>
       </div>
-
-      <div class="crypto-flow">
-        <!-- STEP 1 -->
-        <div class="flow-step" data-delay="0">
-          <div class="step-left">
-            <div
-              class="step-number"
-              style="background: rgba(14, 165, 233, 0.15); color: var(--blue)"
-            >
-              1
-            </div>
-            <div class="step-label" style="color: var(--blue)">Input</div>
-          </div>
-          <div class="step-right">
-            <div class="step-title">Patient scans QR, enters phone number</div>
-            <div class="step-desc">
-              The phone number exists only in the HTTP request body — in RAM,
-              for milliseconds. The API endpoint immediately passes it to the
-              hashing layer.
-            </div>
-            <div class="token-demo">
-              <div class="token-demo-label">What the system receives</div>
-              <div class="token-row">
-                <div class="token-label">phone (request)</div>
-                <div class="token-value token-input">9876543210</div>
-              </div>
-              <div class="token-row">
-                <div class="token-label">member_id</div>
-                <div class="token-value token-input">0</div>
-              </div>
-              <div class="token-row">
-                <div class="token-label">clinic_id</div>
-                <div class="token-value token-input">3f7a9c12-...</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 2 -->
-        <div class="flow-step" data-delay="150">
-          <div class="step-left">
-            <div
-              class="step-number"
-              style="background: rgba(168, 85, 247, 0.15); color: var(--purple)"
-            >
-              2
-            </div>
-            <div class="step-label" style="color: var(--purple)">Hash</div>
-          </div>
-          <div class="step-right">
-            <div class="step-title">
-              Three separate HMAC-SHA256 hashes generated
-            </div>
-            <div class="step-desc">
-              Each token is derived independently using a different secret. The
-              clinic-specific salt means even with the database, cross-clinic
-              correlation is impossible.
-            </div>
-            <div class="code-block">
-              <span class="comment"># hashing.py — runs server-side only</span>
-
-              <span class="comment"
-                ># 1. Lost-device recovery (LOOKUP_SECRET isolated
-                separately)</span
-              >
-              lookup_hash = hmac.<span class="fn">new</span>(
-              <span class="var">LOOKUP_SECRET</span>.encode(),
-              <span class="str">f"9876543210:0"</span>.encode(), hashlib.sha256
-              ).hexdigest() <span class="arrow">→</span>
-              <span class="result">a3f8c2d1...</span>
-
-              <span class="comment"
-                ># 2. Cross-network identity (user_salt = 32-byte random,
-                permanent)</span
-              >
-              network_token = hmac.<span class="fn">new</span>(
-              <span class="var">SECRET_KEY</span>.encode(),
-              <span class="str">f"9876543210:0:{user_salt}"</span>.encode(),
-              hashlib.sha256 ).hexdigest() <span class="arrow">→</span>
-              <span class="result">7b9e4f2a...</span>
-
-              <span class="comment"
-                ># 3. Clinic-scoped identity (clinic_salt = 64-byte random, per
-                clinic)</span
-              >
-              local_token = hmac.<span class="fn">new</span>(
-              <span class="str">f"{SECRET_KEY}:{clinic_salt}"</span>.encode(),
-              <span class="str">f"9876543210:0"</span>.encode(), hashlib.sha256
-              ).hexdigest() <span class="arrow">→</span>
-              <span class="result">c1d5a8e3...</span>
-
-              <span class="comment"># Phone deleted from memory</span>
-              payload.phone = <span class="str">"DELETED"</span> phone =
-              <span class="str">"DELETED"</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 3 -->
-        <div class="flow-step" data-delay="300">
-          <div class="step-left">
-            <div
-              class="step-number"
-              style="background: rgba(16, 185, 129, 0.15); color: var(--green)"
-            >
-              3
-            </div>
-            <div class="step-label" style="color: var(--green)">Store</div>
-          </div>
-          <div class="step-right">
-            <div class="step-title">
-              Only hashes enter the database — never the phone
-            </div>
-            <div class="step-desc">
-              PostgreSQL stores 64-char hex strings. Even with direct database
-              access, there is no path back to the original phone number without
-              the HMAC secret keys.
-            </div>
-            <div class="token-demo">
-              <div class="token-demo-label">
-                What PostgreSQL actually stores
-              </div>
-              <div class="token-row">
-                <span class="token-label">patient.phone</span>
-                <div class="token-value token-never">
-                  9876543210 — NEVER STORED
-                </div>
-              </div>
-              <div class="token-row">
-                <span class="token-label">patient.lookup_hash</span>
-                <div class="token-value token-hash">
-                  a3f8c2d1e9b74f63ac52d8e10b2c3a4f...
-                </div>
-              </div>
-              <div class="token-row">
-                <span class="token-label">patient.network_token</span>
-                <div class="token-value token-net">
-                  7b9e4f2a1c8d53e6b7a4c2d9e1f0b3a8...
-                </div>
-              </div>
-              <div class="token-row">
-                <span class="token-label">event.local_token</span>
-                <div class="token-value token-local">
-                  c1d5a8e3f2b9674da1c3e8f5b7d2a9c4...
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- STEP 4 -->
-        <div class="flow-step" data-delay="450">
-          <div class="step-left">
-            <div
-              class="step-number"
-              style="background: rgba(239, 68, 68, 0.15); color: var(--red)"
-            >
-              4
-            </div>
-            <div class="step-label" style="color: var(--red)">Isolate</div>
-          </div>
-          <div class="step-right">
-            <div class="step-title">
-              Per-clinic salt makes cross-clinic correlation impossible
-            </div>
-            <div class="step-desc">
-              Patient X at Clinic A and Clinic B have completely different
-              local_tokens. A clinic employee with database access cannot
-              determine if two patients are the same person.
-            </div>
-            <div class="token-demo">
-              <div class="token-demo-label">
-                Same patient · Two clinics · Unrelatable tokens
-              </div>
-              <div class="token-row">
-                <span class="token-label">Clinic A token</span>
-                <div class="token-value token-local">
-                  c1d5a8e3f2b967...
-                  <span style="color: var(--muted); font-size: 0.7rem"
-                    >(clinic_salt_A)</span
-                  >
-                </div>
-              </div>
-              <div class="token-row">
-                <span class="token-label">Clinic B token</span>
-                <div
-                  class="token-value"
-                  style="
-                    background: rgba(6, 182, 212, 0.1);
-                    color: var(--cyan);
-                    border: 1px solid rgba(6, 182, 212, 0.3);
-                  "
-                >
-                  9f2b4d7a1e8c34...
-                  <span style="color: var(--muted); font-size: 0.7rem"
-                    >(clinic_salt_B)</span
-                  >
-                </div>
-              </div>
-              <div
-                style="
-                  margin-top: 10px;
-                  font-size: 0.78rem;
-                  color: var(--muted);
-                "
-              >
-                ↳ Mathematically unrelatable without the server's SECRET_KEY
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="stat">
+        <div
+          class="stat-dot"
+          style="background: #a855f7; box-shadow: 0 0 8px #a855f7"
+        ></div>
+        <div class="stat-val" id="s-hashes">0</div>
+        <div class="stat-key">Hashes Generated</div>
       </div>
-    </section>
-
-    <hr class="section-divider" />
-
-    <!-- ════════════════════════════════════════════ DATABASE ═══ -->
-    <section id="database">
-      <div class="section-label">Database Architecture</div>
-      <h2>
-        Relational schema built for
-        <span class="gradient-text">clinical scale</span>
-      </h2>
-      <p class="subtitle">
-        UUID primary keys throughout, JSONB for flexible vitals, zero PII in
-        patient tables. PostgreSQL on VPS — data stays in India.
-      </p>
-
-      <div class="schema-grid">
-        <div class="db-table" data-delay="0">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(14, 165, 233, 0.15)">
-              🏥
-            </div>
-            <div class="db-table-name">clinics</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >clinic_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">doctor_name</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">doctor_email</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">email_verified</span
-              ><span class="db-field-type">Boolean</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure"
-                >password_hash
-                <span class="field-tag tag-enc">PBKDF2</span></span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure"
-                >clinic_salt <span class="field-tag tag-enc">UNIQUE</span></span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">staff_username</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure">staff_passcode_hash</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">save_patient_phone</span
-              ><span class="db-field-type">Boolean</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="db-table" data-delay="100">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(168, 85, 247, 0.15)">
-              👤
-            </div>
-            <div class="db-table-name">patients</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >patient_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">String</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure"
-                >lookup_hash <span class="field-tag tag-enc">HMAC</span></span
-              ><span class="db-field-type">String</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">lookup_version</span
-              ><span class="db-field-type">Integer</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure"
-                >user_salt <span class="field-tag tag-enc">RANDOM</span></span
-              ><span class="db-field-type">String</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name secure"
-                >network_token <span class="field-tag tag-enc">HMAC</span></span
-              ><span class="db-field-type">String</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">abha_token</span
-              ><span class="db-field-type">String?</span>
-            </div>
-            <div class="db-field" style="padding-top: 10px">
-              <span style="font-size: 0.72rem; color: var(--green)"
-                >✓ Zero PII — no name, no phone</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <div class="db-table" data-delay="200">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(16, 185, 129, 0.15)">
-              📋
-            </div>
-            <div class="db-table-name">clinic_patient_records</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >record_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name fk"
-                >clinic_id <span class="field-tag tag-fk">FK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name computed"
-                >local_token <span class="field-tag tag-enc">HMAC</span></span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">patient_name</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">city</span
-              ><span class="db-field-type">Text?</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">age</span
-              ><span class="db-field-type">Integer?</span>
-            </div>
-            <div class="db-field" style="padding-top: 10px">
-              <span style="font-size: 0.72rem; color: var(--blue)"
-                >↳ clinic_id + local_token = composite key</span
-              >
-            </div>
-          </div>
-        </div>
-
-        <div class="db-table" data-delay="300">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(245, 158, 11, 0.15)">
-              🗓️
-            </div>
-            <div class="db-table-name">events</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >event_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name fk"
-                >clinic_id <span class="field-tag tag-fk">FK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name computed">network_token</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name computed"
-                >local_token <span class="field-tag tag-idx">IDX</span></span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name"
-                >vitals
-                <span
-                  class="field-tag"
-                  style="
-                    background: rgba(6, 182, 212, 0.15);
-                    color: var(--cyan);
-                  "
-                  >JSONB</span
-                ></span
-              ><span class="db-field-type">JSONB?</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name"
-                >status <span class="field-tag tag-idx">IDX</span></span
-              ><span class="db-field-type">String</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">complaints / diagnosis</span
-              ><span class="db-field-type">Text?</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">event_type</span
-              ><span class="db-field-type">walkin/followup</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="db-table" data-delay="400">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(239, 68, 68, 0.15)">
-              💊
-            </div>
-            <div class="db-table-name">prescriptions</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >prescription_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name fk"
-                >event_id <span class="field-tag tag-fk">FK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name computed"
-                >network_token <span class="field-tag tag-idx">IDX</span></span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">medicine_name</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">instructions</span
-              ><span class="db-field-type">Text?</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">drug_category</span
-              ><span class="db-field-type">Text?</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="db-table" data-delay="500">
-          <div class="db-table-header">
-            <div class="db-icon" style="background: rgba(6, 182, 212, 0.15)">
-              🧪
-            </div>
-            <div class="db-table-name">clinic_patient_lab_records</div>
-          </div>
-          <div class="db-fields">
-            <div class="db-field">
-              <span class="db-field-name pk"
-                >record_id <span class="field-tag tag-pk">PK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name fk"
-                >clinic_id <span class="field-tag tag-fk">FK</span></span
-              ><span class="db-field-type">UUID</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name computed">local_token</span
-              ><span class="db-field-type">Text</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name">test_date</span
-              ><span class="db-field-type">DateTime(TZ)</span>
-            </div>
-            <div class="db-field">
-              <span class="db-field-name"
-                >results
-                <span
-                  class="field-tag"
-                  style="
-                    background: rgba(6, 182, 212, 0.15);
-                    color: var(--cyan);
-                  "
-                  >JSONB</span
-                ></span
-              ><span class="db-field-type">JSONB</span>
-            </div>
-            <div class="db-field" style="padding-top: 10px">
-              <span style="font-size: 0.72rem; color: var(--cyan)"
-                >{"hba1c": 6.4, "tsh": 2.4, …}</span
-              >
-            </div>
-          </div>
-        </div>
+      <div class="stat">
+        <div
+          class="stat-dot"
+          style="background: #10b981; box-shadow: 0 0 8px #10b981"
+        ></div>
+        <div class="stat-val" id="s-rx">0</div>
+        <div class="stat-key">Prescriptions</div>
       </div>
-    </section>
-
-    <hr class="section-divider" />
-
-    <!-- ════════════════════════════════════════ SECURITY LAYERS ═══ -->
-    <section id="layers">
-      <div class="section-label">Security Stack</div>
-      <h2>
-        5 independent layers of
-        <span class="gradient-text">hardened security</span>
-      </h2>
-      <p class="subtitle">
-        Each layer is independent — a breach of one does not compromise the
-        others.
-      </p>
-
-      <div class="layers-stack">
-        <div class="layer-card" data-delay="0">
-          <div
-            class="layer-num"
-            style="background: rgba(14, 165, 233, 0.15); color: var(--blue)"
-          >
-            1
-          </div>
-          <div class="layer-body">
-            <div class="layer-title">Phone Number Privacy</div>
-            <div class="layer-detail">
-              Patient phone is hashed client→server in HTTP body, immediately
-              passed to HMAC hashing function, then memory-wiped. No column in
-              any table stores a phone number in plaintext.
-            </div>
-          </div>
-          <div
-            class="layer-tech"
-            style="
-              background: rgba(14, 165, 233, 0.1);
-              color: var(--blue);
-              border: 1px solid rgba(14, 165, 233, 0.2);
-            "
-          >
-            HMAC-SHA256
-          </div>
-        </div>
-
-        <div class="layer-card" data-delay="80">
-          <div
-            class="layer-num"
-            style="background: rgba(168, 85, 247, 0.15); color: var(--purple)"
-          >
-            2
-          </div>
-          <div class="layer-body">
-            <div class="layer-title">Clinic Data Isolation</div>
-            <div class="layer-detail">
-              Every clinic has a unique 64-character random clinic_salt. The
-              same patient produces a completely different local_token at each
-              clinic — cross-clinic correlation is mathematically blocked.
-            </div>
-          </div>
-          <div
-            class="layer-tech"
-            style="
-              background: rgba(168, 85, 247, 0.1);
-              color: var(--purple);
-              border: 1px solid rgba(168, 85, 247, 0.2);
-            "
-          >
-            Per-clinic salt
-          </div>
-        </div>
-
-        <div class="layer-card" data-delay="160">
-          <div
-            class="layer-num"
-            style="background: rgba(16, 185, 129, 0.15); color: var(--green)"
-          >
-            3
-          </div>
-          <div class="layer-body">
-            <div class="layer-title">Password Security</div>
-            <div class="layer-detail">
-              Passwords hashed with PBKDF2-HMAC-SHA256 at 200,000 iterations
-              with a 32-byte cryptographically random salt per password.
-              Constant-time comparison prevents timing attacks. Same standard as
-              1Password and Django.
-            </div>
-          </div>
-          <div
-            class="layer-tech"
-            style="
-              background: rgba(16, 185, 129, 0.1);
-              color: var(--green);
-              border: 1px solid rgba(16, 185, 129, 0.2);
-            "
-          >
-            PBKDF2 · 200k iter
-          </div>
-        </div>
-
-        <div class="layer-card" data-delay="240">
-          <div
-            class="layer-num"
-            style="background: rgba(245, 158, 11, 0.15); color: var(--amber)"
-          >
-            4
-          </div>
-          <div class="layer-body">
-            <div class="layer-title">OTP Authentication</div>
-            <div class="layer-detail">
-              OTPs are HMAC-hashed before database storage — the plaintext OTP
-              is never persisted. Verification uses hmac.compare_digest() for
-              constant-time comparison, preventing timing-based side-channel
-              attacks. 10-minute expiry enforced.
-            </div>
-          </div>
-          <div
-            class="layer-tech"
-            style="
-              background: rgba(245, 158, 11, 0.1);
-              color: var(--amber);
-              border: 1px solid rgba(245, 158, 11, 0.2);
-            "
-          >
-            HMAC + compare_digest
-          </div>
-        </div>
-
-        <div class="layer-card" data-delay="320">
-          <div
-            class="layer-num"
-            style="background: rgba(239, 68, 68, 0.15); color: var(--red)"
-          >
-            5
-          </div>
-          <div class="layer-body">
-            <div class="layer-title">Rate Limiting</div>
-            <div class="layer-detail">
-              Recovery endpoints enforce a maximum of 5 attempts per IP per hour
-              using a sliding-window algorithm. HTTP 429 returned on breach.
-              Protects against brute-force enumeration of patient lookup hashes.
-            </div>
-          </div>
-          <div
-            class="layer-tech"
-            style="
-              background: rgba(239, 68, 68, 0.1);
-              color: var(--red);
-              border: 1px solid rgba(239, 68, 68, 0.2);
-            "
-          >
-            5 req / IP / hour
-          </div>
-        </div>
+      <div class="stat">
+        <div
+          class="stat-dot"
+          style="background: #ef4444; box-shadow: 0 0 8px #ef4444"
+        ></div>
+        <div class="stat-val">0</div>
+        <div class="stat-key">Phone Numbers Stored</div>
       </div>
-    </section>
-
-    <hr class="section-divider" />
-
-    <!-- ════════════════════════════════════════ FUTURE SCOPE ═══ -->
-    <section id="future">
-      <div class="section-label">Future Scope</div>
-      <h2>
-        Next:
-        <span class="gradient-text">Zero-Trust End-to-End Encryption</span>
-      </h2>
-      <p class="subtitle">
-        The current architecture prevents server-side re-identification. The
-        next frontier is
-        <strong style="color: var(--text)">client-side encryption</strong> — so
-        even the server never sees patient medical data in plaintext.
-      </p>
-
-      <div class="future-grid">
-        <div class="future-card purple" data-delay="0">
-          <div class="future-icon">🔏</div>
-          <div class="future-title">Client-Side AES-GCM Encryption</div>
-          <div class="future-desc">
-            Medical records (diagnosis, prescription, vitals) encrypted in the
-            browser using the Web Crypto API with AES-256-GCM before
-            transmission. The server stores only ciphertext — it cannot read
-            patient medical data even with full database access.
-          </div>
-          <div class="zkp-visual">
-            <div class="zkp-line">
-              <span class="zkp-client">Browser:</span>
-              <span style="color: var(--text)"
-                >diagnosis = "Hypertension Stage 2"</span
-              >
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-lock">AES-256-GCM</span>
-              <span style="color: var(--muted)"
-                >encrypt(key derived from patient_id)</span
-              >
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-arrow">→</span>
-              <span class="zkp-client">sends:</span>
-              <span style="color: var(--purple)"
-                >a3f9c2d1b8e7... (ciphertext)</span
-              >
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-db">Database:</span>
-              <span style="color: var(--muted)">stores ciphertext only</span>
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-client">Browser:</span>
-              <span style="color: var(--green)">decrypts locally on fetch</span>
-            </div>
-          </div>
-          <span class="future-tag tag-roadmap">Roadmap v2</span>
-        </div>
-
-        <div class="future-card green" data-delay="100">
-          <div class="future-icon">🗝️</div>
-          <div class="future-title">Patient-Controlled Key Derivation</div>
-          <div class="future-desc">
-            Encryption keys derived from a patient's ABHA ID + a PIN they
-            choose. The doctor sees decrypted records only when the patient
-            presents their QR code — consent-gated by cryptographic key sharing,
-            not by policy.
-          </div>
-          <div class="zkp-visual">
-            <div class="zkp-line">
-              <span class="zkp-client">Patient presents QR</span>
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-arrow">→</span>
-              <span style="color: var(--amber)">ephemeral_key</span> =
-              HKDF(ABHA_ID + PIN)
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-arrow">→</span>
-              <span style="color: var(--green)"
-                >Doctor browser decrypts record</span
-              >
-            </div>
-            <div class="zkp-line">
-              <span class="zkp-arrow">→</span>
-              <span class="zkp-db">key never leaves browser</span>
-            </div>
-          </div>
-          <span class="future-tag tag-roadmap">Roadmap v2</span>
-        </div>
-
-        <div class="future-card amber" data-delay="200">
-          <div class="future-icon">🇮🇳</div>
-          <div class="future-title">ABHA Integration (ABDM)</div>
-          <div class="future-desc">
-            <code>abha_token</code> column already in the Patient schema. Next
-            step: map network_token to ABHA IDs via NHA's ABDM sandbox. Enables
-            lifetime health records across all Tap2Med-connected clinics with
-            the patient's explicit consent.
-          </div>
-          <span class="future-tag tag-wip">Schema Ready</span>
-        </div>
-
-        <div class="future-card blue" data-delay="300">
-          <div class="future-icon">🤖</div>
-          <div class="future-title">Privacy-Preserving AI Diagnostics</div>
-          <div class="future-desc">
-            Drug interaction checks and diagnostic inference on encrypted data
-            using homomorphic-friendly aggregation. Aggregate population health
-            trends across clinics without any clinic seeing another clinic's
-            patient data. Federated learning on anonymised prescription patterns
-            for India-specific drug analytics.
-          </div>
-          <span class="future-tag tag-research">Research Phase</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ════════════════════════════════════════════ FOOTER ═══ -->
-    <footer>
-      <p>
-        <strong>Tap2Med</strong> · India Health Protocol · Built with FastAPI,
-        PostgreSQL, HMAC-SHA256
-      </p>
-      <p style="margin-top: 6px">
-        Privacy by design. Zero plaintext identifiers. DPDP-aligned.
-      </p>
-    </footer>
+    </div>
 
     <script>
-      // ── SCROLL PROGRESS ──
-      const progressBar = document.getElementById("progressBar");
-      window.addEventListener("scroll", () => {
-        const scrolled = window.scrollY;
-        const total =
-          document.documentElement.scrollHeight - window.innerHeight;
-        progressBar.style.width = `${(scrolled / total) * 100}%`;
-      });
-
-      // ── INTERSECTION OBSERVER — animate elements in ──
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const el = entry.target;
-              const delay = parseInt(el.dataset.delay || "0");
-              setTimeout(() => el.classList.add("visible"), delay);
-              observer.unobserve(el);
-            }
-          });
+      /* ═══════════════════════════════════════════════════════════
+   NODES DEFINITION
+═══════════════════════════════════════════════════════════ */
+      // positions: percentages of viewport (cx, cy)
+      const NODES = [
+        // Row 1 — Patient entry
+        {
+          id: "patient",
+          cx: 50,
+          cy: 14,
+          type: "patient",
+          icon: "📱",
+          title: "Patient",
+          sub: "Scan QR · No app needed",
         },
-        { threshold: 0.1 },
-      );
 
-      document
-        .querySelectorAll(".flow-step, .db-table, .layer-card, .future-card")
-        .forEach((el) => {
-          observer.observe(el);
-        });
+        // Row 2 — Entry layer
+        {
+          id: "scan",
+          cx: 50,
+          cy: 28,
+          type: "scan",
+          icon: "🔍",
+          title: "QR Scan Entry",
+          sub: "/scan endpoint",
+        },
 
-      // ── LIVE HASH DEMO (Web Crypto API SHA-256) ──
-      async function sha256hex(message) {
-        const msgBuffer = new TextEncoder().encode(message);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+        // Row 3 — API
+        {
+          id: "api",
+          cx: 50,
+          cy: 42,
+          type: "api",
+          icon: "⚡",
+          title: "FastAPI Backend",
+          sub: "Gunicorn + Uvicorn",
+        },
+
+        // Row 4 — Security layer (3 nodes)
+        {
+          id: "rate",
+          cx: 20,
+          cy: 57,
+          type: "rate",
+          icon: "🚫",
+          title: "Rate Limiter",
+          sub: "5 req/IP/hr",
+        },
+        {
+          id: "hmac",
+          cx: 50,
+          cy: 57,
+          type: "hmac",
+          icon: "🔐",
+          title: "HMAC Engine",
+          sub: "SHA-256 · 3 tokens",
+        },
+        {
+          id: "auth",
+          cx: 80,
+          cy: 57,
+          type: "auth",
+          icon: "🔑",
+          title: "Auth · OTP",
+          sub: "PBKDF2 200k iter",
+        },
+
+        // Row 5 — Database
+        {
+          id: "db",
+          cx: 50,
+          cy: 72,
+          type: "db",
+          icon: "🗄️",
+          title: "PostgreSQL",
+          sub: "6 tables · UUID PKs · JSONB",
+        },
+
+        // Row 6 — Output layer
+        {
+          id: "doctor",
+          cx: 25,
+          cy: 86,
+          type: "doctor",
+          icon: "👨‍⚕️",
+          title: "Doctor",
+          sub: "Dashboard · Rx Pad",
+        },
+        {
+          id: "staff",
+          cx: 50,
+          cy: 86,
+          type: "staff",
+          icon: "🩺",
+          title: "Staff",
+          sub: "Queue · Vitals",
+        },
+        {
+          id: "pharmacy",
+          cx: 75,
+          cy: 86,
+          type: "pharmacy",
+          icon: "💊",
+          title: "Pharmacy",
+          sub: "Dispense view",
+        },
+      ];
+
+      /* ═══════════════════════════════════════════════════════════
+   EDGES DEFINITION  {from, to, color, label, dash, delay}
+═══════════════════════════════════════════════════════════ */
+      const EDGES = [
+        // main spine
+        {
+          from: "patient",
+          to: "scan",
+          color: "#0ea5e9",
+          label: "phone + QR",
+          packet: true,
+          autoRate: 2200,
+        },
+        {
+          from: "scan",
+          to: "api",
+          color: "#6366f1",
+          label: "POST /visit",
+          packet: true,
+          autoRate: 2600,
+        },
+        {
+          from: "api",
+          to: "rate",
+          color: "#ef4444",
+          label: "check IP",
+          packet: true,
+          autoRate: 3100,
+          dash: [4, 6],
+        },
+        {
+          from: "api",
+          to: "hmac",
+          color: "#a855f7",
+          label: "hash phone",
+          packet: true,
+          autoRate: 2000,
+        },
+        {
+          from: "api",
+          to: "auth",
+          color: "#10b981",
+          label: "verify token",
+          packet: true,
+          autoRate: 4000,
+          dash: [4, 6],
+        },
+        {
+          from: "hmac",
+          to: "db",
+          color: "#a855f7",
+          label: "token only",
+          packet: true,
+          autoRate: 1800,
+        },
+        {
+          from: "db",
+          to: "doctor",
+          color: "#0ea5e9",
+          label: "history",
+          packet: true,
+          autoRate: 3500,
+        },
+        {
+          from: "db",
+          to: "staff",
+          color: "#6366f1",
+          label: "queue",
+          packet: true,
+          autoRate: 2800,
+        },
+        {
+          from: "db",
+          to: "pharmacy",
+          color: "#10b981",
+          label: "Rx",
+          packet: true,
+          autoRate: 4500,
+        },
+        {
+          from: "auth",
+          to: "db",
+          color: "#10b981",
+          label: "session",
+          packet: true,
+          autoRate: 5000,
+          dash: [4, 6],
+        },
+      ];
+
+      /* ═══════════════════════════════════════════════════════════
+   LAYOUT + DOM
+═══════════════════════════════════════════════════════════ */
+      const stage = document.getElementById("stage");
+      const nodeEls = {};
+
+      function cx(pct) {
+        return (window.innerWidth * pct) / 100;
+      }
+      function cy(pct) {
+        return ((window.innerHeight - 56 - 52) * pct) / 100 + 56;
       }
 
-      const DEMO_SECRET = "tap2med_demo_secret_2024";
-      const DEMO_SALT = "a9f3c2d1b8e7f4a3c9d2e1b7f3a8c4d2";
-      const DEMO_CLINIC = "clinic_salt_demo_xyz_789_abc_123_def";
-      const DEMO_USER_S = "b7e4f2a1c8d53e6b7a4c2d9e1f0b3a89";
+      function buildNodes() {
+        stage.innerHTML = "";
+        NODES.forEach((n) => {
+          const el = document.createElement("div");
+          el.className = "node";
+          el.id = "node-" + n.id;
+          el.dataset.type = n.type;
+          el.style.left = cx(n.cx) + "px";
+          el.style.top = cy(n.cy) + "px";
+          el.innerHTML = `
+      <div class="node-card">
+        <div class="node-ring" id="ring-${n.id}"></div>
+        <span class="node-icon">${n.icon}</span>
+        <div class="node-title">${n.title}</div>
+        <div class="node-sub">${n.sub}</div>
+      </div>`;
+          stage.appendChild(el);
+          nodeEls[n.id] = el;
 
-      async function updateHashes(phone) {
-        phone = phone.replace(/\D/g, "").slice(-10);
-        if (!phone) {
-          phone = "0000000000";
+          // hover on HMAC node → show tooltip
+          if (n.id === "hmac") {
+            el.style.cursor = "pointer";
+            el.addEventListener("mouseenter", showHashTooltip);
+            el.addEventListener("mouseleave", hideHashTooltip);
+          }
+        });
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   BG CANVAS — grid + subtle stars
+═══════════════════════════════════════════════════════════ */
+      const bgCanvas = document.getElementById("bg");
+      const bgCtx = bgCanvas.getContext("2d");
+      let stars = [];
+
+      function initBg() {
+        bgCanvas.width = window.innerWidth;
+        bgCanvas.height = window.innerHeight;
+        stars = Array.from({ length: 60 }, () => ({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * bgCanvas.height,
+          r: Math.random() * 1.5,
+          a: Math.random(),
+          speed: 0.002 + Math.random() * 0.003,
+        }));
+      }
+
+      function drawBg() {
+        const c = bgCtx;
+        c.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+        // grid
+        c.strokeStyle = "rgba(14,165,233,0.04)";
+        c.lineWidth = 1;
+        const gs = 48;
+        for (let x = 0; x < bgCanvas.width; x += gs) {
+          c.beginPath();
+          c.moveTo(x, 0);
+          c.lineTo(x, bgCanvas.height);
+          c.stroke();
+        }
+        for (let y = 0; y < bgCanvas.height; y += gs) {
+          c.beginPath();
+          c.moveTo(0, y);
+          c.lineTo(bgCanvas.width, y);
+          c.stroke();
         }
 
-        const lookupHash = await sha256hex(`${DEMO_SECRET}:${phone}:0`);
-        const localToken = await sha256hex(
-          `${DEMO_SECRET}:${DEMO_CLINIC}:${phone}:0`,
-        );
-        const networkToken = await sha256hex(
-          `${DEMO_SECRET}:${DEMO_USER_S}:${phone}:0`,
-        );
+        // stars
+        stars.forEach((s) => {
+          s.a += s.speed;
+          const alpha = ((Math.sin(s.a) + 1) / 2) * 0.4 + 0.05;
+          c.beginPath();
+          c.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          c.fillStyle = `rgba(148,163,184,${alpha})`;
+          c.fill();
+        });
 
-        document.getElementById("lookupHashOut").textContent = lookupHash;
-        document.getElementById("localTokenOut").textContent = localToken;
-        document.getElementById("networkTokenOut").textContent = networkToken;
+        requestAnimationFrame(drawBg);
       }
 
-      const phoneInput = document.getElementById("phoneInput");
-      phoneInput.addEventListener("input", () =>
-        updateHashes(phoneInput.value),
-      );
-      updateHashes(phoneInput.value);
+      /* ═══════════════════════════════════════════════════════════
+   FLOW CANVAS — edges + animated packets
+═══════════════════════════════════════════════════════════ */
+      const flowCanvas = document.getElementById("flow");
+      const flowCtx = flowCanvas.getContext("2d");
 
-      // ── INITIAL FLOW STEPS VISIBLE ──
-      setTimeout(() => {
-        document.querySelectorAll(".flow-step").forEach((el, i) => {
-          setTimeout(() => el.classList.add("visible"), i * 150);
+      // live packets: {sx,sy,ex,ey,progress,color,size,trail}
+      let packets = [];
+
+      function getNodeCenter(id) {
+        const n = NODES.find((x) => x.id === id);
+        return { x: cx(n.cx), y: cy(n.cy) };
+      }
+
+      function getEdgeControlPoint(s, e) {
+        // slight curve
+        const mx = (s.x + e.x) / 2;
+        const my = (s.y + e.y) / 2;
+        const dx = e.x - s.x,
+          dy = e.y - s.y;
+        const perp = { x: -dy, y: dx };
+        const len = Math.sqrt(perp.x ** 2 + perp.y ** 2);
+        const off = 30;
+        return { x: mx + (perp.x / len) * off, y: my + (perp.y / len) * off };
+      }
+
+      function bezier(t, sx, sy, cx_, cy_, ex, ey) {
+        const mt = 1 - t;
+        return {
+          x: mt * mt * sx + 2 * mt * t * cx_ + t * t * ex,
+          y: mt * mt * sy + 2 * mt * t * cy_ + t * t * ey,
+        };
+      }
+
+      function spawnPacket(edge, fromId, toId) {
+        const s = getNodeCenter(fromId);
+        const e = getNodeCenter(toId);
+        const cp = getEdgeControlPoint(s, e);
+        packets.push({
+          sx: s.x,
+          sy: s.y,
+          ex: e.x,
+          ey: e.y,
+          cpx: cp.x,
+          cpy: cp.y,
+          progress: 0,
+          speed: 0.008 + Math.random() * 0.005,
+          color: edge.color,
+          size: 5 + Math.random() * 3,
+          trail: [],
+          toId,
+          fromId,
         });
-      }, 300);
+      }
+
+      function drawEdges() {
+        const c = flowCtx;
+        EDGES.forEach((edge) => {
+          const s = getNodeCenter(edge.from);
+          const e = getNodeCenter(edge.to);
+          const cp = getEdgeControlPoint(s, e);
+
+          c.beginPath();
+          if (edge.dash) c.setLineDash(edge.dash);
+          else c.setLineDash([]);
+
+          const col = edge.color;
+          c.strokeStyle = col + "28";
+          c.lineWidth = 1.5;
+          c.moveTo(s.x, s.y);
+          c.quadraticCurveTo(cp.x, cp.y, e.x, e.y);
+          c.stroke();
+          c.setLineDash([]);
+        });
+      }
+
+      function drawPackets() {
+        const c = flowCtx;
+        packets.forEach((p) => {
+          // trail
+          p.trail.forEach((pt, i) => {
+            const alpha = (i / p.trail.length) * 0.6;
+            const r = p.size * (i / p.trail.length) * 0.7;
+            c.beginPath();
+            c.arc(pt.x, pt.y, r, 0, Math.PI * 2);
+            c.fillStyle =
+              p.color +
+              Math.floor(alpha * 255)
+                .toString(16)
+                .padStart(2, "0");
+            c.fill();
+          });
+
+          // head
+          const pos = bezier(p.progress, p.sx, p.sy, p.cpx, p.cpy, p.ex, p.ey);
+
+          const grd = c.createRadialGradient(
+            pos.x,
+            pos.y,
+            0,
+            pos.x,
+            pos.y,
+            p.size * 2,
+          );
+          grd.addColorStop(0, p.color + "ff");
+          grd.addColorStop(0.4, p.color + "aa");
+          grd.addColorStop(1, p.color + "00");
+          c.beginPath();
+          c.arc(pos.x, pos.y, p.size * 2, 0, Math.PI * 2);
+          c.fillStyle = grd;
+          c.fill();
+
+          c.beginPath();
+          c.arc(pos.x, pos.y, p.size * 0.5, 0, Math.PI * 2);
+          c.fillStyle = "#ffffff";
+          c.fill();
+
+          p.trail.push({ x: pos.x, y: pos.y });
+          if (p.trail.length > 18) p.trail.shift();
+          p.progress += p.speed;
+        });
+
+        // remove finished + pulse destination
+        packets = packets.filter((p) => {
+          if (p.progress >= 1) {
+            pulseNode(p.toId);
+            updateStats(p.toId);
+            return false;
+          }
+          return true;
+        });
+      }
+
+      function flowLoop() {
+        flowCanvas.width = window.innerWidth;
+        flowCanvas.height = window.innerHeight;
+        drawEdges();
+        drawPackets();
+        requestAnimationFrame(flowLoop);
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   AUTO SPAWN
+═══════════════════════════════════════════════════════════ */
+      function startAutoSpawn() {
+        EDGES.forEach((edge) => {
+          if (!edge.autoRate) return;
+          // initial offset
+          setTimeout(function spawnLoop() {
+            spawnPacket(edge, edge.from, edge.to);
+            setTimeout(spawnLoop, edge.autoRate + Math.random() * 1000 - 500);
+          }, Math.random() * edge.autoRate);
+        });
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   MANUAL SIMULATION
+═══════════════════════════════════════════════════════════ */
+      function triggerManualFlow() {
+        const chain = [
+          ["patient", "scan", 0],
+          ["scan", "api", 400],
+          ["api", "rate", 900],
+          ["api", "hmac", 900],
+          ["api", "auth", 1200],
+          ["hmac", "db", 1500],
+          ["auth", "db", 2000],
+          ["db", "doctor", 2500],
+          ["db", "staff", 2700],
+          ["db", "pharmacy", 2900],
+        ];
+        chain.forEach(([f, t, d]) => {
+          const edge = EDGES.find((e) => e.from === f && e.to === t) || {
+            color: "#0ea5e9",
+          };
+          setTimeout(() => spawnPacket(edge, f, t), d);
+        });
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   NODE PULSE
+═══════════════════════════════════════════════════════════ */
+      function pulseNode(id) {
+        const el = nodeEls[id];
+        if (!el) return;
+        el.classList.remove("active");
+        void el.offsetWidth;
+        el.classList.add("active");
+        setTimeout(() => el.classList.remove("active"), 600);
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   STATS COUNTERS
+═══════════════════════════════════════════════════════════ */
+      let counts = { patients: 0, hashes: 0, rx: 0 };
+      function updateStats(toId) {
+        if (toId === "scan" || toId === "api") {
+          counts.patients++;
+          document.getElementById("s-patients").textContent = counts.patients;
+        }
+        if (toId === "hmac" || toId === "db") {
+          counts.hashes++;
+          document.getElementById("s-hashes").textContent = counts.hashes;
+        }
+        if (toId === "pharmacy") {
+          counts.rx++;
+          document.getElementById("s-rx").textContent = counts.rx;
+        }
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   HASH TOOLTIP (HMAC node hover)
+═══════════════════════════════════════════════════════════ */
+      const tooltip = document.getElementById("hashtooltip");
+      let tooltipVisible = false;
+
+      async function sha256hex(msg) {
+        const buf = await crypto.subtle.digest(
+          "SHA-256",
+          new TextEncoder().encode(msg),
+        );
+        return [...new Uint8Array(buf)]
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+
+      async function showHashTooltip(e) {
+        const phone = "9876543210";
+        const lh = await sha256hex(`tap2med_secret:${phone}:0`);
+        const lt = await sha256hex(`tap2med_secret:clinic_salt_xyz:${phone}:0`);
+        const nt = await sha256hex(`tap2med_secret:user_salt_abc:${phone}:0`);
+
+        document.getElementById("ht-phone").textContent = phone;
+        document.getElementById("ht-lookup").textContent =
+          lh.slice(0, 32) + "…";
+        document.getElementById("ht-local").textContent = lt.slice(0, 32) + "…";
+        document.getElementById("ht-net").textContent = nt.slice(0, 32) + "…";
+
+        const rect = nodeEls["hmac"].getBoundingClientRect();
+        tooltip.style.left = rect.right + 16 + "px";
+        tooltip.style.top = rect.top + "px";
+        tooltip.classList.add("show");
+      }
+
+      function hideHashTooltip() {
+        tooltip.classList.remove("show");
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════════════════════════ */
+      function onResize() {
+        initBg();
+        buildNodes();
+      }
+
+      /* ═══════════════════════════════════════════════════════════
+   BOOT
+═══════════════════════════════════════════════════════════ */
+      window.addEventListener("resize", onResize);
+
+      buildNodes();
+      initBg();
+      drawBg();
+      flowLoop();
+
+      // initial burst after short delay
+      setTimeout(() => {
+        startAutoSpawn();
+        triggerManualFlow(); // fire the first simulation instantly on load
+      }, 600);
     </script>
   </body>
 </html>
