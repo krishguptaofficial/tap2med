@@ -1,1313 +1,553 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Tap2Med — Patient Journey</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      *,
-      *::before,
-      *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      :root {
-        --bg: #05080e;
-        --surface: #0b1120;
-        --card: #0f1929;
-        --border: rgba(255, 255, 255, 0.06);
-        --text: #e2e8f0;
-        --muted: #475569;
-        --panel-w: 400px;
-        --blue: #3b82f6;
-        --indigo: #6366f1;
-        --amber: #f59e0b;
-        --red: #ef4444;
-        --purple: #8b5cf6;
-        --green: #10b981;
-        --cyan: #06b6d4;
-        --font: "Inter", system-ui, sans-serif;
-        --mono: "JetBrains Mono", monospace;
-      }
-      html,
-      body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden;
-        background: var(--bg);
-        font-family: var(--font);
-        color: var(--text);
-      }
-
-      #root {
-        display: flex;
-        width: 100vw;
-        height: 100vh;
-      }
-
-      /* ══════════════════════════════════
-   LEFT PANEL
-══════════════════════════════════ */
-      #panel {
-        width: var(--panel-w);
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        background: var(--surface);
-        border-right: 1px solid var(--border);
-        position: relative;
-        z-index: 10;
-      }
-
-      #panel-header {
-        padding: 22px 28px 18px;
-        border-bottom: 1px solid var(--border);
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .panel-logo {
-        font-size: 0.88rem;
-        font-weight: 800;
-        letter-spacing: -0.3px;
-        color: var(--text);
-      }
-      .panel-logo span {
-        color: var(--muted);
-        font-weight: 500;
-      }
-      .panel-badge {
-        font-size: 0.62rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.2px;
-        color: var(--blue);
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        padding: 3px 9px;
-        border-radius: 4px;
-      }
-
-      /* step dots */
-      #step-dots {
-        display: flex;
-        gap: 4px;
-        padding: 16px 28px 0;
-        flex-shrink: 0;
-        flex-wrap: wrap;
-      }
-      .dot {
-        height: 3px;
-        border-radius: 2px;
-        background: #1e293b;
-        transition:
-          background 0.3s,
-          width 0.25s;
-        cursor: pointer;
-        flex: 1;
-        min-width: 8px;
-        max-width: 20px;
-      }
-      .dot.done {
-        background: #1e3a5f;
-      }
-      .dot.active {
-        background: var(--blue);
-        box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
-      }
-
-      /* story */
-      #story {
-        flex: 1;
-        overflow-y: auto;
-        padding: 20px 28px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-      }
-      #story::-webkit-scrollbar {
-        width: 3px;
-      }
-      #story::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      #story::-webkit-scrollbar-thumb {
-        background: #1e293b;
-        border-radius: 2px;
-      }
-
-      .step-meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .step-counter {
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        color: var(--muted);
-      }
-      .step-index {
-        font-size: 2.8rem;
-        font-weight: 800;
-        color: rgba(59, 130, 246, 0.15);
-        line-height: 1;
-        letter-spacing: -2px;
-        font-variant-numeric: tabular-nums;
-      }
-
-      #step-title {
-        font-size: 1.2rem;
-        font-weight: 700;
-        line-height: 1.3;
-        letter-spacing: -0.3px;
-        color: var(--text);
-      }
-
-      /* patient action card */
-      #patient-action {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 13px 14px;
-      }
-      .pa-avatar {
-        width: 34px;
-        height: 34px;
-        border-radius: 8px;
-        background: linear-gradient(
-          135deg,
-          rgba(59, 130, 246, 0.2),
-          rgba(99, 102, 241, 0.2)
-        );
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-      .pa-avatar svg {
-        width: 16px;
-        height: 16px;
-        fill: var(--blue);
-      }
-      .pa-meta {
-        flex: 1;
-        min-width: 0;
-      }
-      .pa-name {
-        font-size: 0.68rem;
-        font-weight: 700;
-        color: var(--blue);
-        letter-spacing: 0.3px;
-        margin-bottom: 4px;
-        text-transform: uppercase;
-      }
-      .pa-text {
-        font-size: 0.82rem;
-        color: #94a3b8;
-        line-height: 1.55;
-      }
-
-      /* tech detail */
-      #tech-detail {
-        font-size: 0.78rem;
-        color: var(--muted);
-        line-height: 1.75;
-        padding-left: 12px;
-        border-left: 2px solid #1e293b;
-      }
-
-      /* code block */
-      #code-wrap {
-        display: flex;
-        flex-direction: column;
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      #code-wrap.hidden {
-        display: none;
-      }
-      #code-header {
-        background: #080d16;
-        padding: 8px 14px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      }
-      .code-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-      }
-      #code-lang {
-        font-size: 0.62rem;
-        font-weight: 600;
-        color: #334155;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-left: 4px;
-      }
-      #code-block {
-        background: #080d16;
-        padding: 14px 16px;
-        font-family: var(--mono);
-        font-size: 0.72rem;
-        line-height: 1.85;
-        overflow-x: auto;
-      }
-      .c-comment {
-        color: #2d4a6a;
-      }
-      .c-key {
-        color: #f97583;
-      }
-      .c-fn {
-        color: #b392f0;
-      }
-      .c-str {
-        color: #79b8ff;
-      }
-      .c-val {
-        color: #ffab70;
-      }
-      .c-result {
-        color: #85e89d;
-        font-weight: 600;
-      }
-      .c-del {
-        color: #ef4444;
-        text-decoration: line-through;
-        opacity: 0.7;
-      }
-
-      /* highlight box */
-      #highlight-box {
-        border-radius: 8px;
-        padding: 11px 14px;
-        font-size: 0.78rem;
-        line-height: 1.55;
-        font-weight: 500;
-        border: 1px solid transparent;
-      }
-      #highlight-box.hidden {
-        display: none;
-      }
-
-      /* progress */
-      #prog-wrap {
-        padding: 0 28px 10px;
-        flex-shrink: 0;
-      }
-      #prog-bar-bg {
-        height: 2px;
-        background: #0f172a;
-        border-radius: 1px;
-        overflow: hidden;
-      }
-      #prog-bar-fill {
-        height: 100%;
-        border-radius: 1px;
-        width: 0%;
-        background: linear-gradient(90deg, var(--blue), var(--indigo));
-        transition: width 0.08s linear;
-      }
-
-      /* nav */
-      #nav {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 28px 20px;
-        flex-shrink: 0;
-        border-top: 1px solid var(--border);
-        gap: 10px;
-      }
-      .btn-nav {
-        background: transparent;
-        border: 1px solid #1e293b;
-        color: var(--muted);
-        padding: 8px 16px;
-        border-radius: 7px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        font-family: var(--font);
-        transition:
-          border-color 0.15s,
-          color 0.15s,
-          background 0.15s;
-      }
-      .btn-nav:hover:not(:disabled) {
-        border-color: #2d3f5a;
-        color: var(--text);
-        background: rgba(255, 255, 255, 0.03);
-      }
-      .btn-nav:disabled {
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
-      .btn-auto {
-        flex: 1;
-        background: var(--blue);
-        border: none;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 7px;
-        font-size: 0.78rem;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: var(--font);
-        transition:
-          opacity 0.15s,
-          transform 0.1s;
-        letter-spacing: 0.2px;
-      }
-      .btn-auto:hover {
-        opacity: 0.88;
-        transform: translateY(-1px);
-      }
-      .btn-auto:active {
-        transform: translateY(0);
-      }
-
-      /* ══════════════════════════════════
-   DIAGRAM
-══════════════════════════════════ */
-      #diagram {
-        flex: 1;
-        position: relative;
-        overflow: hidden;
-        background: var(--bg);
-      }
-
-      /* dot grid */
-      #diagram::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(
-          circle,
-          rgba(59, 130, 246, 0.08) 1px,
-          transparent 1px
-        );
-        background-size: 32px 32px;
-        pointer-events: none;
-      }
-
-      /* subtle vignette */
-      #diagram::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(
-          ellipse at 50% 50%,
-          transparent 40%,
-          rgba(5, 8, 14, 0.7) 100%
-        );
-        pointer-events: none;
-      }
-
-      #svg-edges {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        overflow: visible;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      /* ══════════════════════════════════
-   NODES
-══════════════════════════════════ */
-      .node {
-        position: absolute;
-        transform: translate(-50%, -50%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        z-index: 2;
-        transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
-      }
-      .node-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 11px;
-        width: 118px;
-        overflow: hidden;
-        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.4);
-        transition:
-          border-color 0.35s,
-          box-shadow 0.35s;
-        position: relative;
-      }
-      .node-top-bar {
-        height: 2px;
-        width: 100%;
-        background: var(--node-color, #3b82f6);
-        opacity: 0.4;
-        transition: opacity 0.35s;
-      }
-      .node-body {
-        padding: 11px 12px 10px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        text-align: center;
-      }
-      .node-icon-wrap {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        flex-shrink: 0;
-      }
-      .node-icon-wrap svg {
-        width: 16px;
-        height: 16px;
-        fill: var(--node-color, #3b82f6);
-      }
-      .node-title {
-        font-size: 0.65rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--text);
-        line-height: 1;
-      }
-      .node-sub {
-        font-size: 0.58rem;
-        color: #334155;
-        letter-spacing: 0.2px;
-      }
-
-      /* ACTIVE */
-      .node.active .node-card {
-        border-color: color-mix(in srgb, var(--node-color) 60%, transparent);
-        box-shadow:
-          0 0 0 1px color-mix(in srgb, var(--node-color) 25%, transparent),
-          0 0 32px color-mix(in srgb, var(--node-color) 20%, transparent),
-          0 4px 20px rgba(0, 0, 0, 0.5);
-      }
-      .node.active .node-top-bar {
-        opacity: 1;
-      }
-      .node.active {
-        transform: translate(-50%, -50%) scale(1.06);
-      }
-
-      /* DONE */
-      .node.done .node-card {
-        opacity: 0.55;
-      }
-      .node.done .node-top-bar {
-        opacity: 0.15;
-      }
-
-      /* ══════════════════════════════════
-   SVG EDGES
-══════════════════════════════════ */
-      .e-base {
-        fill: none;
-        stroke-width: 1;
-        stroke-dasharray: 4 10;
-        stroke-linecap: round;
-        opacity: 0.1;
-      }
-      .e-glow {
-        fill: none;
-        stroke-width: 1.8;
-        stroke-dasharray: 10 16;
-        stroke-linecap: round;
-        opacity: 0;
-        filter: url(#glow);
-      }
-      .e-glow.flowing {
-        opacity: 1;
-        animation: flow-line 0.8s linear infinite;
-      }
-      @keyframes flow-line {
-        from {
-          stroke-dashoffset: 0;
-        }
-        to {
-          stroke-dashoffset: -26;
-        }
-      }
-
-      /* ══════════════════════════════════
-   LAYER LABELS
-══════════════════════════════════ */
-      .layer-label {
-        position: absolute;
-        left: 20px;
-        font-size: 0.55rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        color: #1a2744;
-        transform: translateY(-50%);
-        z-index: 3;
-        pointer-events: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root">
-      <!-- ══════════════════ LEFT PANEL ══════════════════ -->
-      <div id="panel">
-        <div id="panel-header">
-          <div>
-            <div class="panel-logo">
-              Tap2Med <span>· System Architecture</span>
-            </div>
-          </div>
-          <div class="panel-badge">Patient Journey</div>
-        </div>
-
-        <div id="step-dots"></div>
-
-        <div id="story">
-          <div class="step-meta">
-            <div class="step-counter" id="step-label">Step 01 of 14</div>
-            <div class="step-index" id="step-idx">01</div>
-          </div>
-
-          <div id="step-title">—</div>
-
-          <div id="patient-action">
-            <div class="pa-avatar">
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                />
-              </svg>
-            </div>
-            <div class="pa-meta">
-              <div class="pa-name">Priya Sharma · Token #7</div>
-              <div class="pa-text" id="pa-text">—</div>
-            </div>
-          </div>
-
-          <div id="tech-detail">—</div>
-
-          <div id="code-wrap" class="hidden">
-            <div id="code-header">
-              <div class="code-dot" style="background: #ef4444"></div>
-              <div class="code-dot" style="background: #f59e0b"></div>
-              <div class="code-dot" style="background: #10b981"></div>
-              <div id="code-lang">Python · Backend</div>
-            </div>
-            <div id="code-block"></div>
-          </div>
-
-          <div id="highlight-box" class="hidden"></div>
-        </div>
-
-        <div id="prog-wrap">
-          <div id="prog-bar-bg"><div id="prog-bar-fill"></div></div>
-        </div>
-
-        <div id="nav">
-          <button class="btn-nav" id="btn-prev" onclick="go(-1)" disabled>
-            ← Back
-          </button>
-          <button class="btn-auto" id="btn-auto" onclick="toggleAuto()">
-            ▶ Auto Play
-          </button>
-          <button class="btn-nav" id="btn-next" onclick="go(1)">Next →</button>
-        </div>
-      </div>
-
-      <!-- ══════════════════ DIAGRAM ══════════════════ -->
-      <div id="diagram">
-        <!-- Layer labels -->
-        <div class="layer-label" id="ll-1">Entry</div>
-        <div class="layer-label" id="ll-2">API</div>
-        <div class="layer-label" id="ll-3">Security</div>
-        <div class="layer-label" id="ll-4">Storage</div>
-        <div class="layer-label" id="ll-5">Output</div>
-
-        <svg id="svg-edges">
-          <defs>
-            <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
-              <feGaussianBlur stdDeviation="3.5" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-        </svg>
+<html lang=en>
+<head>
+<meta charset=UTF-8/>
+<meta name=viewport content=width=device-width,initial-scale=1.0/>
+<title>Tap2Med — Patient Journey</title>
+<link rel=preconnect href=https://fonts.googleapis.com>
+<link rel=preconnect href=https://fonts.gstatic.com crossorigin>
+<link href=https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap rel=stylesheet>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f4f8;--surface:#ffffff;--border:rgba(0,0,0,0.08);
+  --text:#0f172a;--muted:#64748b;--panel-w:400px;
+  --blue:#2563eb;--indigo:#4f46e5;--amber:#d97706;
+  --red:#dc2626;--purple:#7c3aed;--green:#059669;--cyan:#0891b2;
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:var(--font);color:var(--text)}
+#root{display:flex;width:100vw;height:100vh}
+#panel{width:var(--panel-w);flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-right:1px solid var(--border);box-shadow:4px 0 24px rgba(0,0,0,0.06);position:relative;z-index:10}
+#panel-header{padding:22px 28px 18px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:space-between}
+.panel-logo{font-size:.88rem;font-weight:800;letter-spacing:-.3px;color:var(--text)}
+.panel-logo span{color:var(--muted);font-weight:500}
+.panel-badge{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--blue);background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.18);padding:3px 9px;border-radius:4px}
+#step-dots{display:flex;gap:4px;padding:16px 28px 0;flex-shrink:0;flex-wrap:wrap}
+.dot{height:3px;border-radius:2px;background:#e2e8f0;transition:background .3s;cursor:pointer;flex:1;min-width:8px;max-width:20px}
+.dot.done{background:#bfdbfe}.dot.active{background:var(--blue);box-shadow:0 0 6px rgba(37,99,235,.3)}
+#story{flex:1;overflow-y:auto;padding:20px 28px 16px;display:flex;flex-direction:column;gap:14px}
+#story::-webkit-scrollbar{width:3px}#story::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
+.step-meta{display:flex;align-items:center;justify-content:space-between}
+.step-counter{font-size:.65rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.step-index{font-size:2.8rem;font-weight:800;color:rgba(37,99,235,.09);line-height:1;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+#step-title{font-size:1.2rem;font-weight:700;line-height:1.3;letter-spacing:-.3px;color:var(--text)}
+#patient-action{display:flex;align-items:flex-start;gap:12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:13px 14px}
+.pa-avatar{width:34px;height:34px;border-radius:8px;background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pa-avatar svg{width:16px;height:16px;fill:var(--blue)}
+.pa-meta{flex:1;min-width:0}
+.pa-name{font-size:.68rem;font-weight:700;color:var(--blue);letter-spacing:.3px;margin-bottom:4px;text-transform:uppercase}
+.pa-text{font-size:.82rem;color:var(--muted);line-height:1.55}
+#tech-detail{font-size:.78rem;color:var(--muted);line-height:1.75;padding-left:12px;border-left:2px solid #e2e8f0}
+#code-wrap{display:flex;flex-direction:column;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0}
+#code-wrap.hidden{display:none}
+#code-header{background:#f1f5f9;padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #e2e8f0}
+.code-dot{width:8px;height:8px;border-radius:50%}
+#code-lang{font-size:.62rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;margin-left:4px}
+#code-block{background:#f8fafc;padding:14px 16px;font-family:var(--mono);font-size:.72rem;line-height:1.85;overflow-x:auto;color:#334155}
+.c-comment{color:#94a3b8}.c-key{color:#dc2626}.c-fn{color:#7c3aed}.c-str{color:#1d4ed8}.c-val{color:#d97706}.c-result{color:#059669;font-weight:600}.c-del{color:#dc2626;text-decoration:line-through;opacity:.7}
+#highlight-box{border-radius:8px;padding:11px 14px;font-size:.78rem;line-height:1.55;font-weight:500;border:1px solid transparent}
+#highlight-box.hidden{display:none}
+#prog-wrap{padding:0 28px 10px;flex-shrink:0}
+#prog-bar-bg{height:2px;background:#e2e8f0;border-radius:1px;overflow:hidden}
+#prog-bar-fill{height:100%;border-radius:1px;width:0%;background:linear-gradient(90deg,var(--blue),var(--indigo));transition:width .08s linear}
+#nav{display:flex;align-items:center;justify-content:space-between;padding:12px 28px 20px;flex-shrink:0;border-top:1px solid var(--border);gap:10px}
+.btn-nav{background:transparent;border:1px solid #e2e8f0;color:var(--muted);padding:8px 16px;border-radius:7px;font-size:.78rem;font-weight:600;cursor:pointer;font-family:var(--font);transition:border-color .15s,color .15s,background .15s}
+.btn-nav:hover:not(:disabled){border-color:#cbd5e1;color:var(--text);background:#f8fafc}.btn-nav:disabled{opacity:.3;cursor:not-allowed}
+.btn-auto{flex:1;background:var(--blue);border:none;color:#fff;padding:8px 16px;border-radius:7px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:var(--font);transition:opacity .15s,transform .1s;letter-spacing:.2px;box-shadow:0 2px 8px rgba(37,99,235,.25)}
+.btn-auto:hover{opacity:.88;transform:translateY(-1px)}.btn-auto:active{transform:translateY(0)}
+#diagram{flex:1;position:relative;overflow:hidden;background:var(--bg)}
+#diagram::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(37,99,235,.13) 1px,transparent 1px);background-size:32px 32px;pointer-events:none}
+#diagram::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,transparent 45%,rgba(240,244,248,.65) 100%);pointer-events:none}
+#svg-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:1}
+.node{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;z-index:2;transition:transform .3s cubic-bezier(.34,1.4,.64,1)}
+.node-card{background:#fff;border:1px solid rgba(0,0,0,.09);border-radius:11px;width:118px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);transition:border-color .35s,box-shadow .35s;position:relative}
+.node-top-bar{height:2px;width:100%;background:var(--node-color,#2563eb);opacity:.5;transition:opacity .35s}
+.node-body{padding:11px 12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.node-icon-wrap{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--node-color) 10%,white);border:1px solid color-mix(in srgb,var(--node-color) 15%,transparent);flex-shrink:0}
+.node-icon-wrap svg{width:16px;height:16px;fill:var(--node-color,#2563eb)}
+.node-title{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#1e293b;line-height:1}
+.node-sub{font-size:.58rem;color:#94a3b8;letter-spacing:.2px}
+.node.active .node-card{border-color:color-mix(in srgb,var(--node-color) 45%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--node-color) 10%,transparent),0 8px 24px color-mix(in srgb,var(--node-color) 12%,transparent),0 2px 8px rgba(0,0,0,.06)}
+.node.active .node-top-bar{opacity:1}.node.active{transform:translate(-50%,-50%) scale(1.06)}
+.node.done .node-card{opacity:.4}.node.done .node-top-bar{opacity:.2}
+.e-base{fill:none;stroke-width:1.5;stroke-dasharray:4 10;stroke-linecap:round;opacity:.22}
+.e-glow{fill:none;stroke-width:2.2;stroke-dasharray:10 16;stroke-linecap:round;opacity:0;filter:url(#glow)}
+.e-glow.flowing{opacity:.75;animation:flow-line .8s linear infinite}
+@keyframes flow-line{from{stroke-dashoffset:0}to{stroke-dashoffset:-26}}
+.layer-label{position:absolute;left:20px;font-size:.55rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#cbd5e1;transform:translateY(-50%);z-index:3;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="root">
+<div id="panel">
+  <div id="panel-header">
+    <div class="panel-logo">Tap2Med <span>· System Architecture</span></div>
+    <div class="panel-badge">Patient Journey</div>
+  </div>
+  <div id="step-dots"></div>
+  <div id="story">
+    <div class="step-meta">
+      <div class="step-counter" id="step-label">Step 01 of 14</div>
+      <div class="step-index" id="step-idx">01</div>
+    </div>
+    <div id="step-title">—</div>
+    <div id="patient-action">
+      <div class="pa-avatar"><svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div>
+      <div class="pa-meta">
+        <div class="pa-name">Priya Sharma · Token #7</div>
+        <div class="pa-text" id="pa-text">—</div>
       </div>
     </div>
+    <div id="tech-detail">—</div>
+    <div id="code-wrap" class="hidden">
+      <div id="code-header">
+        <div class="code-dot" style="background:#ef4444"></div>
+        <div class="code-dot" style="background:#f59e0b"></div>
+        <div class="code-dot" style="background:#10b981"></div>
+        <div id="code-lang">Python · Backend</div>
+      </div>
+      <div id="code-block"></div>
+    </div>
+    <div id="highlight-box" class="hidden"></div>
+  </div>
+  <div id="prog-wrap"><div id="prog-bar-bg"><div id="prog-bar-fill"></div></div></div>
+  <div id="nav">
+    <button class="btn-nav" id="btn-prev" onclick="go(-1)" disabled>← Back</button>
+    <button class="btn-auto" id="btn-auto" onclick="toggleAuto()">▶  Auto Play</button>
+    <button class="btn-nav" id="btn-next" onclick="go(1)">Next →</button>
+  </div>
+</div>
+<div id="diagram">
+  <div class="layer-label" id="ll-1">Entry</div>
+  <div class="layer-label" id="ll-2">API</div>
+  <div class="layer-label" id="ll-3">Security</div>
+  <div class="layer-label" id="ll-4">Storage</div>
+  <div class="layer-label" id="ll-5">Output</div>
+  <svg id="svg-edges">
+    <defs>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+  </svg>
+</div>
+</div>
+<script>
+const ICONS = {
+  patient: `<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
+  scan:    `<svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm2 2v3h3V5zm9-2h7v7h-7zm2 2v3h3V5zM3 14h7v7H3zm2 2v3h3v-3zm11 0h2v2h-2zm0 4h2v2h-2zm-2-4h2v6h-2zm4-4h2v2h-2zm0-2h-4v2h4z"/></svg>`,
+  api:     `<svg viewBox="0 0 24 24"><path d="M4 3h16c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1zm12 2.5c0 .55.45 1 1 1s1-.45 1-1-.45-1-1-1-1 .45-1 1zM4 11h16c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1zm12 2.5c0 .55.45 1 1 1s1-.45 1-1-.45-1-1-1-1 .45-1 1z"/></svg>`,
+  rate:    `<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>`,
+  hmac:    `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
+  auth:    `<svg viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`,
+  db:      `<svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4S4 11.21 4 9zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4S4 16.21 4 14z"/></svg>`,
+  doctor:  `<svg viewBox="0 0 24 24"><path d="M19 8C19 10.76 17.12 13.09 14.56 13.78L14.56 19C14.56 20.66 13.22 22 11.56 22C9.9 22 8.56 20.66 8.56 19L8.56 13.78C6 13.09 4.12 10.76 4.12 8L4.12 3L6.12 3L6.12 8C6.12 10.21 7.91 12 10.12 12L13 12C15.21 12 17 10.21 17 8L17 3L19 3L19 8ZM9.5 6L9.5 2L11.5 2L11.5 6L9.5 6ZM13.5 6L13.5 2L15.5 2L15.5 6L13.5 6Z"/></svg>`,
+  staff:   `<svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>`,
+  pharmacy:`<svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.31.18-.62.18-.94C18 3.37 16.63 2 15.06 2c-.81 0-1.54.34-2.06.88L12 3.77l-1-.89C10.48 2.34 9.75 2 8.94 2 7.37 2 6 3.37 6 4.94c0 .32.1.63.18.94H4C2.9 5.88 2 6.78 2 7.88v12C2 21.1 2.9 22 4 22h16c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 5c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zM4 19.88V8h16v11.88H4zm9-9.38h-2v2H9v2h2v2h2v-2h2v-2h-2v-2z"/></svg>`
+};
 
-    <script>
-      /* ══════════════════════════════════════════════════
-   ICONS — clean SVG paths (Material Design-inspired)
-══════════════════════════════════════════════════ */
-      const ICONS = {
-        patient: `<svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
-        scan: `<svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm2 2v3h3V5zm9-2h7v7h-7zm2 2v3h3V5zM3 14h7v7H3zm2 2v3h3v-3zm11 0h2v2h-2zm0 4h2v2h-2zm-2-4h2v6h-2zm4-4h2v2h-2zm0-2h-4v2h4z"/></svg>`,
-        api: `<svg viewBox="0 0 24 24"><path d="M4 3h16c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V4c0-.55.45-1 1-1zm12 2.5c0 .55.45 1 1 1s1-.45 1-1-.45-1-1-1-1 .45-1 1zM4 11h16c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1zm12 2.5c0 .55.45 1 1 1s1-.45 1-1-.45-1-1-1-1 .45-1 1z"/></svg>`,
-        rate: `<svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>`,
-        hmac: `<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>`,
-        auth: `<svg viewBox="0 0 24 24"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>`,
-        db: `<svg viewBox="0 0 24 24"><path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4S4 11.21 4 9zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4S4 16.21 4 14z"/></svg>`,
-        doctor: `<svg viewBox="0 0 24 24"><path d="M19 8C19 10.76 17.12 13.09 14.56 13.78L14.56 19C14.56 20.66 13.22 22 11.56 22C9.9 22 8.56 20.66 8.56 19L8.56 13.78C6 13.09 4.12 10.76 4.12 8L4.12 3L6.12 3L6.12 8C6.12 10.21 7.91 12 10.12 12L13 12C15.21 12 17 10.21 17 8L17 3L19 3L19 8ZM9.5 6L9.5 2L11.5 2L11.5 6L9.5 6ZM13.5 6L13.5 2L15.5 2L15.5 6L13.5 6Z"/></svg>`,
-        staff: `<svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>`,
-        pharmacy: `<svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.31.18-.62.18-.94C18 3.37 16.63 2 15.06 2c-.81 0-1.54.34-2.06.88L12 3.77l-1-.89C10.48 2.34 9.75 2 8.94 2 7.37 2 6 3.37 6 4.94c0 .32.1.63.18.94H4C2.9 5.88 2 6.78 2 7.88v12C2 21.1 2.9 22 4 22h16c1.1 0 2-.9 2-2v-12c0-1.1-.9-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 5c0-.55.45-1 1-1s1 .45 1 1-.45 1-1 1-1-.45-1-1zM4 19.88V8h16v11.88H4zm9-9.38h-2v2H9v2h2v2h2v-2h2v-2h-2v-2z"/></svg>`,
-      };
+const NODES = [
+  {id:'patient',  cx:50, cy:8,  color:'#2563eb', iconKey:'patient', title:'Patient',       sub:'Priya Sharma'},
+  {id:'scan',     cx:50, cy:22, color:'#4f46e5', iconKey:'scan',    title:'QR Scan',        sub:'/scan endpoint'},
+  {id:'api',      cx:50, cy:38, color:'#d97706', iconKey:'api',     title:'FastAPI',        sub:'Backend API'},
+  {id:'rate',     cx:17, cy:57, color:'#dc2626', iconKey:'rate',    title:'Rate Guard',     sub:'5 req / IP / hr'},
+  {id:'hmac',     cx:50, cy:57, color:'#7c3aed', iconKey:'hmac',    title:'HMAC Engine',   sub:'SHA-256 · 3 tokens'},
+  {id:'auth',     cx:83, cy:57, color:'#059669', iconKey:'auth',    title:'Auth & OTP',    sub:'PBKDF2 200k iter'},
+  {id:'db',       cx:50, cy:74, color:'#0891b2', iconKey:'db',      title:'PostgreSQL',    sub:'6 tables · JSONB'},
+  {id:'doctor',   cx:17, cy:91, color:'#2563eb', iconKey:'doctor',  title:'Doctor',        sub:'Rx Dashboard'},
+  {id:'staff',    cx:50, cy:91, color:'#4f46e5', iconKey:'staff',   title:'Staff',         sub:'Queue & Vitals'},
+  {id:'pharmacy', cx:83, cy:91, color:'#059669', iconKey:'pharmacy',title:'Pharmacy',      sub:'Dispense View'}
+];
 
-      /* ══════════════════════════════════════════════════
-   NODES
-══════════════════════════════════════════════════ */
-      const NODES = [
-        {
-          id: "patient",
-          cx: 50,
-          cy: 8,
-          color: "#3b82f6",
-          iconKey: "patient",
-          title: "Patient",
-          sub: "Priya Sharma",
-        },
-        {
-          id: "scan",
-          cx: 50,
-          cy: 22,
-          color: "#6366f1",
-          iconKey: "scan",
-          title: "QR Scan",
-          sub: "/scan endpoint",
-        },
-        {
-          id: "api",
-          cx: 50,
-          cy: 38,
-          color: "#f59e0b",
-          iconKey: "api",
-          title: "FastAPI",
-          sub: "Backend API",
-        },
-        {
-          id: "rate",
-          cx: 17,
-          cy: 57,
-          color: "#ef4444",
-          iconKey: "rate",
-          title: "Rate Guard",
-          sub: "5 req / IP / hr",
-        },
-        {
-          id: "hmac",
-          cx: 50,
-          cy: 57,
-          color: "#8b5cf6",
-          iconKey: "hmac",
-          title: "HMAC Engine",
-          sub: "SHA-256 · 3 tokens",
-        },
-        {
-          id: "auth",
-          cx: 83,
-          cy: 57,
-          color: "#10b981",
-          iconKey: "auth",
-          title: "Auth & OTP",
-          sub: "PBKDF2 200 k iter",
-        },
-        {
-          id: "db",
-          cx: 50,
-          cy: 74,
-          color: "#06b6d4",
-          iconKey: "db",
-          title: "PostgreSQL",
-          sub: "6 tables · JSONB",
-        },
-        {
-          id: "doctor",
-          cx: 17,
-          cy: 91,
-          color: "#3b82f6",
-          iconKey: "doctor",
-          title: "Doctor",
-          sub: "Rx Dashboard",
-        },
-        {
-          id: "staff",
-          cx: 50,
-          cy: 91,
-          color: "#6366f1",
-          iconKey: "staff",
-          title: "Staff",
-          sub: "Queue & Vitals",
-        },
-        {
-          id: "pharmacy",
-          cx: 83,
-          cy: 91,
-          color: "#10b981",
-          iconKey: "pharmacy",
-          title: "Pharmacy",
-          sub: "Dispense View",
-        },
-      ];
+const EDGES = [
+  {id:'e_p_s',   from:'patient', to:'scan',     color:'#4f46e5'},
+  {id:'e_s_a',   from:'scan',    to:'api',      color:'#d97706'},
+  {id:'e_a_r',   from:'api',     to:'rate',     color:'#dc2626'},
+  {id:'e_a_h',   from:'api',     to:'hmac',     color:'#7c3aed'},
+  {id:'e_a_au',  from:'api',     to:'auth',     color:'#059669'},
+  {id:'e_h_db',  from:'hmac',    to:'db',       color:'#7c3aed'},
+  {id:'e_au_db', from:'auth',    to:'db',       color:'#059669'},
+  {id:'e_db_d',  from:'db',      to:'doctor',   color:'#2563eb'},
+  {id:'e_db_s',  from:'db',      to:'staff',    color:'#4f46e5'},
+  {id:'e_db_p',  from:'db',      to:'pharmacy', color:'#059669'}
+];
 
-      const EDGES = [
-        { id: "e_p_s", from: "patient", to: "scan", color: "#6366f1" },
-        { id: "e_s_a", from: "scan", to: "api", color: "#f59e0b" },
-        { id: "e_a_r", from: "api", to: "rate", color: "#ef4444" },
-        { id: "e_a_h", from: "api", to: "hmac", color: "#8b5cf6" },
-        { id: "e_a_au", from: "api", to: "auth", color: "#10b981" },
-        { id: "e_h_db", from: "hmac", to: "db", color: "#8b5cf6" },
-        { id: "e_au_db", from: "auth", to: "db", color: "#10b981" },
-        { id: "e_db_d", from: "db", to: "doctor", color: "#3b82f6" },
-        { id: "e_db_s", from: "db", to: "staff", color: "#6366f1" },
-        { id: "e_db_p", from: "db", to: "pharmacy", color: "#10b981" },
-      ];
+const STEPS = [
+  {
+    title:'Priya Sharma arrives at City Clinic',
+    pa:'Walks in without an appointment. Sees a QR code printed at the reception counter.',
+    tech:'No paper form. No app download. No account creation. A single QR code is the entire entry point.',
+    nodes:['patient'],
+    edges:[],
+    highlight:{color:'#2563eb',text:'Zero-friction entry — any phone, any browser, any network'},
+    codeFile:null
+  },
+  {
+    title:'She scans the QR code',
+    pa:'Opens her camera app, scans the code. The browser loads the check-in page instantly.',
+    tech:'The QR encodes the Clinic ID. Her browser navigates to /scan?clinic=3f7a... — a lightweight web page, no app store involved.',
+    nodes:['patient','scan'],
+    edges:['e_p_s'],
+    code:'<span class="c-comment"># QR encodes a plain URL</span>\nhttps://tap2med.com/scan?clinic=<span class="c-val">3f7a9c12-…</span>',
+    codeFile:'Frontend · scan.js'
+  },
+  {
+    title:'Phone number submitted to the backend',
+    pa:'Priya types her number and taps "Check In". The number travels over HTTPS.',
+    tech:'POST /api/events/visit/start — this is the only moment the raw phone number exists anywhere in the system. RAM only, for milliseconds.',
+    nodes:['scan','api'],
+    edges:['e_s_a'],
+    code:'<span class="c-comment"># HTTP request body</span>\n{\n  <span class="c-str">"phone"</span>:     <span class="c-val">"9876543210"</span>,\n  <span class="c-str">"clinic_id"</span>: <span class="c-val">"3f7a9c12-…"</span>\n}',
+    codeFile:'API · events.py'
+  },
+  {
+    title:'Rate limiter checks the request',
+    pa:'The server silently validates that this IP is not being abused before proceeding.',
+    tech:'Sliding-window counter: max 5 registration attempts per IP per hour. Prevents brute-force enumeration. Returns HTTP 429 if exceeded.',
+    nodes:['api','rate'],
+    edges:['e_a_r'],
+    code:'<span class="c-comment"># events.py — check_rate_limit()</span>\nrecords[ip] = [ts <span class="c-key">for</span> ts <span class="c-key">in</span> window\n               <span class="c-key">if</span> now - ts < <span class="c-val">3600</span>]\n<span class="c-key">if</span> len(records[ip]) >= <span class="c-val">5</span>:\n    <span class="c-key">raise</span> HTTPException(<span class="c-val">429</span>)',
+    codeFile:'API · events.py'
+  },
+  {
+    title:'HMAC engine receives the phone number',
+    pa:'The phone is passed to the cryptographic hashing layer — never to the database directly.',
+    tech:'hashing.py begins. Three independent HMAC-SHA256 operations run. Each uses a different secret key or salt combination.',
+    nodes:['api','hmac'],
+    edges:['e_a_h'],
+    highlight:{color:'#7c3aed',text:'HMAC-SHA256 is a one-way function. Mathematically irreversible without the secret key.'},
+    codeFile:null
+  },
+  {
+    title:'Three cryptographic tokens are generated',
+    pa:'In under 1ms, three unique tokens are derived. Each serves a distinct purpose.',
+    tech:'lookup_hash for device recovery. network_token for cross-clinic identity. local_token scoped to this clinic via clinic_salt — cross-clinic correlation is mathematically impossible.',
+    nodes:['hmac'],
+    edges:[],
+    code:'<span class="c-comment"># hashing.py</span>\nlookup_hash = hmac.<span class="c-fn">new</span>(\n    LOOKUP_SECRET, <span class="c-str">"9876543210:0"</span>\n).hexdigest()\n<span class="c-result">→ a3f8c2d1e9b74f63…</span>\n\nlocal_token = hmac.<span class="c-fn">new</span>(\n    SECRET_KEY + clinic_salt, <span class="c-str">"9876543210:0"</span>\n).hexdigest()\n<span class="c-result">→ c1d5a8e3f2b96741…</span>',
+    codeFile:'Core · hashing.py'
+  },
+  {
+    title:'Phone number deleted from memory',
+    pa:'Before a single database write occurs, the phone number is explicitly overwritten.',
+    tech:'The plaintext is zeroed in the request object and local variable. It never reaches any ORM call, log line, or database column.',
+    nodes:['hmac'],
+    edges:[],
+    code:'<span class="c-comment"># events.py — immediately post-hashing</span>\npayload.phone = <span class="c-del">"9876543210"</span>\npayload.phone = <span class="c-val">"DELETED"</span>\nphone         = <span class="c-del">"9876543210"</span>\nphone         = <span class="c-val">"DELETED"</span>\n<span class="c-comment"># db.commit() runs — zero PII</span>',
+    codeFile:'API · events.py',
+    highlight:{color:'#dc2626',text:'No column in any table stores a phone number. Ever.'}
+  },
+  {
+    title:'Tokens written to PostgreSQL',
+    pa:'Priya\'s patient record and visit event are created in the database.',
+    tech:'patients table: lookup_hash + user_salt + network_token. events table: local_token, status=waiting, token #7. All primary keys are UUID — no enumerable IDs.',
+    nodes:['hmac','db'],
+    edges:['e_h_db'],
+    code:'<span class="c-comment"># patients table — zero PII</span>\nlookup_hash:   <span class="c-val">a3f8c2d1…</span>\nnetwork_token: <span class="c-val">7b9e4f2a…</span>\nuser_salt:     <span class="c-val">random_hex_32</span>\n\n<span class="c-comment"># events table</span>\nlocal_token: <span class="c-val">c1d5a8e3…</span>\nstatus:      <span class="c-str">"waiting"</span>, token: <span class="c-val">7</span>',
+    codeFile:'DB · models.py'
+  },
+  {
+    title:'Priya appears in the staff queue',
+    pa:'"Token 7 — Priya Sharma" appears on the staff screen. Real time. No manual entry.',
+    tech:'Staff dashboard polls GET /api/events/queue. Returns events where status=waiting. No phone number ever returned to the frontend.',
+    nodes:['db','staff'],
+    edges:['e_db_s'],
+    highlight:{color:'#4f46e5',text:'Queue position: 1 · Visit type: Walk-in · Estimated wait: 0 min'},
+    codeFile:null
+  },
+  {
+    title:'Nurse records vitals',
+    pa:'Nurse calls Token 7. Takes BP, weight, SpO2, temperature.',
+    tech:'PUT /api/events/vitals — stored as JSONB in the events row. No schema migration needed to add new vital parameters.',
+    nodes:['staff'],
+    edges:[],
+    code:'<span class="c-comment"># JSONB column in events table</span>\nvitals: {\n  <span class="c-str">"bp_sys"</span>: <span class="c-val">"120"</span>, <span class="c-str">"bp_dia"</span>: <span class="c-val">"80"</span>,\n  <span class="c-str">"wt"</span>: <span class="c-val">"62"</span>, <span class="c-str">"spo2"</span>: <span class="c-val">"98"</span>,\n  <span class="c-str">"is_paid"</span>: <span class="c-key">true</span>\n}',
+    codeFile:'API · events.py · /vitals'
+  },
+  {
+    title:'Doctor opens the case',
+    pa:'Doctor clicks Token 7. Priya\'s complete visit history loads instantly.',
+    tech:'GET /api/events/history/{local_token} — scoped to this clinic via local_token. Cross-clinic history inaccessible by design.',
+    nodes:['db','doctor'],
+    edges:['e_db_d'],
+    highlight:{color:'#2563eb',text:'Previous visit: 12 Aug 2026 · Dx: URTI · Rx: Azithromycin 500mg · 5 days'},
+    codeFile:null
+  },
+  {
+    title:'Doctor writes the prescription',
+    pa:'Diagnosis: Hypertension Stage 1. Prescribes Amlodipine 5mg once daily.',
+    tech:'Structured prescription pad on the dashboard. Each row stores type, name, dosage, frequency, duration — saved in prescriptions table linked by event UUID.',
+    nodes:['doctor'],
+    edges:[],
+    code:'<span class="c-comment"># prescriptions table row</span>\nmedicine_name: <span class="c-str">"TAB. Amlodipine"</span>\ninstructions:  <span class="c-str">"5mg · 1-0-0 · After Food · 30 Days"</span>\nevent_id:      <span class="c-val">uuid → linked to this visit</span>',
+    codeFile:'API · events.py · /complete'
+  },
+  {
+    title:'Pharmacy notified in real time',
+    pa:'The pharmacist\'s screen updates. Priya\'s prescription appears with full details.',
+    tech:'PUT /api/events/complete sets status=completed and saves prescriptions. Pharmacy dashboard polls the completed queue. No phone number exposed.',
+    nodes:['db','pharmacy'],
+    edges:['e_db_p'],
+    highlight:{color:'#059669',text:'TAB. Amlodipine 5mg · 1-0-0 After Food · 30 Days · Dispensed ✓'},
+    codeFile:null
+  },
+  {
+    title:'Visit complete. Zero phone numbers stored.',
+    pa:'"See you next month, Priya." — Full record. Full history. Zero PII liability.',
+    tech:'9876543210 exists nowhere in the database — no column, no log, no cache. Complete longitudinal medical record with full cryptographic privacy guarantees.',
+    nodes:['patient','scan','api','rate','hmac','auth','db','doctor','staff','pharmacy'],
+    edges:['e_p_s','e_s_a','e_a_r','e_a_h','e_a_au','e_h_db','e_au_db','e_db_d','e_db_s','e_db_p'],
+    highlight:{color:'#059669',text:'Full medical record · Repeat patient detected · Phone: never stored'},
+    codeFile:null
+  }
+];
 
-      /* ══════════════════════════════════════════════════
-   WALKTHROUGH STEPS
-══════════════════════════════════════════════════ */
-      const STEPS = [
-        {
-          title: "Priya Sharma arrives at City Clinic",
-          pa: "Walks in without an appointment. Sees a QR code printed at the reception counter.",
-          tech: "No paper form. No app download. No account creation. A single QR code is the entire entry point.",
-          nodes: ["patient"],
-          edges: [],
-          highlight: {
-            color: "#3b82f6",
-            text: "Zero-friction entry — any phone, any browser, any network",
-          },
-          codeFile: null,
-        },
-        {
-          title: "She scans the QR code",
-          pa: "Opens her camera app, scans the code. The browser loads the check-in page in under a second.",
-          tech: "The QR encodes the Clinic ID. Her browser navigates to /scan?clinic=3f7a... — a lightweight web page, no app store involved.",
-          nodes: ["patient", "scan"],
-          edges: ["e_p_s"],
-          code: `<span class="c-comment"># QR encodes a plain URL</span>
-https://tap2med.com/scan?clinic=<span class="c-val">3f7a9c12-…</span>`,
-          codeFile: "Frontend · scan.js",
-        },
-        {
-          title: "Phone number submitted to the backend",
-          pa: 'Priya types her number and taps "Check In". The number travels over HTTPS.',
-          tech: "POST /api/events/visit/start — this is the only moment the raw phone number exists anywhere in the system. RAM only, for milliseconds.",
-          nodes: ["scan", "api"],
-          edges: ["e_s_a"],
-          code: `<span class="c-comment"># HTTP request body</span>
-{
-  <span class="c-str">"phone"</span>:     <span class="c-val">"9876543210"</span>,
-  <span class="c-str">"clinic_id"</span>: <span class="c-val">"3f7a9c12-…"</span>,
-  <span class="c-str">"name"</span>:      <span class="c-val">"Priya Sharma"</span>
-}`,
-          codeFile: "API · events.py",
-        },
-        {
-          title: "Rate limiter checks the request",
-          pa: "The server silently validates that this IP isn't being abused before proceeding.",
-          tech: "Sliding-window counter: max 5 registration attempts per IP per hour. Prevents brute-force enumeration of patient records. Returns HTTP 429 if exceeded.",
-          nodes: ["api", "rate"],
-          edges: ["e_a_r"],
-          code: `<span class="c-comment"># events.py — check_rate_limit()</span>
-records[ip] = [ts <span class="c-key">for</span> ts <span class="c-key">in</span> window
-               <span class="c-key">if</span> now - ts < <span class="c-val">3600</span>]
+const diagramEl = document.getElementById('diagram');
+const svgEl = document.getElementById('svg-edges');
+const nodeEls = {};
 
-<span class="c-key">if</span> len(records[ip]) >= <span class="c-val">5</span>:
-    <span class="c-key">raise</span> HTTPException(<span class="c-val">429</span>,
-        detail=<span class="c-str">"Too many attempts"</span>)`,
-          codeFile: "API · events.py",
-        },
-        {
-          title: "HMAC engine receives the phone number",
-          pa: "The phone is passed to the cryptographic hashing layer — never to the database directly.",
-          tech: "hashing.py begins execution. Three independent HMAC-SHA256 operations are run. Each uses a different secret key or salt combination.",
-          nodes: ["api", "hmac"],
-          edges: ["e_a_h"],
-          highlight: {
-            color: "#8b5cf6",
-            text: "HMAC-SHA256 is a one-way function. Mathematically irreversible without the secret key.",
-          },
-          codeFile: null,
-        },
-        {
-          title: "Three cryptographic tokens are generated",
-          pa: "In under 1ms, three unique tokens are derived. Each serves a distinct purpose.",
-          tech: "lookup_hash for device recovery. network_token for cross-clinic identity. local_token scoped to this clinic only via clinic_salt — making cross-clinic correlation mathematically impossible.",
-          nodes: ["hmac"],
-          edges: [],
-          code: `<span class="c-comment"># hashing.py</span>
-lookup_hash = hmac.<span class="c-fn">new</span>(
-    LOOKUP_SECRET, <span class="c-str">"9876543210:0"</span>
-).hexdigest()
-<span class="c-result">→ a3f8c2d1e9b74f63…</span>
+function dw(){ return diagramEl.offsetWidth; }
+function dh(){ return diagramEl.offsetHeight; }
+function px(p,t){ return t*p/100; }
 
-network_token = hmac.<span class="c-fn">new</span>(
-    SECRET_KEY, <span class="c-str">"9876543210:0:{user_salt}"</span>
-).hexdigest()
-<span class="c-result">→ 7b9e4f2a1c8d53e6…</span>
+function buildNodes(){
+  document.querySelectorAll('.node').forEach(e => e.remove());
+  NODES.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'node';
+    div.id = 'n-' + n.id;
+    div.style.setProperty('--node-color', n.color);
+    div.style.left = px(n.cx, dw()) + 'px';
+    div.style.top  = px(n.cy, dh()) + 'px';
+    div.innerHTML = `<div class="node-card"><div class="node-top-bar"></div><div class="node-body"><div class="node-icon-wrap" style="--node-color:${n.color}">${ICONS[n.iconKey]||''}</div><div class="node-title">${n.title}</div><div class="node-sub">${n.sub}</div></div></div>`;
+    diagramEl.appendChild(div);
+    nodeEls[n.id] = div;
+  });
+  positionLayerLabels();
+}
 
-local_token = hmac.<span class="c-fn">new</span>(
-    SECRET_KEY + clinic_salt, <span class="c-str">"9876543210:0"</span>
-).hexdigest()
-<span class="c-result">→ c1d5a8e3f2b96741…</span>`,
-          codeFile: "Core · hashing.py",
-        },
-        {
-          title: "Phone number deleted from memory",
-          pa: "Before a single database write occurs, the phone number is explicitly overwritten.",
-          tech: "The plaintext is zeroed out in the request object and local variable. It never reaches any ORM call, log line, or database column. This is a code-level hard guarantee.",
-          nodes: ["hmac"],
-          edges: [],
-          code: `<span class="c-comment"># events.py — immediately post-hashing</span>
-payload.phone = <span class="c-del">"9876543210"</span>
-payload.phone = <span class="c-val">"DELETED"</span>
+function positionLayerLabels(){
+  const layers = [
+    {id:'ll-1', nodeId:'patient'},
+    {id:'ll-2', nodeId:'api'},
+    {id:'ll-3', nodeId:'hmac'},
+    {id:'ll-4', nodeId:'db'},
+    {id:'ll-5', nodeId:'staff'}
+  ];
+  const dr = diagramEl.getBoundingClientRect();
+  layers.forEach(l => {
+    const el = document.getElementById(l.id);
+    const n = nodeEls[l.nodeId];
+    if(!el || !n) return;
+    const nr = n.getBoundingClientRect();
+    el.style.top = (nr.top + nr.height/2 - dr.top) + 'px';
+  });
+}
 
-phone = <span class="c-del">"9876543210"</span>
-phone = <span class="c-val">"DELETED"</span>
+function nodePort(id, side){
+  const el = nodeEls[id];
+  if(!el) return {x:0, y:0};
+  const dr = diagramEl.getBoundingClientRect();
+  const er = el.getBoundingClientRect();
+  return {
+    x: er.left + er.width/2 - dr.left,
+    y: side === 'top' ? er.top - dr.top : er.bottom - dr.top
+  };
+}
 
-<span class="c-comment"># db.commit() runs here — zero PII</span>`,
-          codeFile: "API · events.py",
-          highlight: {
-            color: "#ef4444",
-            text: "No column in any table stores a phone number. Ever.",
-          },
-        },
-        {
-          title: "Tokens written to PostgreSQL",
-          pa: "Priya's patient record and visit event are created in the database.",
-          tech: "patients table: lookup_hash + user_salt + network_token. clinic_patient_records: local_token + name. events table: status=waiting, daily_token_number=7. All PKs are UUID — no enumerable IDs.",
-          nodes: ["hmac", "db"],
-          edges: ["e_h_db"],
-          code: `<span class="c-comment"># patients table — zero PII</span>
-lookup_hash:    <span class="c-val">a3f8c2d1…</span>
-network_token:  <span class="c-val">7b9e4f2a…</span>
-user_salt:      <span class="c-val">random_hex_32</span>
+function buildEdges(){
+  svgEl.querySelectorAll('.e-base,.e-glow').forEach(e => e.remove());
+  EDGES.forEach(edge => {
+    const s = nodePort(edge.from, 'bottom');
+    const e = nodePort(edge.to, 'top');
+    const dy = Math.abs(e.y - s.y);
+    const t = Math.min(dy * 0.45, 70);
+    const d = `M ${s.x} ${s.y} C ${s.x} ${s.y+t} ${e.x} ${e.y-t} ${e.x} ${e.y}`;
+    
+    const base = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    base.setAttribute('d', d);
+    base.setAttribute('class', 'e-base');
+    base.setAttribute('stroke', edge.color);
+    base.id = 'base-' + edge.id;
+    svgEl.appendChild(base);
+    
+    const glow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    glow.setAttribute('d', d);
+    glow.setAttribute('class', 'e-glow');
+    glow.setAttribute('stroke', edge.color);
+    glow.id = 'glow-' + edge.id;
+    svgEl.appendChild(glow);
+  });
+}
 
-<span class="c-comment"># events table</span>
-local_token:    <span class="c-val">c1d5a8e3…</span>
-status:         <span class="c-str">"waiting"</span>
-daily_token_number: <span class="c-val">7</span>`,
-          codeFile: "DB · models.py",
-        },
-        {
-          title: "Priya appears in the staff queue",
-          pa: '"Token 7 — Priya Sharma" appears on the staff screen. Real time. No manual entry.',
-          tech: "Staff dashboard polls GET /api/events/queue. Returns events where status=waiting, ordered by queue_pos in JSONB vitals column. No phone number ever returned to the frontend.",
-          nodes: ["db", "staff"],
-          edges: ["e_db_s"],
-          highlight: {
-            color: "#6366f1",
-            text: "Queue position: 1 · Visit type: Walk-in · Estimated wait: 0 min",
-          },
-          codeFile: null,
-        },
-        {
-          title: "Nurse records vitals",
-          pa: "Nurse calls Token 7. Takes BP, weight, SpO2, temperature.",
-          tech: "PUT /api/events/vitals — stored as JSONB in the events row. No schema migration needed to add new vital parameters. Flexible by design.",
-          nodes: ["staff"],
-          edges: [],
-          code: `<span class="c-comment"># JSONB column in events table</span>
-vitals: {
-  <span class="c-str">"bp_sys"</span>: <span class="c-val">"120"</span>,
-  <span class="c-str">"bp_dia"</span>: <span class="c-val">"80"</span>,
-  <span class="c-str">"wt"</span>:     <span class="c-val">"62"</span>,
-  <span class="c-str">"spo2"</span>:   <span class="c-val">"98"</span>,
-  <span class="c-str">"is_paid"</span>: <span class="c-key">true</span>
-}`,
-          codeFile: "API · events.py · /vitals",
-        },
-        {
-          title: "Doctor opens the case",
-          pa: "Doctor clicks Token 7. Priya's complete visit history loads — every past diagnosis, every prescription.",
-          tech: "GET /api/events/history/{local_token}?clinic_id=... — scoped to this clinic only via local_token. Cross-clinic history is inaccessible by design — different clinic_salt means different local_token.",
-          nodes: ["db", "doctor"],
-          edges: ["e_db_d"],
-          highlight: {
-            color: "#3b82f6",
-            text: "Previous visit: 12 Aug 2026 · Dx: URTI · Rx: Azithromycin 500mg · 5 days",
-          },
-          codeFile: null,
-        },
-        {
-          title: "Doctor writes the prescription",
-          pa: "Diagnosis: Hypertension Stage 1. Prescribes Amlodipine 5mg once daily.",
-          tech: "Doctor uses the structured prescription pad on the dashboard. Each medicine row stores type, name, dosage, frequency, duration, and notes — all saved in the prescriptions table linked to the event.",
-          nodes: ["doctor"],
-          edges: [],
-          code: `<span class="c-comment"># prescriptions table row</span>
-medicine_name: <span class="c-str">"TAB. Amlodipine"</span>
-instructions:  <span class="c-str">"5mg · 1-0-0 · After Food · 30 Days"</span>
-event_id:      <span class="c-val">uuid → linked to this visit</span>
-network_token: <span class="c-val">7b9e4f2a…  (cross-clinic Rx history)</span>`,
-          codeFile: "API · events.py · /complete",
-        },
-        {
-          title: "Pharmacy notified in real time",
-          pa: "The pharmacist's screen updates. Priya's prescription appears with full details.",
-          tech: "PUT /api/events/complete sets status=completed, saves prescriptions. Pharmacy dashboard polls the completed queue and renders the Rx. No phone number is exposed to pharmacy staff.",
-          nodes: ["db", "pharmacy"],
-          edges: ["e_db_p"],
-          highlight: {
-            color: "#10b981",
-            text: "TAB. Amlodipine 5mg · 1-0-0 After Food · 30 Days · Dispensed ✓",
-          },
-          codeFile: null,
-        },
-        {
-          title: "Visit complete. Zero phone numbers stored.",
-          pa: '"See you next month, Priya." — Full record. Full history. Zero PII liability.',
-          tech: "9876543210 exists nowhere in the database — no column, no log, no cache. The system has a complete longitudinal medical record with full cryptographic privacy guarantees.",
-          nodes: [
-            "patient",
-            "scan",
-            "api",
-            "rate",
-            "hmac",
-            "auth",
-            "db",
-            "doctor",
-            "staff",
-            "pharmacy",
-          ],
-          edges: [
-            "e_p_s",
-            "e_s_a",
-            "e_a_r",
-            "e_a_h",
-            "e_a_au",
-            "e_h_db",
-            "e_au_db",
-            "e_db_d",
-            "e_db_s",
-            "e_db_p",
-          ],
-          highlight: {
-            color: "#10b981",
-            text: "Full medical record ·  Repeat patient detected ·  Phone: never stored",
-          },
-          codeFile: null,
-        },
-      ];
+let currentStep = 0, autoTimer = null, progTimer = null, progPct = 0;
+const AUTO_DUR = 5500;
 
-      /* ══════════════════════════════════════════════════
-   BUILD NODES
-══════════════════════════════════════════════════ */
-      const diagramEl = document.getElementById("diagram");
-      const svgEl = document.getElementById("svg-edges");
-      const nodeEls = {};
+function renderStep(idx){
+  const step = STEPS[idx];
+  document.querySelectorAll('.dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+    d.classList.toggle('done', i < idx);
+  });
+  const n = String(idx+1).padStart(2, '0');
+  document.getElementById('step-label').textContent = `Step ${n} of ${STEPS.length}`;
+  document.getElementById('step-idx').textContent = n;
+  document.getElementById('step-title').textContent = step.title;
+  document.getElementById('pa-text').textContent = step.pa;
+  document.getElementById('tech-detail').textContent = step.tech;
+  
+  const cw = document.getElementById('code-wrap');
+  const cb = document.getElementById('code-block');
+  const cl = document.getElementById('code-lang');
+  if(step.code){
+    cb.innerHTML = step.code;
+    cl.textContent = step.codeFile || 'Python · Backend';
+    cw.classList.remove('hidden');
+  } else {
+    cw.classList.add('hidden');
+  }
+  
+  const hb = document.getElementById('highlight-box');
+  if(step.highlight){
+    hb.style.background = step.highlight.color + '12';
+    hb.style.borderColor = step.highlight.color + '40';
+    hb.style.color = step.highlight.color;
+    hb.textContent = step.highlight.text;
+    hb.classList.remove('hidden');
+  } else {
+    hb.classList.add('hidden');
+  }
+  
+  NODES.forEach(n => {
+    const el = nodeEls[n.id];
+    if(!el) return;
+    el.classList.remove('active', 'done');
+    if(step.nodes.includes(n.id)) {
+      el.classList.add('active');
+    } else if(STEPS.slice(0, idx).some(s => s.nodes.includes(n.id))) {
+      el.classList.add('done');
+    }
+  });
+  
+  EDGES.forEach(edge => {
+    const g = document.getElementById('glow-' + edge.id);
+    const b = document.getElementById('base-' + edge.id);
+    const on = step.edges.includes(edge.id);
+    if(g) g.classList.toggle('flowing', on);
+    if(b) b.style.opacity = on ? '0.3' : '0.22';
+  });
+  
+  document.getElementById('btn-prev').disabled = (idx === 0);
+  document.getElementById('btn-next').disabled = (idx === STEPS.length - 1);
+}
 
-      function dw() {
-        return diagramEl.offsetWidth;
-      }
-      function dh() {
-        return diagramEl.offsetHeight;
-      }
-      function px(pct, total) {
-        return (total * pct) / 100;
-      }
+function go(dir){
+  const next = currentStep + dir;
+  if(next < 0 || next >= STEPS.length) return;
+  currentStep = next;
+  renderStep(currentStep);
+  if(autoTimer) resetProgress();
+}
 
-      function buildNodes() {
-        document.querySelectorAll(".node").forEach((e) => e.remove());
-        NODES.forEach((n) => {
-          const div = document.createElement("div");
-          div.className = "node";
-          div.id = "n-" + n.id;
-          div.style.setProperty("--node-color", n.color);
-          div.style.left = px(n.cx, dw()) + "px";
-          div.style.top = px(n.cy, dh()) + "px";
-          div.innerHTML = `
-      <div class="node-card">
-        <div class="node-top-bar"></div>
-        <div class="node-body">
-          <div class="node-icon-wrap" style="--node-color:${n.color}">${ICONS[n.iconKey] || ""}</div>
-          <div class="node-title">${n.title}</div>
-          <div class="node-sub">${n.sub}</div>
-        </div>
-      </div>`;
-          diagramEl.appendChild(div);
-          nodeEls[n.id] = div;
-        });
-        positionLayerLabels();
-      }
-
-      function positionLayerLabels() {
-        const layers = [
-          { id: "ll-1", nodeId: "patient" },
-          { id: "ll-2", nodeId: "api" },
-          { id: "ll-3", nodeId: "hmac" },
-          { id: "ll-4", nodeId: "db" },
-          { id: "ll-5", nodeId: "staff" },
-        ];
-        const dr = diagramEl.getBoundingClientRect();
-        layers.forEach((l) => {
-          const el = document.getElementById(l.id);
-          const n = nodeEls[l.nodeId];
-          if (!el || !n) return;
-          const nr = n.getBoundingClientRect();
-          el.style.top = nr.top + nr.height / 2 - dr.top + "px";
-        });
-      }
-
-      /* ══════════════════════════════════════════════════
-   BUILD SVG EDGES
-══════════════════════════════════════════════════ */
-      function nodePort(id, side) {
-        const el = nodeEls[id];
-        if (!el) return { x: 0, y: 0 };
-        const dr = diagramEl.getBoundingClientRect();
-        const er = el.getBoundingClientRect();
-        const cx = er.left + er.width / 2 - dr.left;
-        const cy = side === "top" ? er.top - dr.top : er.bottom - dr.top;
-        return { x: cx, y: cy };
-      }
-
-      function buildEdges() {
-        svgEl.querySelectorAll(".e-base,.e-glow").forEach((e) => e.remove());
-        EDGES.forEach((edge) => {
-          const s = nodePort(edge.from, "bottom");
-          const e = nodePort(edge.to, "top");
-          const dy = Math.abs(e.y - s.y);
-          const t = Math.min(dy * 0.45, 70);
-          const d = `M ${s.x} ${s.y} C ${s.x} ${s.y + t} ${e.x} ${e.y - t} ${e.x} ${e.y}`;
-
-          const base = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path",
-          );
-          base.setAttribute("d", d);
-          base.setAttribute("class", "e-base");
-          base.setAttribute("stroke", edge.color);
-          base.id = "base-" + edge.id;
-          svgEl.appendChild(base);
-
-          const glow = document.createElementNS(
-            "http://www.w3.org/2000/svg",
-            "path",
-          );
-          glow.setAttribute("d", d);
-          glow.setAttribute("class", "e-glow");
-          glow.setAttribute("stroke", edge.color);
-          glow.id = "glow-" + edge.id;
-          svgEl.appendChild(glow);
-        });
-      }
-
-      /* ══════════════════════════════════════════════════
-   STEP RENDERER
-══════════════════════════════════════════════════ */
-      let currentStep = 0;
-      let autoTimer = null;
-      let progTimer = null;
-      let progPct = 0;
-      const AUTO_DUR = 5500;
-
-      function renderStep(idx) {
-        const step = STEPS[idx];
-
-        // dots
-        document.querySelectorAll(".dot").forEach((d, i) => {
-          d.classList.toggle("active", i === idx);
-          d.classList.toggle("done", i < idx);
-        });
-
-        // counter
-        const n = String(idx + 1).padStart(2, "0");
-        document.getElementById("step-label").textContent =
-          `Step ${n} of ${STEPS.length}`;
-        document.getElementById("step-idx").textContent = n;
-        document.getElementById("step-title").textContent = step.title;
-        document.getElementById("pa-text").textContent = step.pa;
-        document.getElementById("tech-detail").textContent = step.tech;
-
-        // code
-        const cw = document.getElementById("code-wrap");
-        const cb = document.getElementById("code-block");
-        const cl = document.getElementById("code-lang");
-        if (step.code) {
-          cb.innerHTML = step.code;
-          cl.textContent = step.codeFile || "Python · Backend";
-          cw.classList.remove("hidden");
-        } else {
-          cw.classList.add("hidden");
-        }
-
-        // highlight
-        const hb = document.getElementById("highlight-box");
-        if (step.highlight) {
-          hb.style.background = step.highlight.color + "12";
-          hb.style.borderColor = step.highlight.color + "40";
-          hb.style.color = step.highlight.color;
-          hb.textContent = step.highlight.text;
-          hb.classList.remove("hidden");
-        } else {
-          hb.classList.add("hidden");
-        }
-
-        // nodes
-        NODES.forEach((n) => {
-          const el = nodeEls[n.id];
-          if (!el) return;
-          el.classList.remove("active", "done");
-          if (step.nodes.includes(n.id)) el.classList.add("active");
-          else if (STEPS.slice(0, idx).some((s) => s.nodes.includes(n.id)))
-            el.classList.add("done");
-        });
-
-        // edges
-        EDGES.forEach((edge) => {
-          const g = document.getElementById("glow-" + edge.id);
-          const b = document.getElementById("base-" + edge.id);
-          const on = step.edges.includes(edge.id);
-          if (g) g.classList.toggle("flowing", on);
-          if (b) b.style.opacity = on ? "0.25" : "0.1";
-        });
-
-        document.getElementById("btn-prev").disabled = idx === 0;
-        document.getElementById("btn-next").disabled = idx === STEPS.length - 1;
-      }
-
-      function go(dir) {
-        const next = currentStep + dir;
-        if (next < 0 || next >= STEPS.length) return;
-        currentStep = next;
-        renderStep(currentStep);
-        if (autoTimer) resetProgress();
-      }
-
-      /* ══════════════════════════════════════════════════
-   AUTO PLAY
-══════════════════════════════════════════════════ */
-      function startProgress() {
-        progPct = 0;
-        clearInterval(progTimer);
-        const step = 60;
-        progTimer = setInterval(() => {
-          progPct += (step / AUTO_DUR) * 100;
-          document.getElementById("prog-bar-fill").style.width =
-            Math.min(progPct, 100) + "%";
-          if (progPct >= 100) {
-            clearInterval(progTimer);
-            if (currentStep < STEPS.length - 1) {
-              go(1);
-              startProgress();
-            } else stopAuto();
-          }
-        }, step);
-      }
-
-      function resetProgress() {
-        progPct = 0;
-        document.getElementById("prog-bar-fill").style.width = "0%";
-        clearInterval(progTimer);
-        if (autoTimer) startProgress();
-      }
-
-      function startAuto() {
-        autoTimer = true;
-        document.getElementById("btn-auto").textContent = "⏸  Pause";
-        document.getElementById("btn-auto").style.background = "#1e293b";
+function startProgress(){
+  progPct = 0;
+  clearInterval(progTimer);
+  const step = 60;
+  progTimer = setInterval(() => {
+    progPct += (step / AUTO_DUR) * 100;
+    document.getElementById('prog-bar-fill').style.width = Math.min(progPct, 100) + '%';
+    if(progPct >= 100){
+      clearInterval(progTimer);
+      if(currentStep < STEPS.length - 1){
+        go(1);
         startProgress();
+      } else {
+        stopAuto();
       }
+    }
+  }, step);
+}
 
-      function stopAuto() {
-        autoTimer = null;
-        clearInterval(progTimer);
-        document.getElementById("btn-auto").textContent = "▶  Auto Play";
-        document.getElementById("btn-auto").style.background = "var(--blue)";
-        document.getElementById("prog-bar-fill").style.width = "0%";
-      }
+function resetProgress(){
+  progPct = 0;
+  document.getElementById('prog-bar-fill').style.width = '0%';
+  clearInterval(progTimer);
+  if(autoTimer) startProgress();
+}
 
-      function toggleAuto() {
-        if (autoTimer) stopAuto();
-        else startAuto();
-      }
+function startAuto(){
+  autoTimer = true;
+  document.getElementById('btn-auto').textContent = '⏸  Pause';
+  document.getElementById('btn-auto').style.background = '#64748b';
+  startProgress();
+}
 
-      /* ══════════════════════════════════════════════════
-   DOTS
-══════════════════════════════════════════════════ */
-      function buildDots() {
-        const c = document.getElementById("step-dots");
-        c.innerHTML = "";
-        STEPS.forEach((_, i) => {
-          const d = document.createElement("div");
-          d.className = "dot";
-          d.title = `Step ${i + 1}`;
-          d.onclick = () => {
-            currentStep = i;
-            renderStep(i);
-            if (autoTimer) resetProgress();
-          };
-          c.appendChild(d);
-        });
-      }
+function stopAuto(){
+  autoTimer = null;
+  clearInterval(progTimer);
+  document.getElementById('btn-auto').textContent = '▶  Auto Play';
+  document.getElementById('btn-auto').style.background = 'var(--blue)';
+  document.getElementById('prog-bar-fill').style.width = '0%';
+}
 
-      /* ══════════════════════════════════════════════════
-   RESIZE
-══════════════════════════════════════════════════ */
-      window.addEventListener("resize", () => {
-        NODES.forEach((n) => {
-          const el = nodeEls[n.id];
-          if (el) {
-            el.style.left = px(n.cx, dw()) + "px";
-            el.style.top = px(n.cy, dh()) + "px";
-          }
-        });
-        requestAnimationFrame(() => {
-          buildEdges();
-          positionLayerLabels();
-        });
-      });
+function toggleAuto(){
+  if(autoTimer) stopAuto();
+  else startAuto();
+}
 
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "ArrowRight" || e.key === " ") {
-          e.preventDefault();
-          go(1);
-        }
-        if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          go(-1);
-        }
-      });
+function buildDots(){
+  const c = document.getElementById('step-dots');
+  c.innerHTML = '';
+  STEPS.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.title = `Step ${i+1}`;
+    d.onclick = () => {
+      currentStep = i;
+      renderStep(i);
+      if(autoTimer) resetProgress();
+    };
+    c.appendChild(d);
+  });
+}
 
-      /* ══════════════════════════════════════════════════
-   BOOT
-══════════════════════════════════════════════════ */
-      function init() {
-        buildNodes();
-        requestAnimationFrame(() => {
-          buildEdges();
-          buildDots();
-          renderStep(0);
-        });
-      }
-      init();
-    </script>
-  </body>
+window.addEventListener('resize', () => {
+  NODES.forEach(n => {
+    const el = nodeEls[n.id];
+    if(el){
+      el.style.left = px(n.cx, dw()) + 'px';
+      el.style.top  = px(n.cy, dh()) + 'px';
+    }
+  });
+  requestAnimationFrame(() => {
+    buildEdges();
+    positionLayerLabels();
+  });
+});
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowRight' || e.key === ' '){
+    e.preventDefault();
+    go(1);
+  }
+  if(e.key === 'ArrowLeft'){
+    e.preventDefault();
+    go(-1);
+  }
+});
+
+function init(){
+  buildNodes();
+  requestAnimationFrame(() => {
+    buildEdges();
+    buildDots();
+    renderStep(0);
+  });
+}
+
+init();
+</script>
+</body>
 </html>
