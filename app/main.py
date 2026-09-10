@@ -94,6 +94,11 @@ def serve_staff_directory():
     logger.info("Staff Directory Opened")
     return FileResponse("frontend/clinic/directory.html")
 
+@app.get("/architecture")
+def serve_architecture():
+    logger.info("Architecture Page Opened")
+    return FileResponse("frontend/clinic/architecture.html")
+
 @app.get("/scan")
 def serve_patient_scan():
     logger.info("Scan Page Opened")
