@@ -11,9 +11,10 @@ sys.path.append(os.getcwd())
 load_dotenv()
 
 from app.db.database import Base 
-from app.db.models import Clinic, Event, Prescription           
+from app.db.models import Clinic, Event, Prescription, CrossClinicConsent           
 
-_ = [Clinic, Event, Prescription]
+_ = [Clinic, Event, Prescription, CrossClinicConsent]
+
 
 config = context.config
 

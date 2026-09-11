@@ -724,6 +724,8 @@ async function loadQueue() {
           clearPrescription();
           historyContent.innerHTML =
             '<p class="text-muted text-sm">Fetching secure records...</p>';
+          const netSec = document.getElementById("network-history-section");
+          if (netSec) netSec.style.display = "none";
 
           // Await both backend requests before unlocking the UI
           try {
@@ -831,6 +833,7 @@ async function loadHistory(localToken) {
     if (!data.history || data.history.length === 0) {
       historyContent.innerHTML =
         '<p class="text-muted text-sm">No previous visits recorded.</p>';
+      await loadNetworkHistory(localToken);
       return;
     }
 
@@ -880,8 +883,115 @@ async function loadHistory(localToken) {
       });
       historyContent.appendChild(card);
     });
+
+    await loadNetworkHistory(localToken);
   } catch (error) {
     console.error("History error:", error);
+  }
+}
+
+async function loadNetworkHistory(localToken) {
+  const netSection = document.getElementById("network-history-section");
+  const netContent = document.getElementById("network-history-content");
+  if (!netSection || !netContent) return;
+
+  netContent.innerHTML =
+    '<p class="text-muted text-sm">Loading previous Tap2Med history...</p>';
+
+  try {
+    const response = await fetch(
+      `/api/events/network-history/${encodeURIComponent(localToken)}?clinic_id=${clinicId}`,
+    );
+    if (!response.ok) {
+      netSection.style.display = "none";
+      return;
+    }
+
+    const data = await response.json();
+
+    // Only show if the patient gave consent
+    if (!data.has_consent) {
+      netSection.style.display = "none";
+      netContent.innerHTML =
+        '<p class="text-muted text-sm">Patient did not grant consent to share health history from other clinics.</p>';
+      return;
+    }
+
+    // Consent given -> reveal section
+    netSection.style.display = "block";
+
+    if (!data.history || data.history.length === 0) {
+      netContent.innerHTML =
+        '<p class="text-muted text-sm">No previous visits recorded from other clinics.</p>';
+      return;
+    }
+
+    netContent.innerHTML = "";
+    data.history.forEach((visit) => {
+      const date = visit.timestamp
+        ? new Date(visit.timestamp).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })
+        : "Previous Visit";
+
+      let cardHTML = "";
+      if (visit.diagnosis) {
+        cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
+      }
+      if (visit.complaints) {
+        cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>Complaints:</strong> ${visit.complaints}</div>`;
+      }
+      if (visit.prescriptions && visit.prescriptions.length > 0) {
+        cardHTML += `<div style="margin-top:10px; font-size:13px; color:#0f172a;"><strong>Prescription:</strong><ul style="margin:5px 0; padding-left:20px;">`;
+        visit.prescriptions.forEach((rx) => {
+          const detail = rx.instructions || rx.dosage || "";
+          cardHTML += `<li style="margin-bottom: 4px;"><strong>${rx.name}</strong>${detail ? ` — <span class="text-muted" style="font-size:12px;">${detail}</span>` : ""}</li>`;
+        });
+        cardHTML += "</ul></div>";
+      }
+      if (visit.tests_suggested) {
+        cardHTML += `<div style="margin-top:8px; font-size:13px; color:#0284c7;"><strong>Tests:</strong> ${visit.tests_suggested}</div>`;
+      }
+      if (visit.advice) {
+        cardHTML += `<div style="margin-top:8px; font-size:13px; color:#475569;"><strong>Advice:</strong> ${visit.advice}</div>`;
+      }
+
+      const card = document.createElement("details");
+      card.open = true;
+      card.style.background = "#fff";
+      card.style.border = "1px solid #bae6fd";
+      card.style.borderRadius = "8px";
+      card.style.padding = "12px";
+      card.style.marginBottom = "10px";
+      card.style.cursor = "pointer";
+
+      card.innerHTML = `
+        <summary style="font-weight: 600; color: #0284c7; outline: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <span>${date}</span>
+          ${visit.prescriptions && visit.prescriptions.length > 0 ? '<button type="button" class="btn btn-secondary copy-net-rx-btn" style="height: 28px; padding: 0 10px; font-size: 11px; color: #0284c7;">↻ Copy to Pad</button>' : ""}
+        </summary>
+        <div style="padding-top: 10px; border-top: 1px solid #e0f2fe; margin-top: 10px;">
+          ${cardHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
+        </div>
+      `;
+
+      const copyBtn = card.querySelector(".copy-net-rx-btn");
+      if (copyBtn) {
+        copyBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          copyVisitToPad(visit.prescriptions);
+        });
+      }
+
+      netContent.appendChild(card);
+    });
+  } catch (error) {
+    console.error("Network history error:", error);
+    netContent.innerHTML =
+      '<p class="text-sm" style="color: #ef4444;">Unable to load previous health history.</p>';
   }
 }
 

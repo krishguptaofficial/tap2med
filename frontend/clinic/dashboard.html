@@ -149,10 +149,60 @@
             ></div>
 
             <div class="visit-history-preview">
-              <details>
+              <details id="history-details-accordion">
                 <summary>View Patient Medical History</summary>
                 <div class="history-data" id="history-content">
                   <p class="text-sm text-muted">Waiting for patient scan...</p>
+                </div>
+
+                <!-- Previous Tap2Med History (Hackathon Demo) -->
+                <div
+                  id="network-history-section"
+                  style="
+                    display: none;
+                    margin-top: 16px;
+                    padding-top: 14px;
+                    border-top: 1px dashed #cbd5e1;
+                  "
+                >
+                  <div
+                    style="
+                      display: flex;
+                      align-items: center;
+                      justify-content: space-between;
+                      margin-bottom: 10px;
+                    "
+                  >
+                    <div
+                      style="
+                        font-weight: 700;
+                        font-size: 13px;
+                        color: #0284c7;
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                      "
+                    >
+                      <span>🌐 Previous Tap2Med History</span>
+                      <span
+                        class="badge"
+                        style="
+                          font-size: 10px;
+                          background: #e0f2fe;
+                          color: #0369a1;
+                          padding: 2px 6px;
+                          border-radius: 4px;
+                          font-weight: 600;
+                        "
+                        >Consent Granted</span
+                      >
+                    </div>
+                  </div>
+                  <div class="history-data" id="network-history-content">
+                    <p class="text-sm text-muted">
+                      Loading previous health history...
+                    </p>
+                  </div>
                 </div>
               </details>
             </div>

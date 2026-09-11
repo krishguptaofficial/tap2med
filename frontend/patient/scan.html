@@ -1,381 +1,433 @@
 <!doctype html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8" />
-  <meta
-   name="viewport"
-   content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  />
-  <title>Check-in | Tap2Med</title>
-  <link rel="stylesheet" href="/assets/css/variables.css" />
-  <link rel="stylesheet" href="/assets/css/base.css" />
-  <link rel="stylesheet" href="/assets/css/forms.css" />
-  <link rel="stylesheet" href="/assets/css/buttons.css" />
-  <style>
-   .auth-wrapper {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-canvas);
-    padding: 20px;
-   }
-   .auth-card {
-    background: var(--surface-color);
-    padding: 40px 24px;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(9, 41, 66, 0.08);
-    width: 100%;
-    max-width: 400px;
-    border: 1px solid var(--border-color);
-    text-align: center;
-   }
-   .brand {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-family: var(--font-family);
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--primary-color);
-    margin-bottom: 30px;
-    letter-spacing: -0.02em;
-    line-height: 1;
-   }
-   .brand-logo {
-    width: 36px;
-    height: 28px;
-    object-fit: contain;
-   }
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Check-in | Tap2Med</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <style>
+      .auth-wrapper {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-canvas);
+        padding: 20px;
+      }
+      .auth-card {
+        background: var(--surface-color);
+        padding: 40px 24px;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(9, 41, 66, 0.08);
+        width: 100%;
+        max-width: 400px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+      }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--font-family);
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin-bottom: 30px;
+        letter-spacing: -0.02em;
+        line-height: 1;
+      }
+      .brand-logo {
+        width: 36px;
+        height: 28px;
+        object-fit: contain;
+      }
 
-   .scan-screen {
-    animation: fadeIn 0.3s ease;
-    text-align: left;
-   }
-   @keyframes fadeIn {
-    from {
-     opacity: 0;
-     transform: translateY(10px);
-    }
-    to {
-     opacity: 1;
-     transform: translateY(0);
-    }
-   }
+      .scan-screen {
+        animation: fadeIn 0.3s ease;
+        text-align: left;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
 
-   .scan-screen h1 {
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--text-main);
-    margin-bottom: 5px;
-   }
-   .subtitle {
-    color: var(--text-muted);
-    font-size: 14px;
-    margin-bottom: 25px;
-    font-weight: 500;
-   }
-
-   .input-phone {
-    text-align: center;
-    letter-spacing: 3px;
-    font-size: 22px;
-    font-weight: 700;
-    height: 56px;
-    border-radius: 12px;
-   }
-
-   .member-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 20px;
-   }
-   .member-row {
-    min-height: 48px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--surface-color);
-    color: var(--text-main);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-   }
-   .member-row:hover {
-    background: var(--bg-canvas);
-   }
-   .member-row.selected {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: rgba(2, 132, 199, 0.05);
-   }
-   .member-row.add-member {
-    border-style: dashed;
-    color: var(--text-muted);
-   }
-
-   .token-display-box {
-    background: #f8fafc;
-    border: 2px dashed #cbd5e1;
-    border-radius: 16px;
-    padding: 30px 20px;
-    margin: 20px 0;
-    text-align: center;
-   }
-   .token-label {
-    color: var(--text-secondary);
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-   }
-   .token-number {
-    font-size: 72px;
-    line-height: 1;
-    font-weight: 800;
-    color: var(--primary-color);
-    margin: 15px 0;
-    letter-spacing: -0.04em;
-   }
-
-   .status-live {
-    color: #d97706;
-    font-weight: 600;
-    font-size: 15px;
-    background: rgba(245, 158, 11, 0.1);
-    padding: 16px;
-    border-radius: 12px;
-    text-align: center;
-   }
-   .status-live.text-green {
-    color: var(--success-color);
-    background: rgba(22, 163, 74, 0.1);
-   }
-
-   .footer-text {
-    margin-top: 25px;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: center;
-   }
-  </style>
- </head>
- <body>
-  <main class="auth-wrapper">
-   <div class="auth-card">
-    <header>
-     <div class="brand">
-      <img
-       src="/assets/logo/tap2med_logo.png"
-       alt=""
-       class="brand-logo"
-      />
-      <span>Tap2Med</span>
-     </div>
-    </header>
-
-    <!-- STEP 1: Phone Entry -->
-    <section id="screen-phone" class="scan-screen">
-     <h1>Welcome to Clinic</h1>
-     <p class="subtitle">Enter your mobile number to begin.</p>
-     <div class="input-group">
-      <input
-       type="tel"
-       id="phone-input"
-       class="input input-phone"
-       placeholder="10-digit number (Optional)"
-       autocomplete="off"
-       inputmode="numeric"
-       maxlength="10"
-       required
-      />
-     </div>
-     <button
-      type="button"
-      class="btn btn-primary btn-block"
-      id="btn-phone-next"
-      style="margin-top: 25px; height: 50px; font-size: 16px"
-    >
-      Continue
-     </button>
-     <p class="footer-text">
-      <strong>Privacy First:</strong> We do not store your phone number.
-      It is securely tokenized on your device.
-     </p>
-    </section>
-
-    <!-- STEP 2: Member Selection & Name -->
-    <section id="screen-members" class="scan-screen hidden">
-     <h1>Who is visiting?</h1>
-     <p class="subtitle">Select the patient and enter their name.</p>
-     <div id="member-list-container" class="member-list"></div>
-     <button
-      type="button"
-      class="btn btn-ghost btn-block"
-      id="cancel-member-btn"
-      style="margin-top: 10px"
-    >
-      Back
-     </button>
-    </section>
-
-    <!-- STEP 3: Add Member -->
-    <section id="screen-add-member" class="scan-screen hidden">
-     <h1>Add Patient</h1>
-     <p class="subtitle">Enter the patient's full name.</p>
-     <div class="input-group">
-      <input
-       type="text"
-       id="new-member-name"
-       class="input"
-       placeholder="Patient Name"
-       autocomplete="off"
-      />
-     </div>
-     <button
-      type="button"
-      class="btn btn-primary btn-block"
-      id="save-member-btn"
-      style="margin-top: 20px"
-    >
-      Save Member
-     </button>
-     <button
-      type="button"
-      class="btn btn-ghost btn-block"
-      id="cancel-add-member-btn"
-      style="margin-top: 10px"
-    >
-      Cancel
-     </button>
-    </section>
-
-    <!-- STEP 3: Patient Details -->
-    <section id="screen-details" class="scan-screen hidden">
-     <h1>Patient Details</h1>
-     <p class="subtitle">Please enter the details for the prescription.</p>
-
-     <div class="input-group" style="margin-bottom: 25px">
-      <label
-       style="
-        font-size: 12px;
-        font-weight: 700;
+      .scan-screen h1 {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 5px;
+      }
+      .subtitle {
         color: var(--text-muted);
-        margin-bottom: 4px;
-       "
-      >Patient Name (Mandatory)</label
-     >
-      <input
-       type="text"
-       id="patient-name-input"
-       class="input"
-       placeholder="Full Name"
-       style="
+        font-size: 14px;
+        margin-bottom: 25px;
+        font-weight: 500;
+      }
+
+      .input-phone {
+        text-align: center;
+        letter-spacing: 3px;
+        font-size: 22px;
+        font-weight: 700;
+        height: 56px;
+        border-radius: 12px;
+      }
+
+      .member-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .member-row {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--surface-color);
+        color: var(--text-main);
         font-size: 16px;
         font-weight: 600;
-        height: 50px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .member-row:hover {
+        background: var(--bg-canvas);
+      }
+      .member-row.selected {
         border-color: var(--primary-color);
-       "
-       autocomplete="off"
-       required
-      />
-     </div>
-
-     <div class="input-group" style="margin-bottom: 20px">
-      <label
-       style="
-        font-size: 12px;
-        font-weight: 700;
+        color: var(--primary-color);
+        background: rgba(2, 132, 199, 0.05);
+      }
+      .member-row.add-member {
+        border-style: dashed;
         color: var(--text-muted);
-        margin-bottom: 4px;
-       "
-      >City (Optional)</label
-     >
-      <input
-       type="text"
-       id="patient-city-input"
-       class="input"
-       placeholder="e.g. New Delhi"
-       style="font-size: 16px; height: 50px"
-       autocomplete="off"
-      />
-     </div>
+      }
 
-     <div class="input-group" style="margin-bottom: 30px">
-      <label
-       style="
-        font-size: 12px;
+      .token-display-box {
+        background: #f8fafc;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 30px 20px;
+        margin: 20px 0;
+        text-align: center;
+      }
+      .token-label {
+        color: var(--text-secondary);
+        font-size: 13px;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .token-number {
+        font-size: 72px;
+        line-height: 1;
+        font-weight: 800;
+        color: var(--primary-color);
+        margin: 15px 0;
+        letter-spacing: -0.04em;
+      }
+
+      .status-live {
+        color: #d97706;
+        font-weight: 600;
+        font-size: 15px;
+        background: rgba(245, 158, 11, 0.1);
+        padding: 16px;
+        border-radius: 12px;
+        text-align: center;
+      }
+      .status-live.text-green {
+        color: var(--success-color);
+        background: rgba(22, 163, 74, 0.1);
+      }
+
+      .footer-text {
+        margin-top: 25px;
         color: var(--text-muted);
-        margin-bottom: 4px;
-       "
-      >Age (Optional)</label
-     >
-      <input
-       type="number"
-       id="patient-age-input"
-       class="input"
-       min="0"
-       max="120"
-       step="1"
-       placeholder="Age"
-       style="font-size: 16px; height: 50px"
-       autocomplete="off"
-      />
-     </div>
+        font-size: 12px;
+        line-height: 1.5;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="auth-wrapper">
+      <div class="auth-card">
+        <header>
+          <div class="brand">
+            <img
+              src="/assets/logo/tap2med_logo.png"
+              alt=""
+              class="brand-logo"
+            />
+            <span>Tap2Med</span>
+          </div>
+        </header>
 
-     <button
-      type="button"
-      class="btn btn-primary btn-block"
-      id="check-in-btn"
-      style="height: 50px; font-size: 16px"
-    >
-      Generate Token
-     </button>
-     <button
-      type="button"
-      class="btn btn-ghost btn-block"
-      id="btn-details-back"
-      style="margin-top: 10px"
-    >
-      Back
-     </button>
-    </section>
+        <!-- STEP 1: Phone Entry -->
+        <section id="screen-phone" class="scan-screen">
+          <h1>Welcome to Clinic</h1>
+          <p class="subtitle">Enter your mobile number to begin.</p>
+          <div class="input-group">
+            <input
+              type="tel"
+              id="phone-input"
+              class="input input-phone"
+              placeholder="10-digit number (Optional)"
+              autocomplete="off"
+              inputmode="numeric"
+              maxlength="10"
+              required
+            />
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary btn-block"
+            id="btn-phone-next"
+            style="margin-top: 25px; height: 50px; font-size: 16px"
+          >
+            Continue
+          </button>
+          <p class="footer-text">
+            <strong>Privacy First:</strong> We do not store your phone number.
+            It is securely tokenized on your device.
+          </p>
+        </section>
 
-    <!-- STEP 4: Live Wait & Success -->
-    <section
-     id="screen-success"
-     class="scan-screen hidden"
-     style="text-align: center"
-   >
-     <h1
-      style="
-       color: var(--success-color);
-       text-align: center;
-       font-size: 26px;
-      "
-    >
-      Checked In!
-     </h1>
+        <!-- STEP 2: Member Selection & Name -->
+        <section id="screen-members" class="scan-screen hidden">
+          <h1>Who is visiting?</h1>
+          <p class="subtitle">Select the patient and enter their name.</p>
+          <div id="member-list-container" class="member-list"></div>
+          <button
+            type="button"
+            class="btn btn-ghost btn-block"
+            id="cancel-member-btn"
+            style="margin-top: 10px"
+          >
+            Back
+          </button>
+        </section>
 
-     <div class="token-display-box">
-      <div class="token-label">Your Token</div>
-      <div id="token-display" class="token-number">#--</div>
-     </div>
+        <!-- STEP 3: Add Member -->
+        <section id="screen-add-member" class="scan-screen hidden">
+          <h1>Add Patient</h1>
+          <p class="subtitle">Enter the patient's full name.</p>
+          <div class="input-group">
+            <input
+              type="text"
+              id="new-member-name"
+              class="input"
+              placeholder="Patient Name"
+              autocomplete="off"
+            />
+          </div>
+          <button
+            type="button"
+            class="btn btn-primary btn-block"
+            id="save-member-btn"
+            style="margin-top: 20px"
+          >
+            Save Member
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-block"
+            id="cancel-add-member-btn"
+            style="margin-top: 10px"
+          >
+            Cancel
+          </button>
+        </section>
 
-     <div id="wait-status" class="status-live">
-      Fetching queue position...
-     </div>
-    </section>
-   </div>
-  </main>
+        <!-- STEP 3: Patient Details -->
+        <section id="screen-details" class="scan-screen hidden">
+          <h1>Patient Details</h1>
+          <p class="subtitle">Please enter the details for the prescription.</p>
 
-  <script type="module" src="/assets/js/pages/scan.js"></script>
- </body>
+          <div class="input-group" style="margin-bottom: 25px">
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+              "
+              >Patient Name (Mandatory)</label
+            >
+            <input
+              type="text"
+              id="patient-name-input"
+              class="input"
+              placeholder="Full Name"
+              style="
+                font-size: 16px;
+                font-weight: 600;
+                height: 50px;
+                border-color: var(--primary-color);
+              "
+              autocomplete="off"
+              required
+            />
+          </div>
+
+          <div class="input-group" style="margin-bottom: 20px">
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+              "
+              >City (Optional)</label
+            >
+            <input
+              type="text"
+              id="patient-city-input"
+              class="input"
+              placeholder="e.g. New Delhi"
+              style="font-size: 16px; height: 50px"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="input-group" style="margin-bottom: 30px">
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--text-muted);
+                margin-bottom: 4px;
+              "
+              >Age (Optional)</label
+            >
+            <input
+              type="number"
+              id="patient-age-input"
+              class="input"
+              min="0"
+              max="120"
+              step="1"
+              placeholder="Age"
+              style="font-size: 16px; height: 50px"
+              autocomplete="off"
+            />
+          </div>
+
+          <div
+            class="consent-group"
+            style="
+              margin-bottom: 24px;
+              text-align: left;
+              background: #f8fafc;
+              padding: 14px;
+              border-radius: 12px;
+              border: 1px solid var(--border-color);
+            "
+          >
+            <label
+              style="
+                display: flex;
+                align-items: flex-start;
+                gap: 10px;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text-main);
+                line-height: 1.4;
+              "
+            >
+              <input
+                type="checkbox"
+                id="share-history-consent"
+                style="
+                  margin-top: 2px;
+                  width: 18px;
+                  height: 18px;
+                  cursor: pointer;
+                  accent-color: var(--primary-color);
+                "
+              />
+              <span
+                >Allow this doctor to view my previous Tap2Med health history
+                from other clinics.</span
+              >
+            </label>
+            <p
+              style="
+                margin: 6px 0 0 28px;
+                font-size: 11px;
+                color: var(--text-muted);
+                line-height: 1.4;
+              "
+            >
+              Only your relevant previous health records are shared. You can
+              choose not to share.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary btn-block"
+            id="check-in-btn"
+            style="height: 50px; font-size: 16px"
+          >
+            Generate Token
+          </button>
+          <button
+            type="button"
+            class="btn btn-ghost btn-block"
+            id="btn-details-back"
+            style="margin-top: 10px"
+          >
+            Back
+          </button>
+        </section>
+
+        <!-- STEP 4: Live Wait & Success -->
+        <section
+          id="screen-success"
+          class="scan-screen hidden"
+          style="text-align: center"
+        >
+          <h1
+            style="
+              color: var(--success-color);
+              text-align: center;
+              font-size: 26px;
+            "
+          >
+            Checked In!
+          </h1>
+
+          <div class="token-display-box">
+            <div class="token-label">Your Token</div>
+            <div id="token-display" class="token-number">#--</div>
+          </div>
+
+          <div id="wait-status" class="status-live">
+            Fetching queue position...
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="/assets/js/pages/scan.js"></script>
+  </body>
 </html>

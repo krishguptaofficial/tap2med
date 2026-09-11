@@ -70,6 +70,8 @@ class StartVisitRequest(BaseModel):
     city: Optional[str] = None
     age: Optional[int] = None
     is_appointment: bool = False
+    share_network_history: Optional[bool] = False
+
 
 class CityUpdate(BaseModel):
     clinic_id: uuid.UUID
@@ -284,6 +286,16 @@ def start_visit(
         
         new_event.event_type = visit_type
         db.commit()
+
+        if payload.share_network_history:
+            consent = models.CrossClinicConsent(
+                network_token=network_token,
+                clinic_id=payload.clinic_id,
+                event_id=new_event.event_id,
+                consent_given=True
+            )
+            db.add(consent)
+            db.commit()
         
         if not new_event:
             raise HTTPException(status_code=500, detail="Failed to create patient event")
@@ -512,6 +524,90 @@ def get_patient_history(local_token: str, clinic_id: uuid.UUID, db: Session = De
 
     except Exception as e:       
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/network-history/{local_token}")
+def get_patient_network_history(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
+    try:
+        # 1. Resolve current event from clinic_id and local_token
+        current_event = db.query(models.Event).filter(
+            models.Event.clinic_id == clinic_id,
+            models.Event.local_token == local_token
+        ).order_by(models.Event.timestamp.desc()).first()
+
+        if not current_event:
+            return {
+                "has_consent": False,
+                "history": [],
+                "message": "No visit found for this patient at current clinic"
+            }
+
+        # 2. Check if valid CrossClinicConsent exists for this specific current visit
+        consent = db.query(models.CrossClinicConsent).filter(
+            models.CrossClinicConsent.event_id == current_event.event_id,
+            models.CrossClinicConsent.clinic_id == clinic_id,
+            models.CrossClinicConsent.consent_given == True
+        ).first()
+
+        if not consent:
+            return {
+                "has_consent": False,
+                "history": [],
+                "message": "Consent not granted for cross-clinic history"
+            }
+
+        # 3. Retrieve patient network_token from the current event
+        current_network_token = current_event.network_token
+
+        # 4. Query completed historical events with matching network_token (exclude current event)
+        past_events = db.query(models.Event).filter(
+            models.Event.network_token == current_network_token,
+            models.Event.event_id != current_event.event_id,
+            models.Event.status == "completed"
+        ).order_by(models.Event.timestamp.desc()).all()
+
+        # 5. Fetch prescriptions for these past events
+        past_event_ids = [e.event_id for e in past_events]
+        rx_map = defaultdict(list)
+        if past_event_ids:
+            all_rx = db.query(models.Prescription).filter(
+                models.Prescription.event_id.in_(past_event_ids)
+            ).all()
+
+            for rx in all_rx:
+                rx_details = []
+                if rx.dosage: rx_details.append(rx.dosage)
+                if rx.duration: rx_details.append(rx.duration)
+                if rx.instructions: rx_details.append(rx.instructions)
+
+                rx_map[str(rx.event_id)].append({
+                    "name": rx.medicine_name,
+                    "instructions": " — ".join(rx_details) if rx_details else (rx.instructions or ""),
+                    "raw_instructions": rx.instructions,
+                    "dosage": rx.dosage,
+                    "duration": rx.duration
+                })
+
+        # 6. Format historical visits:
+        # Strictly omit doctor name, clinic name, clinic ID, network_token, local_token, phone number, patient IDs
+        formatted_history = []
+        for visit in past_events:
+            formatted_history.append({
+                "timestamp": visit.timestamp.isoformat() if visit.timestamp else None,
+                "complaints": visit.complaints,
+                "diagnosis": visit.diagnosis,
+                "tests_suggested": visit.tests_suggested,
+                "advice": visit.advice,
+                "prescriptions": rx_map.get(str(visit.event_id), [])
+            })
+
+        return {
+            "has_consent": True,
+            "history": formatted_history
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.put("/vitals")
 def update_patient_vitals(payload: VitalsUpdate, db: Session = Depends(get_db)):

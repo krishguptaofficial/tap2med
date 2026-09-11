@@ -138,3 +138,16 @@ class ClinicPatientLabRecord(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     clinic = relationship("Clinic")
+
+class CrossClinicConsent(Base):
+    __tablename__ = "cross_clinic_consents"
+
+    consent_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    network_token = Column(Text, index=True, nullable=False)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    event_id = Column(UUID(as_uuid=True), ForeignKey("events.event_id"), nullable=False, index=True)
+    consent_given = Column(Boolean, nullable=False, default=False)
+    granted_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    clinic = relationship("Clinic")
+    event = relationship("Event")
