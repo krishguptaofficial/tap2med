@@ -1,7 +1,13 @@
 const urlParams = new URLSearchParams(window.location.search);
 const scannedClinicId = urlParams.get("clinic");
+if (scannedClinicId) {
+  localStorage.setItem("tap2med_patient_clinic_id", scannedClinicId);
+}
+const clinicId =
+  scannedClinicId || localStorage.getItem("tap2med_patient_clinic_id");
 
 let currentSessionPhone = localStorage.getItem("tap2med_last_phone") || null;
+
 let selectedMemberId = null;
 
 const defaultMembers = [
@@ -211,7 +217,7 @@ document.getElementById("check-in-btn")?.addEventListener("click", async () => {
   const payload = {
     phone: currentSessionPhone,
     member_id: selectedMemberId,
-    clinic_id: scannedClinicId,
+    clinic_id: scannedClinicId || clinicId,
     name: patientName,
     city: cityInput ? cityInput.value.trim() : null,
     age: patientAge ? parseInt(patientAge, 10) : null,
