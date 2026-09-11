@@ -11,6 +11,8 @@ import time
 import json
 from collections import defaultdict
 from typing import List, Optional
+import re
+
 
 from app.core import hashing
 from app.db import crud, models
@@ -18,6 +20,7 @@ from app.db.database import get_db
 
 IST = ZoneInfo("Asia/Kolkata")
 router = APIRouter()
+lab_router = APIRouter(prefix="/integrations/labs", tags=["Partner Labs"])
 
 rate_limit_records = defaultdict(list)
 
@@ -121,6 +124,20 @@ class VisitTypePayload(BaseModel):
     clinic_id: uuid.UUID
     local_token: str
     visit_type: str
+
+class LabPatientLookupRequest(BaseModel):
+    phone: str
+    member_id: int = 0
+
+class LabPatientContext(BaseModel):
+    phone: str
+    member_id: int = 0
+
+class LabResultsSubmission(BaseModel):
+    patient_lookup: LabPatientContext
+    test_date: Optional[str] = None
+    results: dict
+
 
 
 @router.put("/city")
@@ -538,6 +555,7 @@ def get_patient_network_history(local_token: str, clinic_id: uuid.UUID, db: Sess
             return {
                 "has_consent": False,
                 "history": [],
+                "labs": [],
                 "message": "No visit found for this patient at current clinic"
             }
 
@@ -552,6 +570,7 @@ def get_patient_network_history(local_token: str, clinic_id: uuid.UUID, db: Sess
             return {
                 "has_consent": False,
                 "history": [],
+                "labs": [],
                 "message": "Consent not granted for cross-clinic history"
             }
 
@@ -587,7 +606,20 @@ def get_patient_network_history(local_token: str, clinic_id: uuid.UUID, db: Sess
                     "duration": rx.duration
                 })
 
-        # 6. Format historical visits:
+        # 6. Fetch historical lab records for this patient
+        lab_records = db.query(models.ClinicPatientLabRecord).filter(
+            models.ClinicPatientLabRecord.network_token == current_network_token
+        ).order_by(models.ClinicPatientLabRecord.test_date.desc()).all()
+
+        formatted_labs = [
+            {
+                "test_date": lab.test_date.strftime("%Y-%m-%d") if lab.test_date else None,
+                "results": lab.results or {}
+            }
+            for lab in lab_records
+        ]
+
+        # 7. Format historical visits:
         # Strictly omit doctor name, clinic name, clinic ID, network_token, local_token, phone number, patient IDs
         formatted_history = []
         for visit in past_events:
@@ -602,11 +634,13 @@ def get_patient_network_history(local_token: str, clinic_id: uuid.UUID, db: Sess
 
         return {
             "has_consent": True,
-            "history": formatted_history
+            "history": formatted_history,
+            "labs": formatted_labs
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @router.put("/vitals")
@@ -682,6 +716,12 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         
         clean_results = {k: v for k, v in payload.lab_record.results.items() if v != ""}
         
+        ev = db.query(models.Event).filter(
+            models.Event.clinic_id == clinic_id,
+            models.Event.local_token == payload.local_token
+        ).first()
+        net_token = ev.network_token if ev else None
+
         if lab_record:
             current_results = lab_record.results or {}
             current_results.update(clean_results)
@@ -689,16 +729,20 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
                 if k not in clean_results and k in payload.lab_record.results:
                     del current_results[k]
             lab_record.results = current_results
+            if net_token and not lab_record.network_token:
+                lab_record.network_token = net_token
         else:
             new_lab = models.ClinicPatientLabRecord(
                 clinic_id=record.clinic_id,
                 local_token=payload.local_token,
+                network_token=net_token,
                 test_date=test_date_obj,
                 results=clean_results
             )
             db.add(new_lab)
             
         db.commit()
+
         return {"status": "success"}
     except Exception as e:
         db.rollback()
@@ -722,6 +766,210 @@ def get_patient_labs(local_token: str, clinic_id: uuid.UUID, db: Session = Depen
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+LAB_FIELD_ALIASES = {
+    # Diabetes Profile
+    "hba1c": "diab_hba1c",
+    "hba1c_percent": "diab_hba1c",
+    "diab_hba1c": "diab_hba1c",
+    "fbs": "diab_fbs",
+    "fasting_blood_sugar": "diab_fbs",
+    "diab_fbs": "diab_fbs",
+    "creat": "diab_creat",
+    "creatinine": "diab_creat",
+    "serum_creatinine": "diab_creat",
+    "diab_creat": "diab_creat",
+    "egfr": "diab_egfr",
+    "diab_egfr": "diab_egfr",
+    "chol": "diab_chol",
+    "cholesterol": "diab_chol",
+    "total_cholesterol": "diab_chol",
+    "diab_chol": "diab_chol",
+    "tg": "diab_tg",
+    "triglycerides": "diab_tg",
+    "diab_tg": "diab_tg",
+    "ldl": "diab_ldl",
+    "lipid_ldl": "diab_ldl",
+    "ldl_cholesterol": "diab_ldl",
+    "diab_ldl": "diab_ldl",
+    "hdl": "diab_hdl",
+    "hdl_cholesterol": "diab_hdl",
+    "diab_hdl": "diab_hdl",
+    # Haematology / CBC
+    "hb": "haem_hb",
+    "cbc_hb": "haem_hb",
+    "hemoglobin": "haem_hb",
+    "haem_hb": "haem_hb",
+    "wbc": "haem_wbc",
+    "cbc_wbc": "haem_wbc",
+    "total_wbc": "haem_wbc",
+    "haem_wbc": "haem_wbc",
+    "rbc": "haem_rbc",
+    "cbc_rbc": "haem_rbc",
+    "haem_rbc": "haem_rbc",
+    "plt": "haem_plt",
+    "platelets": "haem_plt",
+    "cbc_plt": "haem_plt",
+    "haem_plt": "haem_plt",
+    "esr": "haem_esr",
+    "haem_esr": "haem_esr",
+    # Thyroid
+    "tsh": "thy_tsh",
+    "thy_tsh": "thy_tsh",
+    "t3": "thy_t3",
+    "thy_t3": "thy_t3",
+    "t4": "thy_t4",
+    "thy_t4": "thy_t4",
+}
+
+@router.post("/integrations/labs/lookup")
+@lab_router.post("/lookup")
+def lab_patient_lookup(payload: LabPatientLookupRequest, db: Session = Depends(get_db)):
+    try:
+        phone = hashing.normalize_phone(payload.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Phone Number")
+
+    try:
+        lookup_hash = hashing.generate_lookup_hash(phone, payload.member_id)
+        patient = crud.get_patient_by_lookup(db, lookup_hash)
+        if not patient:
+            return {"found": False, "message": "Patient not found in Tap2Med network"}
+
+        network_token = patient.network_token
+
+        # User Clarification 1: Show ONLY the test suggestions from the patient's
+        # latest completed clinical event. Do not aggregate across multiple historical visits.
+        latest_completed = db.query(models.Event).filter(
+            models.Event.network_token == network_token,
+            models.Event.status == "completed"
+        ).order_by(models.Event.timestamp.desc()).first()
+
+        raw_tests = ""
+        last_visit_date = None
+        patient_name = "Patient"
+
+        if latest_completed:
+            raw_tests = latest_completed.tests_suggested or ""
+            if latest_completed.timestamp:
+                last_visit_date = latest_completed.timestamp.astimezone(IST).strftime("%d %b %Y")
+
+            rec = db.query(models.ClinicPatientRecord).filter(
+                models.ClinicPatientRecord.clinic_id == latest_completed.clinic_id,
+                models.ClinicPatientRecord.local_token == latest_completed.local_token
+            ).first()
+            if rec and rec.patient_name:
+                patient_name = rec.patient_name
+        else:
+            any_event = db.query(models.Event).filter(
+                models.Event.network_token == network_token
+            ).order_by(models.Event.timestamp.desc()).first()
+            if any_event:
+                raw_tests = any_event.tests_suggested or ""
+                if any_event.timestamp:
+                    last_visit_date = any_event.timestamp.astimezone(IST).strftime("%d %b %Y")
+                rec = db.query(models.ClinicPatientRecord).filter(
+                    models.ClinicPatientRecord.clinic_id == any_event.clinic_id,
+                    models.ClinicPatientRecord.local_token == any_event.local_token
+                ).first()
+                if rec and rec.patient_name:
+                    patient_name = rec.patient_name
+
+        tests_list = [t.strip() for t in re.split(r'[,;\n]+', raw_tests) if t.strip()]
+
+        return {
+            "found": True,
+            "patient_name": patient_name,
+            "tests_suggested": tests_list,
+            "raw_tests_suggested": raw_tests,
+            "last_visit_date": last_visit_date
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/integrations/labs/results")
+@lab_router.post("/results")
+def lab_results_submission(payload: LabResultsSubmission, db: Session = Depends(get_db)):
+    try:
+        phone = hashing.normalize_phone(payload.patient_lookup.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Phone Number")
+
+    try:
+        # 1. Resolve patient using existing phone/member identity logic
+        lookup_hash = hashing.generate_lookup_hash(phone, payload.patient_lookup.member_id)
+        patient = crud.get_patient_by_lookup(db, lookup_hash)
+        if not patient:
+            raise HTTPException(status_code=404, detail="Patient not found in Tap2Med network")
+
+        network_token = patient.network_token
+
+        # 2. Identify the target clinic / local patient context from latest event
+        latest_event = db.query(models.Event).filter(
+            models.Event.network_token == network_token
+        ).order_by(models.Event.timestamp.desc()).first()
+
+        if not latest_event:
+            raise HTTPException(status_code=404, detail="No clinic visits found for this patient")
+
+        target_clinic_id = latest_event.clinic_id
+        target_local_token = latest_event.local_token
+
+        # 3. Parse test date
+        if payload.test_date and payload.test_date.strip():
+            try:
+                test_date_obj = datetime.strptime(payload.test_date.strip(), "%Y-%m-%d").replace(tzinfo=IST)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid test_date format. Expected YYYY-MM-DD")
+        else:
+            test_date_obj = datetime.now(IST)
+
+        # 4. Map structured keys to Tap2Med canonical lab keys
+        clean_results = {}
+        for raw_k, v in (payload.results or {}).items():
+            if v is not None and v != "":
+                mapped_k = LAB_FIELD_ALIASES.get(str(raw_k).strip().lower(), str(raw_k).strip().lower())
+                clean_results[mapped_k] = v
+
+        if not clean_results:
+            raise HTTPException(status_code=400, detail="No valid test results provided")
+
+        # 5. Store / update in ClinicPatientLabRecord (duplicate safe)
+        lab_record = db.query(models.ClinicPatientLabRecord).filter(
+            models.ClinicPatientLabRecord.clinic_id == target_clinic_id,
+            models.ClinicPatientLabRecord.local_token == target_local_token,
+            func.date(models.ClinicPatientLabRecord.test_date) == test_date_obj.date()
+        ).first()
+
+        if lab_record:
+            current_results = dict(lab_record.results or {})
+            current_results.update(clean_results)
+            lab_record.results = current_results
+            lab_record.network_token = network_token
+            flag_modified(lab_record, "results")
+        else:
+            new_lab = models.ClinicPatientLabRecord(
+                clinic_id=target_clinic_id,
+                local_token=target_local_token,
+                network_token=network_token,
+                test_date=test_date_obj,
+                results=clean_results
+            )
+            db.add(new_lab)
+
+        db.commit()
+        return {
+            "status": "success",
+            "message": "Results sent to Tap2Med.",
+            "test_date": test_date_obj.strftime("%Y-%m-%d"),
+            "results_recorded": len(clean_results)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 
 def get_sort_key(event):

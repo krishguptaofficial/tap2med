@@ -920,74 +920,163 @@ async function loadNetworkHistory(localToken) {
     // Consent given -> reveal section
     netSection.style.display = "block";
 
-    if (!data.history || data.history.length === 0) {
+    const hasHistory = data.history && data.history.length > 0;
+    const hasLabs = data.labs && data.labs.length > 0;
+
+    if (!hasHistory && !hasLabs) {
       netContent.innerHTML =
-        '<p class="text-muted text-sm">No previous visits recorded from other clinics.</p>';
+        '<p class="text-muted text-sm">No previous visits or laboratory records from other clinics.</p>';
       return;
     }
 
     netContent.innerHTML = "";
-    data.history.forEach((visit) => {
-      const date = visit.timestamp
-        ? new Date(visit.timestamp).toLocaleDateString("en-IN", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })
-        : "Previous Visit";
 
-      let cardHTML = "";
-      if (visit.diagnosis) {
-        cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
-      }
-      if (visit.complaints) {
-        cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>Complaints:</strong> ${visit.complaints}</div>`;
-      }
-      if (visit.prescriptions && visit.prescriptions.length > 0) {
-        cardHTML += `<div style="margin-top:10px; font-size:13px; color:#0f172a;"><strong>Prescription:</strong><ul style="margin:5px 0; padding-left:20px;">`;
-        visit.prescriptions.forEach((rx) => {
-          const detail = rx.instructions || rx.dosage || "";
-          cardHTML += `<li style="margin-bottom: 4px;"><strong>${rx.name}</strong>${detail ? ` — <span class="text-muted" style="font-size:12px;">${detail}</span>` : ""}</li>`;
-        });
-        cardHTML += "</ul></div>";
-      }
-      if (visit.tests_suggested) {
-        cardHTML += `<div style="margin-top:8px; font-size:13px; color:#0284c7;"><strong>Tests:</strong> ${visit.tests_suggested}</div>`;
-      }
-      if (visit.advice) {
-        cardHTML += `<div style="margin-top:8px; font-size:13px; color:#475569;"><strong>Advice:</strong> ${visit.advice}</div>`;
-      }
-
-      const card = document.createElement("details");
-      card.open = true;
-      card.style.background = "#fff";
-      card.style.border = "1px solid #bae6fd";
-      card.style.borderRadius = "8px";
-      card.style.padding = "12px";
-      card.style.marginBottom = "10px";
-      card.style.cursor = "pointer";
-
-      card.innerHTML = `
-        <summary style="font-weight: 600; color: #0284c7; outline: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-          <span>${date}</span>
-          ${visit.prescriptions && visit.prescriptions.length > 0 ? '<button type="button" class="btn btn-secondary copy-net-rx-btn" style="height: 28px; padding: 0 10px; font-size: 11px; color: #0284c7;">↻ Copy to Pad</button>' : ""}
-        </summary>
-        <div style="padding-top: 10px; border-top: 1px solid #e0f2fe; margin-top: 10px;">
-          ${cardHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
+    // Render Cross-Clinic Labs if present
+    if (hasLabs) {
+      const labContainer = document.createElement("div");
+      labContainer.style.marginBottom = "14px";
+      labContainer.innerHTML = `
+        <div style="font-size: 12px; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+          <span>🔬 Cross-Clinic Laboratory Reports</span>
         </div>
       `;
 
-      const copyBtn = card.querySelector(".copy-net-rx-btn");
-      if (copyBtn) {
-        copyBtn.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          copyVisitToPad(visit.prescriptions);
-        });
+      const LAB_NAMES = {
+        diab_hba1c: "HbA1c",
+        haem_hb: "Hemoglobin",
+        haem_wbc: "Total WBC",
+        haem_rbc: "RBC",
+        haem_plt: "Platelets",
+        haem_esr: "ESR",
+        diab_ldl: "LDL Cholesterol",
+        diab_fbs: "FBS",
+        diab_ppbs: "PPBS",
+        diab_rbs: "RBS",
+        lip_chol: "Total Cholesterol",
+        lip_trig: "Triglycerides",
+        lip_hdl: "HDL",
+        ren_creat: "Serum Creatinine",
+        ren_urea: "Urea",
+        ren_uric: "Uric Acid",
+        thy_tsh: "TSH",
+        thy_t3: "T3",
+        thy_t4: "T4",
+      };
+
+      data.labs.forEach((lr) => {
+        const labDate = lr.test_date
+          ? new Date(lr.test_date).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "Lab Report";
+
+        let chipsHTML = "";
+        if (lr.results && typeof lr.results === "object") {
+          chipsHTML = Object.entries(lr.results)
+            .map(([k, v]) => {
+              const label = LAB_NAMES[k] || k.replace(/_/g, " ").toUpperCase();
+              return `<span style="display:inline-flex; align-items:center; background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:12px; font-weight:600; padding:3px 8px; border-radius:6px; margin:2px 4px 2px 0;"><strong>${label}:</strong>&nbsp;${v}</span>`;
+            })
+            .join("");
+        }
+
+        const labCard = document.createElement("div");
+        labCard.style.background = "#ffffff";
+        labCard.style.border = "1px solid #a7f3d0";
+        labCard.style.borderRadius = "8px";
+        labCard.style.padding = "10px 12px";
+        labCard.style.marginBottom = "8px";
+        labCard.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:13px; font-weight:700; color:#065f46;">${labDate}</span>
+            <span style="font-size:11px; background:#d1fae5; color:#065f46; padding:2px 6px; border-radius:4px; font-weight:600;">Verified Lab Result</span>
+          </div>
+          <div>${chipsHTML || "<span class='text-muted text-sm'>No values recorded.</span>"}</div>
+        `;
+        labContainer.appendChild(labCard);
+      });
+
+      netContent.appendChild(labContainer);
+    }
+
+    // Render Previous Visits if present
+    if (hasHistory) {
+      if (hasLabs) {
+        const visitsHeader = document.createElement("div");
+        visitsHeader.style.fontSize = "12px";
+        visitsHeader.style.fontWeight = "700";
+        visitsHeader.style.color = "#0284c7";
+        visitsHeader.style.textTransform = "uppercase";
+        visitsHeader.style.letterSpacing = "0.5px";
+        visitsHeader.style.margin = "12px 0 8px 0";
+        visitsHeader.textContent = "📋 Previous Consultations";
+        netContent.appendChild(visitsHeader);
       }
 
-      netContent.appendChild(card);
-    });
+      data.history.forEach((visit) => {
+        const date = visit.timestamp
+          ? new Date(visit.timestamp).toLocaleDateString("en-IN", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })
+          : "Previous Visit";
+
+        let cardHTML = "";
+        if (visit.diagnosis) {
+          cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#0f172a;"><strong>Diagnosis:</strong> ${visit.diagnosis}</div>`;
+        }
+        if (visit.complaints) {
+          cardHTML += `<div style="margin-bottom:8px; font-size:13px; color:#475569;"><strong>Complaints:</strong> ${visit.complaints}</div>`;
+        }
+        if (visit.prescriptions && visit.prescriptions.length > 0) {
+          cardHTML += `<div style="margin-top:10px; font-size:13px; color:#0f172a;"><strong>Prescription:</strong><ul style="margin:5px 0; padding-left:20px;">`;
+          visit.prescriptions.forEach((rx) => {
+            const detail = rx.instructions || rx.dosage || "";
+            cardHTML += `<li style="margin-bottom: 4px;"><strong>${rx.name}</strong>${detail ? ` — <span class="text-muted" style="font-size:12px;">${detail}</span>` : ""}</li>`;
+          });
+          cardHTML += "</ul></div>";
+        }
+        if (visit.tests_suggested) {
+          cardHTML += `<div style="margin-top:8px; font-size:13px; color:#0284c7;"><strong>Tests:</strong> ${visit.tests_suggested}</div>`;
+        }
+        if (visit.advice) {
+          cardHTML += `<div style="margin-top:8px; font-size:13px; color:#475569;"><strong>Advice:</strong> ${visit.advice}</div>`;
+        }
+
+        const card = document.createElement("details");
+        card.open = true;
+        card.style.background = "#fff";
+        card.style.border = "1px solid #bae6fd";
+        card.style.borderRadius = "8px";
+        card.style.padding = "12px";
+        card.style.marginBottom = "10px";
+        card.style.cursor = "pointer";
+
+        card.innerHTML = `
+          <summary style="font-weight: 600; color: #0284c7; outline: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+            <span>${date}</span>
+            ${visit.prescriptions && visit.prescriptions.length > 0 ? '<button type="button" class="btn btn-secondary copy-net-rx-btn" style="height: 28px; padding: 0 10px; font-size: 11px; color: #0284c7;">↻ Copy to Pad</button>' : ""}
+          </summary>
+          <div style="padding-top: 10px; border-top: 1px solid #e0f2fe; margin-top: 10px;">
+            ${cardHTML || "<p class='text-muted text-sm'>No details recorded.</p>"}
+          </div>
+        `;
+
+        const copyBtn = card.querySelector(".copy-net-rx-btn");
+        if (copyBtn) {
+          copyBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            copyVisitToPad(visit.prescriptions);
+          });
+        }
+
+        netContent.appendChild(card);
+      });
+    }
   } catch (error) {
     console.error("Network history error:", error);
     netContent.innerHTML =

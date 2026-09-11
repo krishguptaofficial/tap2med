@@ -129,7 +129,9 @@ class ClinicPatientLabRecord(Base):
     record_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
     local_token = Column(Text, index=True, nullable=False)
+    network_token = Column(Text, index=True, nullable=True)
     test_date = Column(DateTime(timezone=True), nullable=False)
+
     
     # Stores {"hba1c": 6.4, "tsh": 2.4, etc.}
     results = Column(JSONB, nullable=False, default=dict)

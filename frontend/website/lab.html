@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Partner Lab Portal | Tap2Med Integration</title>
+    <link rel="stylesheet" href="/assets/css/variables.css" />
+    <link rel="stylesheet" href="/assets/css/base.css" />
+    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <style>
+      body {
+        background-color: var(--bg-canvas, #f1f5f9);
+        min-height: 100vh;
+        font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px 16px;
+      }
+      .lab-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        width: 100%;
+        max-width: 540px;
+        padding: 32px 24px;
+      }
+      .lab-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e2e8f0;
+      }
+      .lab-logo {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+      }
+      .lab-title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--primary-color, #0284c7);
+        line-height: 1.2;
+      }
+      .lab-subtitle {
+        margin: 2px 0 0;
+        font-size: 12px;
+        color: var(--text-muted, #64748b);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .badge-hackathon {
+        display: inline-block;
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 999px;
+        margin-left: auto;
+      }
+      .test-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        color: #166534;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 8px;
+        margin: 4px;
+      }
+      .result-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      @media (max-width: 480px) {
+        .result-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .alert {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 16px;
+      }
+      .alert-success {
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+      }
+      .alert-error {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+      .step-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--primary-color, #0284c7);
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+        margin-right: 6px;
+      }
+      .section-title {
+        font-size: 14px;
+        font-weight: 800;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="lab-card">
+      <!-- Header -->
+      <div class="lab-header">
+        <img
+          src="/assets/logo/tap2med_logo.png"
+          alt="Tap2Med"
+          class="lab-logo"
+        />
+        <div>
+          <h1 class="lab-title">Partner Lab Portal</h1>
+          <div class="lab-subtitle">LIS Integration Gateway</div>
+        </div>
+        <span class="badge-hackathon">Demo</span>
+      </div>
+
+      <!-- Alert Messages -->
+      <div id="status-alert" style="display: none"></div>
+
+      <!-- STEP 1: Find Patient -->
+      <div id="step-search">
+        <div class="section-title">
+          <span class="step-num">1</span> Identify Patient
+        </div>
+        <div style="margin-bottom: 14px">
+          <label
+            style="
+              font-size: 12px;
+              font-weight: 700;
+              color: #64748b;
+              display: block;
+              margin-bottom: 4px;
+            "
+            >Patient Mobile Number</label
+          >
+          <input
+            type="tel"
+            id="lab-patient-phone"
+            class="input"
+            placeholder="10-digit mobile number"
+            maxlength="10"
+            style="font-size: 16px; font-weight: 600; letter-spacing: 1px"
+          />
+        </div>
+        <div style="margin-bottom: 20px">
+          <label
+            style="
+              font-size: 12px;
+              font-weight: 700;
+              color: #64748b;
+              display: block;
+              margin-bottom: 4px;
+            "
+            >Family Member</label
+          >
+          <select
+            id="lab-patient-member"
+            class="input"
+            style="font-size: 14px; font-weight: 600"
+          >
+            <option value="0">Self</option>
+            <option value="1">Spouse</option>
+            <option value="2">Father</option>
+            <option value="3">Mother</option>
+            <option value="4">Child 1 (Eldest)</option>
+            <option value="5">Child 2</option>
+            <option value="6">Child 3</option>
+            <option value="7">Child 4 (Youngest)</option>
+          </select>
+        </div>
+        <button
+          type="button"
+          id="btn-find-patient"
+          class="btn btn-primary btn-block"
+          style="height: 48px; font-size: 15px"
+        >
+          Find Patient
+        </button>
+      </div>
+
+      <!-- STEP 2: Patient Info & Suggested Tests -->
+      <div
+        id="step-patient-info"
+        style="
+          display: none;
+          margin-top: 24px;
+          padding-top: 20px;
+          border-top: 1px dashed #cbd5e1;
+        "
+      >
+        <div class="section-title">
+          <span class="step-num">2</span> Patient Consultation & Tests
+        </div>
+
+        <div
+          style="
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+          "
+        >
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 8px;
+            "
+          >
+            <span
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+              "
+              >Patient</span
+            >
+            <span
+              id="patient-visit-date"
+              style="font-size: 12px; color: #0284c7; font-weight: 600"
+            ></span>
+          </div>
+          <div
+            id="patient-display-name"
+            style="
+              font-size: 18px;
+              font-weight: 800;
+              color: #0f172a;
+              margin-bottom: 12px;
+            "
+          >
+            --
+          </div>
+
+          <div
+            style="
+              font-size: 12px;
+              font-weight: 700;
+              color: #475569;
+              margin-bottom: 6px;
+            "
+          >
+            TESTS CURRENTLY SUGGESTED BY DOCTOR:
+          </div>
+          <div
+            id="suggested-tests-chips"
+            style="display: flex; flex-wrap: wrap; gap: 6px"
+          >
+            <!-- Chips populated dynamically -->
+          </div>
+        </div>
+
+        <!-- STEP 3: Enter Results -->
+        <div class="section-title">
+          <span class="step-num">3</span> Enter Laboratory Results
+        </div>
+
+        <div style="margin-bottom: 14px">
+          <label
+            style="
+              font-size: 12px;
+              font-weight: 700;
+              color: #64748b;
+              display: block;
+              margin-bottom: 4px;
+            "
+            >Test Date</label
+          >
+          <input
+            type="date"
+            id="lab-test-date"
+            class="input"
+            style="font-size: 14px"
+          />
+        </div>
+
+        <div class="result-grid">
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >HbA1c (%)</label
+            >
+            <input
+              type="number"
+              step="0.1"
+              id="res-hba1c"
+              class="input"
+              placeholder="e.g. 7.8"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Hemoglobin (g/dL)</label
+            >
+            <input
+              type="number"
+              step="0.1"
+              id="res-hb"
+              class="input"
+              placeholder="e.g. 13.6"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Total WBC (cells/cumm)</label
+            >
+            <input
+              type="number"
+              id="res-wbc"
+              class="input"
+              placeholder="e.g. 7200"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >LDL Cholesterol (mg/dL)</label
+            >
+            <input
+              type="number"
+              id="res-ldl"
+              class="input"
+              placeholder="e.g. 148"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Fasting Sugar - FBS (mg/dL)</label
+            >
+            <input
+              type="number"
+              id="res-fbs"
+              class="input"
+              placeholder="e.g. 110"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Total Cholesterol (mg/dL)</label
+            >
+            <input
+              type="number"
+              id="res-chol"
+              class="input"
+              placeholder="e.g. 210"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Serum Creatinine (mg/dL)</label
+            >
+            <input
+              type="number"
+              step="0.1"
+              id="res-creat"
+              class="input"
+              placeholder="e.g. 0.9"
+            />
+          </div>
+          <div>
+            <label
+              style="
+                font-size: 12px;
+                font-weight: 700;
+                color: #475569;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >TSH (uIU/mL)</label
+            >
+            <input
+              type="number"
+              step="0.01"
+              id="res-tsh"
+              class="input"
+              placeholder="e.g. 2.45"
+            />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          id="btn-submit-results"
+          class="btn btn-primary btn-block"
+          style="
+            height: 50px;
+            font-size: 16px;
+            margin-top: 24px;
+            background: #059669;
+          "
+        >
+          Submit Results to Tap2Med
+        </button>
+      </div>
+
+      <!-- Footer Info -->
+      <div
+        style="
+          margin-top: 24px;
+          text-align: center;
+          font-size: 12px;
+          color: #94a3b8;
+        "
+      >
+        Tap2Med Partner Laboratory Integration &bull; Powered by Network Token
+      </div>
+    </div>
+
+    <script>
+      let activeLookup = null;
+
+      // Default test date to today
+      document.getElementById("lab-test-date").value = new Date()
+        .toISOString()
+        .split("T")[0];
+
+      function showAlert(msg, isError = false) {
+        const el = document.getElementById("status-alert");
+        el.className = isError ? "alert alert-error" : "alert alert-success";
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+
+      function hideAlert() {
+        document.getElementById("status-alert").style.display = "none";
+      }
+
+      // 1. Find Patient
+      document
+        .getElementById("btn-find-patient")
+        .addEventListener("click", async () => {
+          hideAlert();
+          const phone = document
+            .getElementById("lab-patient-phone")
+            .value.trim();
+          const memberId = parseInt(
+            document.getElementById("lab-patient-member").value,
+            10,
+          );
+
+          if (!phone || phone.length !== 10) {
+            showAlert("Please enter a valid 10-digit mobile number.", true);
+            return;
+          }
+
+          const btn = document.getElementById("btn-find-patient");
+          btn.disabled = true;
+          btn.textContent = "Searching Tap2Med Network...";
+
+          try {
+            const res = await fetch("/api/integrations/labs/lookup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ phone, member_id: memberId }),
+            });
+
+            const data = await res.json();
+            if (!res.ok || !data.found) {
+              document.getElementById("step-patient-info").style.display =
+                "none";
+              showAlert(
+                data.message ||
+                  data.detail ||
+                  "Patient not found in Tap2Med network.",
+                true,
+              );
+              return;
+            }
+
+            activeLookup = { phone, member_id: memberId };
+            document.getElementById("patient-display-name").textContent =
+              data.patient_name || "Patient";
+            document.getElementById("patient-visit-date").textContent =
+              data.last_visit_date
+                ? `Consultation: ${data.last_visit_date}`
+                : "";
+
+            const chipsContainer = document.getElementById(
+              "suggested-tests-chips",
+            );
+            chipsContainer.innerHTML = "";
+
+            if (data.tests_suggested && data.tests_suggested.length > 0) {
+              data.tests_suggested.forEach((testName) => {
+                const chip = document.createElement("span");
+                chip.className = "test-chip";
+                chip.innerHTML = `✓ ${testName}`;
+                chipsContainer.appendChild(chip);
+              });
+            } else {
+              chipsContainer.innerHTML =
+                '<span style="font-size: 13px; color: #64748b;">No outstanding tests suggested for latest visit.</span>';
+            }
+
+            document.getElementById("step-patient-info").style.display =
+              "block";
+            document
+              .getElementById("step-patient-info")
+              .scrollIntoView({ behavior: "smooth" });
+          } catch (e) {
+            console.error(e);
+            showAlert("Network error during patient lookup.", true);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Find Patient";
+          }
+        });
+
+      // 2. Submit Results
+      document
+        .getElementById("btn-submit-results")
+        .addEventListener("click", async () => {
+          hideAlert();
+          if (!activeLookup) {
+            showAlert("Please find a patient first.", true);
+            return;
+          }
+
+          const testDate = document.getElementById("lab-test-date").value;
+          const results = {};
+
+          const hba1c = document.getElementById("res-hba1c").value.trim();
+          if (hba1c) results["hba1c"] = parseFloat(hba1c);
+
+          const hb = document.getElementById("res-hb").value.trim();
+          if (hb) results["cbc_hb"] = parseFloat(hb);
+
+          const wbc = document.getElementById("res-wbc").value.trim();
+          if (wbc) results["cbc_wbc"] = parseFloat(wbc);
+
+          const ldl = document.getElementById("res-ldl").value.trim();
+          if (ldl) results["lipid_ldl"] = parseFloat(ldl);
+
+          const fbs = document.getElementById("res-fbs").value.trim();
+          if (fbs) results["fbs"] = parseFloat(fbs);
+
+          const chol = document.getElementById("res-chol").value.trim();
+          if (chol) results["cholesterol"] = parseFloat(chol);
+
+          const creat = document.getElementById("res-creat").value.trim();
+          if (creat) results["creatinine"] = parseFloat(creat);
+
+          const tsh = document.getElementById("res-tsh").value.trim();
+          if (tsh) results["tsh"] = parseFloat(tsh);
+
+          if (Object.keys(results).length === 0) {
+            showAlert("Please enter at least one test result value.", true);
+            return;
+          }
+
+          const btn = document.getElementById("btn-submit-results");
+          btn.disabled = true;
+          btn.textContent = "Submitting to Tap2Med...";
+
+          try {
+            const res = await fetch("/api/integrations/labs/results", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                patient_lookup: activeLookup,
+                test_date: testDate,
+                results: results,
+              }),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+              showAlert(
+                data.detail || data.message || "Failed to submit results.",
+                true,
+              );
+              return;
+            }
+
+            showAlert(
+              "Results sent to Tap2Med. The doctor will see them automatically in Labs / Trends!",
+            );
+            // Clear result fields
+            document
+              .querySelectorAll(".result-grid input")
+              .forEach((inp) => (inp.value = ""));
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } catch (e) {
+            console.error(e);
+            showAlert("Network error submitting results.", true);
+          } finally {
+            btn.disabled = false;
+            btn.textContent = "Submit Results to Tap2Med";
+          }
+        });
+    </script>
+  </body>
+</html>

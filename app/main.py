@@ -53,6 +53,7 @@ logger = logging.getLogger(__name__)
 
 
 app.include_router(events.router, prefix="/api/events") 
+app.include_router(events.lab_router, prefix="/api")
 app.include_router(clinics.router, prefix="/api/clinics")
 app.include_router(auth.router, prefix="/api/auth")
 
@@ -104,6 +105,11 @@ def serve_patient_scan():
     logger.info("Scan Page Opened")
     return FileResponse("frontend/patient/scan.html")
 
+
+@app.get("/lab")
+def serve_lab_portal():
+    logger.info("Lab Portal Opened")
+    return FileResponse("frontend/website/lab.html")
 
 @app.get("/login")
 def serve_login():
