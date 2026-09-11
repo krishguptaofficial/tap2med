@@ -1,30 +1,3 @@
-// Intercept fetch to enforce financial gatekeeper (only show paid patients in queue)
-const originalFetch = window.fetch;
-window.fetch = async function () {
-  const response = await originalFetch.apply(this, arguments);
-  if (
-    arguments[0] &&
-    typeof arguments[0] === "string" &&
-    arguments[0].includes("/api/clinics/queue/")
-  ) {
-    const clone = response.clone();
-    const data = await clone.json();
-    if (data.queue) {
-      data.queue = data.queue.filter((p) => {
-        if (p.status === "waiting") {
-          return p.vitals && p.vitals.is_paid === true;
-        }
-        return true;
-      });
-    }
-    return new Response(JSON.stringify(data), {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-  }
-  return response;
-};
 // Direct patient-doctor queue mode (all waiting patients are immediately accessible)
 
 const clinicId = localStorage.getItem("tap2med_clinic_id");
