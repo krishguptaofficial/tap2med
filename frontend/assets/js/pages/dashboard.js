@@ -25,6 +25,7 @@ window.fetch = async function () {
   }
   return response;
 };
+// Direct patient-doctor queue mode (all waiting patients are immediately accessible)
 
 const clinicId = localStorage.getItem("tap2med_clinic_id");
 if (!clinicId || clinicId === "undefined" || clinicId === "null") {

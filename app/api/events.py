@@ -302,6 +302,7 @@ def start_visit(
         )
         
         new_event.event_type = visit_type
+        new_event.vitals = {"is_paid": True}
         db.commit()
 
         if payload.share_network_history:

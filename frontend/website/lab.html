@@ -4,15 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Partner Lab Portal | Tap2Med Integration</title>
+    <title>Partner Lab Portal | Tap2Med Network Integration</title>
     <link rel="stylesheet" href="/assets/css/variables.css" />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/forms.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --lab-primary: #0284c7;
+        --lab-primary-dark: #0369a1;
+        --lab-accent: #0d9488;
+        --lab-bg: #f8fafc;
+        --lab-surface: #ffffff;
+        --lab-border: #e2e8f0;
+        --lab-text: #0f172a;
+        --lab-text-muted: #64748b;
+        --font-lab: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         background-color: var(--bg-canvas, #f1f5f9);
+        background-color: var(--lab-bg);
         min-height: 100vh;
         font-family: var(--font-family, system-ui, -apple-system, sans-serif);
+        font-family: var(--font-lab);
+        color: var(--lab-text);
+        margin: 0;
+        padding: 24px 16px 60px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -23,47 +51,304 @@
         border: 1px solid var(--border-color, #e2e8f0);
         border-radius: 16px;
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+
+      .lab-container {
         width: 100%;
         max-width: 540px;
         padding: 32px 24px;
+        max-width: 680px;
       }
       .lab-header {
+
+      /* Top Brand Bar */
+      .lab-topbar {
         display: flex;
         align-items: center;
         gap: 12px;
         margin-bottom: 24px;
         padding-bottom: 16px;
         border-bottom: 1px solid #e2e8f0;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        padding: 4px 8px;
       }
       .lab-logo {
         width: 36px;
         height: 36px;
+      .brand-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .brand-logo {
+        width: 38px;
+        height: 38px;
         object-fit: contain;
       }
       .lab-title {
         margin: 0;
+      .brand-title {
         font-size: 20px;
         font-weight: 800;
         color: var(--primary-color, #0284c7);
         line-height: 1.2;
+        color: #092942;
+        letter-spacing: -0.02em;
+        line-height: 1;
       }
       .lab-subtitle {
         margin: 2px 0 0;
+      .brand-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #ecfdf5;
+        border: 1px solid #a7f3d0;
+        color: #065f46;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 999px;
+      }
+      .pulse-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+      }
+
+      /* Main Card */
+      .lab-card {
+        background: var(--lab-surface);
+        border: 1px solid var(--lab-border);
+        border-radius: 20px;
+        box-shadow: 0 12px 36px -8px rgba(15, 23, 42, 0.08), 0 2px 8px rgba(15, 23, 42, 0.04);
+        padding: 32px 28px;
+        overflow: hidden;
+      }
+
+      @media (max-width: 600px) {
+        .lab-card {
+          padding: 24px 18px;
+          border-radius: 16px;
+        }
+      }
+
+      .card-header-block {
+        margin-bottom: 24px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+      .card-main-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0 0 4px;
+        letter-spacing: -0.02em;
+      }
+      .card-main-sub {
+        font-size: 13px;
+        color: var(--lab-text-muted);
+        margin: 0;
+        font-weight: 500;
+      }
+
+      /* Step Titles */
+      .step-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .step-badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(2, 132, 199, 0.3);
+      }
+      .step-heading {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1e293b;
+        margin: 0;
+        letter-spacing: -0.01em;
+      }
+
+      /* Form controls */
+      .input-wrapper {
+        position: relative;
+        margin-bottom: 16px;
+      }
+      .input-label {
+        display: block;
         font-size: 12px;
         color: var(--text-muted, #64748b);
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .phone-group {
+        display: flex;
+        gap: 8px;
+      }
+      .country-prefix {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: #f1f5f9;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 0 14px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #334155;
+        white-space: nowrap;
+      }
+      .custom-input {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px;
+        font-family: var(--font-lab);
+        font-size: 15px;
         font-weight: 600;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      .custom-input:focus {
+        border-color: var(--lab-primary);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      }
+      .custom-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 12px;
+        padding-right: 36px;
+        cursor: pointer;
+      }
+
+      .btn-search {
+        height: 48px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: white;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-search:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
+      }
+      .btn-search:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* Patient Consultation Box */
+      .patient-hero-box {
+        background: linear-gradient(145deg, #f0f9ff, #e0f2fe);
+        border: 1.5px solid #bae6fd;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+      .patient-hero-box::after {
+        content: "";
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(2, 132, 199, 0.12) 0%, rgba(2, 132, 199, 0) 70%);
+        border-radius: 50%;
+      }
+      .patient-meta-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+      .patient-tag {
+        font-size: 11px;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.04em;
+        color: #0369a1;
+        letter-spacing: 0.05em;
       }
       .badge-hackathon {
         display: inline-block;
         background: #e0f2fe;
         color: #0369a1;
         font-size: 11px;
+      .patient-date-tag {
+        font-size: 12px;
         font-weight: 700;
+        color: #0284c7;
+        background: #ffffff;
         padding: 3px 8px;
         border-radius: 999px;
         margin-left: auto;
+        border-radius: 6px;
+        border: 1px solid #bae6fd;
+      }
+      .patient-name-display {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f172a;
+        margin-bottom: 14px;
+        letter-spacing: -0.02em;
+      }
+
+      .suggested-section-title {
+        font-size: 12px;
+        font-weight: 800;
+        color: #0369a1;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .chips-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
       }
       .test-chip {
         display: inline-flex;
@@ -72,39 +357,152 @@
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
         color: #166534;
+        background: #ffffff;
+        border: 1.5px solid #86efac;
+        color: #15803d;
         font-size: 13px;
         font-weight: 700;
         padding: 6px 12px;
         border-radius: 8px;
         margin: 4px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(22, 101, 52, 0.06);
       }
       .result-grid {
+
+      /* Diagnostic Test Sections */
+      .panel-section {
+        background: #ffffff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 18px;
+        margin-bottom: 16px;
+        transition: border-color 0.2s ease;
+      }
+      .panel-section.suggested-panel {
+        border-color: #38bdf8;
+        background: #fafcff;
+      }
+      .panel-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: #334155;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .test-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 12px;
         margin-top: 16px;
+        gap: 14px;
       }
       @media (max-width: 480px) {
         .result-grid {
+      @media (max-width: 520px) {
+        .test-grid {
           grid-template-columns: 1fr;
         }
       }
+      .test-field {
+        display: flex;
+        flex-direction: column;
+      }
+      .field-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+      .field-name {
+        font-size: 12px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+      .field-ref {
+        font-size: 11px;
+        font-weight: 600;
+        color: #94a3b8;
+      }
+      .test-input {
+        height: 44px;
+        padding: 0 12px;
+        font-family: var(--font-lab);
+        font-size: 15px;
+        font-weight: 700;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 10px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      .test-input:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      }
+
+      /* Submit Button */
+      .btn-submit {
+        height: 52px;
+        font-size: 16px;
+        font-weight: 800;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #059669, #047857);
+        color: white;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+      }
+      .btn-submit:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+      }
+      .btn-submit:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      /* Alerts */
       .alert {
         padding: 12px 16px;
         border-radius: 10px;
+        padding: 14px 18px;
+        border-radius: 12px;
         font-size: 14px;
         font-weight: 500;
         margin-bottom: 16px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        line-height: 1.4;
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
       .alert-success {
         background: #ecfdf5;
         color: #065f46;
         border: 1px solid #a7f3d0;
+        background: #f0fdf4;
+        color: #166534;
+        border: 1.5px solid #86efac;
       }
       .alert-error {
         background: #fef2f2;
         color: #991b1b;
         border: 1px solid #fecaca;
+        border: 1.5px solid #fecaca;
       }
       .step-num {
         display: inline-flex;
@@ -115,9 +513,17 @@
         border-radius: 50%;
         background: var(--primary-color, #0284c7);
         color: white;
+
+      /* Footer Note */
+      .lab-footer {
+        margin-top: 28px;
+        text-align: center;
         font-size: 12px;
         font-weight: 700;
         margin-right: 6px;
+        color: #94a3b8;
+        font-weight: 500;
+        line-height: 1.6;
       }
       .section-title {
         font-size: 14px;
@@ -171,7 +577,20 @@
             placeholder="10-digit mobile number"
             maxlength="10"
             style="font-size: 16px; font-weight: 600; letter-spacing: 1px"
+    <div class="lab-container">
+      <!-- Top Brand Bar -->
+      <div class="lab-topbar">
+        <a href="/" class="brand-link">
+          <img
+            src="/assets/logo/tap2med_logo.png"
+            alt="Tap2Med"
+            class="brand-logo"
           />
+          <span class="brand-title">Tap2Med</span>
+        </a>
+        <div class="brand-badge">
+          <span class="pulse-dot"></span>
+          <span>Partner Lab Network</span>
         </div>
         <div style="margin-bottom: 20px">
           <label
@@ -221,6 +640,14 @@
       >
         <div class="section-title">
           <span class="step-num">2</span> Patient Consultation & Tests
+      <!-- Main Card -->
+      <div class="lab-card">
+        <!-- Card Title -->
+        <div class="card-header-block">
+          <h1 class="card-main-title">Diagnostic Laboratory Portal</h1>
+          <p class="card-main-sub">
+            Lookup patient via Tap2Med network identity &bull; Enter test results directly into doctor's flowsheet
+          </p>
         </div>
 
         <div
@@ -253,6 +680,14 @@
               id="patient-visit-date"
               style="font-size: 12px; color: #0284c7; font-weight: 600"
             ></span>
+        <!-- Status Alerts -->
+        <div id="status-alert" style="display: none"></div>
+
+        <!-- STEP 1: Search Patient -->
+        <div id="step-search">
+          <div class="step-header">
+            <span class="step-badge">1</span>
+            <h2 class="step-heading">Identify Patient in Network</h2>
           </div>
           <div
             id="patient-display-name"
@@ -264,6 +699,23 @@
             "
           >
             --
+
+          <div class="input-wrapper">
+            <label class="input-label" for="lab-patient-phone">Patient Mobile Number</label>
+            <div class="phone-group">
+              <div class="country-prefix">
+                <span>🇮🇳</span>
+                <span>+91</span>
+              </div>
+              <input
+                type="tel"
+                id="lab-patient-phone"
+                class="custom-input"
+                placeholder="10-digit mobile number"
+                maxlength="10"
+                style="font-size: 16px; letter-spacing: 0.5px;"
+              />
+            </div>
           </div>
 
           <div
@@ -275,6 +727,18 @@
             "
           >
             TESTS CURRENTLY SUGGESTED BY DOCTOR:
+          <div class="input-wrapper">
+            <label class="input-label" for="lab-patient-member">Family Member</label>
+            <select id="lab-patient-member" class="custom-input custom-select">
+              <option value="0">Self (Primary Account)</option>
+              <option value="1">Spouse</option>
+              <option value="2">Father</option>
+              <option value="3">Mother</option>
+              <option value="4">Child 1 (Eldest)</option>
+              <option value="5">Child 2</option>
+              <option value="6">Child 3</option>
+              <option value="7">Child 4 (Youngest)</option>
+            </select>
           </div>
           <div
             id="suggested-tests-chips"
@@ -287,6 +751,13 @@
         <!-- STEP 3: Enter Results -->
         <div class="section-title">
           <span class="step-num">3</span> Enter Laboratory Results
+          <button type="button" id="btn-find-patient" class="btn-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <span>Find Patient in Network</span>
+          </button>
         </div>
 
         <div style="margin-bottom: 14px">
@@ -307,6 +778,15 @@
             style="font-size: 14px"
           />
         </div>
+        <!-- STEP 2: Patient Info & Suggested Tests -->
+        <div
+          id="step-patient-info"
+          style="display: none; margin-top: 28px; padding-top: 24px; border-top: 1px dashed #cbd5e1;"
+        >
+          <div class="step-header">
+            <span class="step-badge">2</span>
+            <h2 class="step-heading">Patient Consultation & Doctor Requests</h2>
+          </div>
 
         <div class="result-grid">
           <div>
@@ -327,6 +807,26 @@
               class="input"
               placeholder="e.g. 7.8"
             />
+          <div class="patient-hero-box">
+            <div class="patient-meta-row">
+              <span class="patient-tag">Identified Patient</span>
+              <span id="patient-visit-date" class="patient-date-tag"></span>
+            </div>
+            <div id="patient-display-name" class="patient-name-display">--</div>
+
+            <div class="suggested-section-title">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Tests Suggested by Doctor (Latest Visit)</span>
+            </div>
+            <div id="suggested-tests-chips" class="chips-wrap">
+              <!-- Chips populated dynamically -->
+            </div>
           </div>
           <div>
             <label
@@ -346,6 +846,11 @@
               class="input"
               placeholder="e.g. 13.6"
             />
+
+          <!-- STEP 3: Enter Results -->
+          <div class="step-header">
+            <span class="step-badge">3</span>
+            <h2 class="step-heading">Enter Laboratory Test Results</h2>
           </div>
           <div>
             <label
@@ -364,6 +869,10 @@
               class="input"
               placeholder="e.g. 7200"
             />
+
+          <div class="input-wrapper" style="margin-bottom: 20px;">
+            <label class="input-label" for="lab-test-date">Test Date</label>
+            <input type="date" id="lab-test-date" class="custom-input" style="max-width: 220px;" />
           </div>
           <div>
             <label
@@ -382,6 +891,29 @@
               class="input"
               placeholder="e.g. 148"
             />
+
+          <!-- Panel 1: Diabetes & Glycemic -->
+          <div class="panel-section">
+            <div class="panel-title">
+              <span>🍬</span>
+              <span>Diabetes & Glycemic Panel</span>
+            </div>
+            <div class="test-grid">
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">HbA1c (%)</span>
+                  <span class="field-ref">&lt; 5.7%</span>
+                </div>
+                <input type="number" step="0.1" id="res-hba1c" class="test-input" placeholder="e.g. 7.2" />
+              </div>
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">Fasting Blood Sugar - FBS (mg/dL)</span>
+                  <span class="field-ref">70 - 100</span>
+                </div>
+                <input type="number" id="res-fbs" class="test-input" placeholder="e.g. 105" />
+              </div>
+            </div>
           </div>
           <div>
             <label
@@ -400,6 +932,29 @@
               class="input"
               placeholder="e.g. 110"
             />
+
+          <!-- Panel 2: Hematology (CBC) -->
+          <div class="panel-section">
+            <div class="panel-title">
+              <span>🩸</span>
+              <span>Hematology (CBC)</span>
+            </div>
+            <div class="test-grid">
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">Hemoglobin (g/dL)</span>
+                  <span class="field-ref">13.0 - 17.0</span>
+                </div>
+                <input type="number" step="0.1" id="res-hb" class="test-input" placeholder="e.g. 13.8" />
+              </div>
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">Total WBC (cells/cumm)</span>
+                  <span class="field-ref">4,000 - 11,000</span>
+                </div>
+                <input type="number" id="res-wbc" class="test-input" placeholder="e.g. 6800" />
+              </div>
+            </div>
           </div>
           <div>
             <label
@@ -418,6 +973,29 @@
               class="input"
               placeholder="e.g. 210"
             />
+
+          <!-- Panel 3: Lipid Profile -->
+          <div class="panel-section">
+            <div class="panel-title">
+              <span>🫀</span>
+              <span>Lipid Profile</span>
+            </div>
+            <div class="test-grid">
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">LDL Cholesterol (mg/dL)</span>
+                  <span class="field-ref">&lt; 100</span>
+                </div>
+                <input type="number" id="res-ldl" class="test-input" placeholder="e.g. 135" />
+              </div>
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">Total Cholesterol (mg/dL)</span>
+                  <span class="field-ref">&lt; 200</span>
+                </div>
+                <input type="number" id="res-chol" class="test-input" placeholder="e.g. 195" />
+              </div>
+            </div>
           </div>
           <div>
             <label
@@ -437,6 +1015,29 @@
               class="input"
               placeholder="e.g. 0.9"
             />
+
+          <!-- Panel 4: Renal & Thyroid -->
+          <div class="panel-section">
+            <div class="panel-title">
+              <span>🔬</span>
+              <span>Renal Function & Thyroid</span>
+            </div>
+            <div class="test-grid">
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">Serum Creatinine (mg/dL)</span>
+                  <span class="field-ref">0.7 - 1.3</span>
+                </div>
+                <input type="number" step="0.1" id="res-creat" class="test-input" placeholder="e.g. 0.9" />
+              </div>
+              <div class="test-field">
+                <div class="field-header">
+                  <span class="field-name">TSH (uIU/mL)</span>
+                  <span class="field-ref">0.4 - 4.2</span>
+                </div>
+                <input type="number" step="0.01" id="res-tsh" class="test-input" placeholder="e.g. 2.45" />
+              </div>
+            </div>
           </div>
           <div>
             <label
@@ -457,6 +1058,13 @@
               placeholder="e.g. 2.45"
             />
           </div>
+
+          <button type="button" id="btn-submit-results" class="btn-submit">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>Submit Results to Tap2Med</span>
+          </button>
         </div>
 
         <button
@@ -472,6 +1080,11 @@
         >
           Submit Results to Tap2Med
         </button>
+        <!-- Footer Info -->
+        <div class="lab-footer">
+          Tap2Med Partner Laboratory Integration &bull; Powered by Network Token<br />
+          Results sync automatically to doctor's clinical flowsheet without doctor manual entry.
+        </div>
       </div>
 
       <!-- Footer Info -->
@@ -500,6 +1113,11 @@
         el.className = isError ? "alert alert-error" : "alert alert-success";
         el.textContent = msg;
         el.style.display = "block";
+        const icon = isError
+          ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>'
+          : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+        el.innerHTML = `${icon}<span>${msg}</span>`;
+        el.style.display = "flex";
       }
 
       function hideAlert() {
@@ -527,6 +1145,12 @@
           const btn = document.getElementById("btn-find-patient");
           btn.disabled = true;
           btn.textContent = "Searching Tap2Med Network...";
+          btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"></circle>
+            </svg>
+            <span>Searching Tap2Med Network...</span>
+          `;
 
           try {
             const res = await fetch("/api/integrations/labs/lookup", {
@@ -555,6 +1179,7 @@
               data.last_visit_date
                 ? `Consultation: ${data.last_visit_date}`
                 : "";
+                : "Active Visit";
 
             const chipsContainer = document.getElementById(
               "suggested-tests-chips",
@@ -584,6 +1209,13 @@
           } finally {
             btn.disabled = false;
             btn.textContent = "Find Patient";
+            btn.innerHTML = `
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <span>Find Patient in Network</span>
+            `;
           }
         });
 
@@ -632,6 +1264,12 @@
           const btn = document.getElementById("btn-submit-results");
           btn.disabled = true;
           btn.textContent = "Submitting to Tap2Med...";
+          btn.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="animation: spin 1s linear infinite;">
+              <circle cx="12" cy="12" r="10" stroke-dasharray="32" stroke-dashoffset="12"></circle>
+            </svg>
+            <span>Submitting to Tap2Med Network...</span>
+          `;
 
           try {
             const res = await fetch("/api/integrations/labs/results", {
@@ -655,10 +1293,12 @@
 
             showAlert(
               "Results sent to Tap2Med. The doctor will see them automatically in Labs / Trends!",
+              "Results recorded successfully! The doctor will see them immediately in Labs & Trends without manual entry."
             );
             // Clear result fields
             document
               .querySelectorAll(".result-grid input")
+              .querySelectorAll(".test-grid input")
               .forEach((inp) => (inp.value = ""));
             window.scrollTo({ top: 0, behavior: "smooth" });
           } catch (e) {
@@ -667,8 +1307,20 @@
           } finally {
             btn.disabled = false;
             btn.textContent = "Submit Results to Tap2Med";
+            btn.innerHTML = `
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>Submit Results to Tap2Med</span>
+            `;
           }
         });
     </script>
+    <style>
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </body>
 </html>

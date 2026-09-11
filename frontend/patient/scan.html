@@ -7,29 +7,82 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>Check-in | Tap2Med</title>
+    <title>Patient Check-in | Tap2Med</title>
     <link rel="stylesheet" href="/assets/css/variables.css" />
     <link rel="stylesheet" href="/assets/css/base.css" />
     <link rel="stylesheet" href="/assets/css/forms.css" />
     <link rel="stylesheet" href="/assets/css/buttons.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --patient-primary: #0284c7;
+        --patient-primary-dark: #0369a1;
+        --patient-bg: #f8fafc;
+        --patient-surface: #ffffff;
+        --patient-border: #e2e8f0;
+        --patient-text: #0f172a;
+        --patient-text-muted: #64748b;
+        --font-patient: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: var(--patient-bg);
+        min-height: 100vh;
+        font-family: var(--font-patient);
+        color: var(--patient-text);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .auth-wrapper {
         min-height: 100vh;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
         background: var(--bg-canvas);
         padding: 20px;
+        padding: 24px 16px;
       }
+
       .auth-card {
         background: var(--surface-color);
         padding: 40px 24px;
         border-radius: 20px;
         box-shadow: 0 10px 25px rgba(9, 41, 66, 0.08);
+        background: var(--patient-surface);
+        padding: 36px 24px;
+        border-radius: 24px;
+        box-shadow: 0 20px 40px -15px rgba(2, 132, 199, 0.12), 0 0 0 1px rgba(226, 232, 240, 0.8);
         width: 100%;
         max-width: 400px;
         border: 1px solid var(--border-color);
+        max-width: 420px;
         text-align: center;
+        position: relative;
+        overflow: hidden;
       }
+
+      @media (max-width: 480px) {
+        .auth-card {
+          padding: 28px 20px;
+          border-radius: 20px;
+        }
+      }
+
+      /* Brand Header */
       .brand {
         display: inline-flex;
         align-items: center;
@@ -37,9 +90,20 @@
         gap: 8px;
         font-family: var(--font-family);
         font-size: 24px;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .brand-logo {
+        width: 38px;
+        height: 38px;
+        object-fit: contain;
+      }
+      .brand-name {
+        font-size: 22px;
         font-weight: 800;
         color: var(--primary-color);
         margin-bottom: 30px;
+        color: #092942;
         letter-spacing: -0.02em;
         line-height: 1;
       }
@@ -47,21 +111,47 @@
         width: 36px;
         height: 28px;
         object-fit: contain;
+
+      .clinic-welcome-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        color: #0369a1;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 22px;
+      }
+      .clinic-welcome-pill span.dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0284c7;
       }
 
+      /* Screens & Transitions */
       .scan-screen {
         animation: fadeIn 0.3s ease;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         text-align: left;
       }
       @keyframes fadeIn {
+      @keyframes slideUp {
         from {
           opacity: 0;
           transform: translateY(10px);
+          transform: translateY(12px);
         }
         to {
           opacity: 1;
           transform: translateY(0);
         }
+      }
+      .hidden {
+        display: none !important;
       }
 
       .scan-screen h1 {
@@ -69,23 +159,66 @@
         font-weight: 800;
         color: var(--text-main);
         margin-bottom: 5px;
+        color: #0f172a;
+        margin: 0 0 6px;
+        letter-spacing: -0.02em;
       }
       .subtitle {
         color: var(--text-muted);
+        color: var(--patient-text-muted);
         font-size: 14px;
         margin-bottom: 25px;
+        margin: 0 0 22px;
         font-weight: 500;
+        line-height: 1.4;
       }
 
+      /* Phone Input */
+      .phone-box {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .country-code {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: #f1f5f9;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 14px;
+        padding: 0 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: #334155;
+        white-space: nowrap;
+      }
       .input-phone {
         text-align: center;
         letter-spacing: 3px;
         font-size: 22px;
+        width: 100%;
+        text-align: left;
+        letter-spacing: 2px;
+        font-size: 20px;
         font-weight: 700;
         height: 56px;
         border-radius: 12px;
+        height: 54px;
+        border-radius: 14px;
+        border: 1.5px solid #cbd5e1;
+        padding: 0 16px;
+        font-family: var(--font-patient);
+        color: #0f172a;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      .input-phone:focus {
+        border-color: var(--patient-primary);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
       }
 
+      /* Member List */
       .member-list {
         display: flex;
         flex-direction: column;
@@ -94,6 +227,7 @@
       }
       .member-row {
         min-height: 48px;
+        min-height: 52px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -103,80 +237,275 @@
         color: var(--text-main);
         font-size: 16px;
         font-weight: 600;
+        justify-content: space-between;
+        padding: 0 18px;
+        border: 1.5px solid var(--patient-border);
+        border-radius: 14px;
+        background: #ffffff;
+        color: #1e293b;
+        font-family: var(--font-patient);
+        font-size: 15px;
+        font-weight: 700;
         cursor: pointer;
         transition: all 0.2s;
+        transition: all 0.2s ease;
+        text-align: left;
       }
       .member-row:hover {
         background: var(--bg-canvas);
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        transform: translateY(-1px);
       }
       .member-row.selected {
         border-color: var(--primary-color);
         color: var(--primary-color);
         background: rgba(2, 132, 199, 0.05);
+        border-color: var(--patient-primary);
+        color: var(--patient-primary-dark);
+        background: #f0f9ff;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
       }
       .member-row.add-member {
         border-style: dashed;
         color: var(--text-muted);
+        border-color: #cbd5e1;
+        color: var(--patient-primary);
+        justify-content: center;
+        background: transparent;
+      }
+      .member-row.add-member:hover {
+        border-color: var(--patient-primary);
+        background: #f0f9ff;
       }
 
       .token-display-box {
         background: #f8fafc;
         border: 2px dashed #cbd5e1;
+      /* Form inputs */
+      .field-group {
+        margin-bottom: 18px;
+      }
+      .field-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+      }
+      .modern-input {
+        width: 100%;
+        height: 50px;
+        padding: 0 16px;
+        font-family: var(--font-patient);
+        font-size: 15px;
+        font-weight: 600;
+        color: #0f172a;
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 12px;
+        outline: none;
+        transition: all 0.2s ease;
+      }
+      .modern-input:focus {
+        border-color: var(--patient-primary);
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      }
+
+      /* Consent Card */
+      .consent-card {
+        background: linear-gradient(145deg, #f0f9ff, #f8fafc);
+        border: 1.5px solid #bae6fd;
         border-radius: 16px;
         padding: 30px 20px;
         margin: 20px 0;
         text-align: center;
+        padding: 16px;
+        margin-bottom: 24px;
+        text-align: left;
       }
       .token-label {
         color: var(--text-secondary);
+      .consent-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        cursor: pointer;
         font-size: 13px;
         font-weight: 700;
+        color: #0f172a;
+        line-height: 1.45;
+      }
+      .consent-checkbox {
+        margin-top: 3px;
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: var(--patient-primary);
+        flex-shrink: 0;
+      }
+      .consent-sub {
+        margin: 8px 0 0 30px;
+        font-size: 11px;
+        color: var(--patient-text-muted);
+        line-height: 1.45;
+        font-weight: 500;
+      }
+
+      /* Buttons */
+      .btn-continue {
+        height: 52px;
+        font-size: 16px;
+        font-weight: 800;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        color: white;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .btn-continue:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(2, 132, 199, 0.4);
+      }
+      .btn-continue:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .btn-back {
+        height: 44px;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--patient-text-muted);
+        border: 1.5px solid transparent;
+        width: 100%;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.2s ease;
+      }
+      .btn-back:hover {
+        background: #f1f5f9;
+        color: #334155;
+      }
+
+      /* Success Screen: Token Ticket */
+      .token-ticket {
+        background: linear-gradient(145deg, #f0f9ff, #ffffff);
+        border: 2px dashed #38bdf8;
+        border-radius: 20px;
+        padding: 32px 20px;
+        margin: 22px 0;
+        text-align: center;
+        position: relative;
+      }
+      .token-ticket-label {
+        color: #0369a1;
+        font-size: 12px;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+        letter-spacing: 0.08em;
       }
       .token-number {
         font-size: 72px;
+        font-size: 80px;
         line-height: 1;
         font-weight: 800;
         color: var(--primary-color);
         margin: 15px 0;
+        font-weight: 900;
+        color: #0284c7;
+        margin: 14px 0 10px;
         letter-spacing: -0.04em;
+        text-shadow: 0 2px 10px rgba(2, 132, 199, 0.15);
+      }
+      .token-ticket-sub {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 600;
       }
 
       .status-live {
         color: #d97706;
         font-weight: 600;
+        color: #0369a1;
+        font-weight: 700;
         font-size: 15px;
         background: rgba(245, 158, 11, 0.1);
+        background: #f0f9ff;
+        border: 1.5px solid #bae6fd;
         padding: 16px;
         border-radius: 12px;
+        border-radius: 14px;
         text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
       }
       .status-live.text-green {
         color: var(--success-color);
         background: rgba(22, 163, 74, 0.1);
+        color: #15803d;
+        background: #f0fdf4;
+        border-color: #86efac;
       }
 
       .footer-text {
         margin-top: 25px;
         color: var(--text-muted);
         font-size: 12px;
+      /* Privacy Footer Card */
+      .privacy-note {
+        margin-top: 24px;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 11.5px;
+        color: #64748b;
         line-height: 1.5;
         text-align: center;
+        text-align: left;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .privacy-icon {
+        font-size: 14px;
+        line-height: 1;
+        margin-top: 1px;
       }
     </style>
   </head>
   <body>
     <main class="auth-wrapper">
       <div class="auth-card">
+        <!-- Brand Header -->
         <header>
           <div class="brand">
             <img
               src="/assets/logo/tap2med_logo.png"
               alt=""
+              alt="Tap2Med"
               class="brand-logo"
             />
             <span>Tap2Med</span>
+            <span class="brand-name">Tap2Med</span>
+          </div>
+          <div class="clinic-welcome-pill">
+            <span class="dot"></span>
+            <span>Digital OPD Check-in</span>
           </div>
         </header>
 
@@ -185,43 +514,73 @@
           <h1>Welcome to Clinic</h1>
           <p class="subtitle">Enter your mobile number to begin.</p>
           <div class="input-group">
+          <p class="subtitle">Enter your mobile number to get your OPD token.</p>
+
+          <div class="phone-box">
+            <div class="country-code">
+              <span>🇮🇳</span>
+              <span>+91</span>
+            </div>
             <input
               type="tel"
               id="phone-input"
               class="input input-phone"
+              class="input-phone input"
               placeholder="10-digit number (Optional)"
+              class="input-phone"
+              placeholder="10-digit number"
               autocomplete="off"
               inputmode="numeric"
               maxlength="10"
               required
             />
           </div>
+
           <button
             type="button"
             class="btn btn-primary btn-block"
+            class="btn-continue"
+            class="btn btn-primary btn-block btn-continue"
             id="btn-phone-next"
             style="margin-top: 25px; height: 50px; font-size: 16px"
           >
             Continue
+            <span>Continue</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
           </button>
           <p class="footer-text">
             <strong>Privacy First:</strong> We do not store your phone number.
             It is securely tokenized on your device.
           </p>
+
+          <div class="privacy-note">
+            <span class="privacy-icon">🔒</span>
+            <div>
+              <strong>Cryptographic Privacy:</strong> Your mobile number is never stored in any database. It is instantly tokenized in memory using one-way cryptographic hashing.
+            </div>
+          </div>
         </section>
 
         <!-- STEP 2: Member Selection & Name -->
         <section id="screen-members" class="scan-screen hidden">
           <h1>Who is visiting?</h1>
           <p class="subtitle">Select the patient and enter their name.</p>
+          <h1>Who is consulting?</h1>
+          <p class="subtitle">Select the patient profile for this visit.</p>
           <div id="member-list-container" class="member-list"></div>
           <button
             type="button"
             class="btn btn-ghost btn-block"
+            class="btn-back"
+            class="btn btn-ghost btn-block btn-back"
             id="cancel-member-btn"
             style="margin-top: 10px"
           >
             Back
+            ← Back
           </button>
         </section>
 
@@ -230,17 +589,25 @@
           <h1>Add Patient</h1>
           <p class="subtitle">Enter the patient's full name.</p>
           <div class="input-group">
+          <h1>Add Family Member</h1>
+          <p class="subtitle">Enter the patient's full name to save on this phone.</p>
+          <div class="field-group">
             <input
               type="text"
               id="new-member-name"
               class="input"
               placeholder="Patient Name"
+              class="modern-input"
+              class="modern-input input"
+              placeholder="e.g. Ramesh Kumar"
               autocomplete="off"
             />
           </div>
           <button
             type="button"
             class="btn btn-primary btn-block"
+            class="btn-continue"
+            class="btn btn-primary btn-block btn-continue"
             id="save-member-btn"
             style="margin-top: 20px"
           >
@@ -249,6 +616,8 @@
           <button
             type="button"
             class="btn btn-ghost btn-block"
+            class="btn-back"
+            class="btn btn-ghost btn-block btn-back"
             id="cancel-add-member-btn"
             style="margin-top: 10px"
           >
@@ -257,9 +626,11 @@
         </section>
 
         <!-- STEP 3: Patient Details -->
+        <!-- STEP 4: Patient Details & Consent -->
         <section id="screen-details" class="scan-screen hidden">
           <h1>Patient Details</h1>
           <p class="subtitle">Please enter the details for the prescription.</p>
+          <p class="subtitle">Details for the doctor's prescription.</p>
 
           <div class="input-group" style="margin-bottom: 25px">
             <label
@@ -271,10 +642,14 @@
               "
               >Patient Name (Mandatory)</label
             >
+          <div class="field-group">
+            <label class="field-label" for="patient-name-input">Patient Full Name (Mandatory)</label>
             <input
               type="text"
               id="patient-name-input"
               class="input"
+              class="modern-input"
+              class="modern-input input"
               placeholder="Full Name"
               style="
                 font-size: 16px;
@@ -297,10 +672,14 @@
               "
               >City (Optional)</label
             >
+          <div class="field-group">
+            <label class="field-label" for="patient-city-input">City (Optional)</label>
             <input
               type="text"
               id="patient-city-input"
               class="input"
+              class="modern-input"
+              class="modern-input input"
               placeholder="e.g. New Delhi"
               style="font-size: 16px; height: 50px"
               autocomplete="off"
@@ -317,10 +696,14 @@
               "
               >Age (Optional)</label
             >
+          <div class="field-group">
+            <label class="field-label" for="patient-age-input">Age in Years (Optional)</label>
             <input
               type="number"
               id="patient-age-input"
               class="input"
+              class="modern-input"
+              class="modern-input input"
               min="0"
               max="120"
               step="1"
@@ -353,6 +736,9 @@
                 line-height: 1.4;
               "
             >
+          <!-- Per-Visit Cross-Clinic Consent -->
+          <div class="consent-card">
+            <label class="consent-label" for="share-history-consent">
               <input
                 type="checkbox"
                 id="share-history-consent"
@@ -363,11 +749,13 @@
                   cursor: pointer;
                   accent-color: var(--primary-color);
                 "
+                class="consent-checkbox"
               />
               <span
                 >Allow this doctor to view my previous Tap2Med health history
                 from other clinics.</span
               >
+              <span>Allow this doctor to view my previous Tap2Med health history from other clinics.</span>
             </label>
             <p
               style="
@@ -379,28 +767,40 @@
             >
               Only your relevant previous health records are shared. You can
               choose not to share.
+            <p class="consent-sub">
+              Includes past diagnoses, prescriptions, and verified lab test reports across the Tap2Med network. You can choose not to share.
             </p>
           </div>
 
           <button
             type="button"
             class="btn btn-primary btn-block"
+            class="btn-continue"
+            class="btn btn-primary btn-block btn-continue"
             id="check-in-btn"
             style="height: 50px; font-size: 16px"
           >
             Generate Token
+            <span>Generate OPD Token</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
           </button>
           <button
             type="button"
             class="btn btn-ghost btn-block"
+            class="btn-back"
+            class="btn btn-ghost btn-block btn-back"
             id="btn-details-back"
             style="margin-top: 10px"
           >
             Back
+            ← Back
           </button>
         </section>
 
         <!-- STEP 4: Live Wait & Success -->
+        <!-- STEP 5: Live Wait & Success -->
         <section
           id="screen-success"
           class="scan-screen hidden"
@@ -414,16 +814,33 @@
             "
           >
             Checked In!
+          <div style="display: inline-flex; align-items: center; gap: 6px; background: #ecfdf5; border: 1.5px solid #86efac; color: #15803d; font-size: 13px; font-weight: 800; padding: 6px 14px; border-radius: 999px; margin-bottom: 12px;">
+            <span>✓</span> Checked In Successfully
+          </div>
+
+          <h1 style="color: #0f172a; text-align: center; font-size: 24px; margin-bottom: 4px;">
+            You're In The Queue!
           </h1>
+          <p style="color: #64748b; font-size: 13px; margin: 0 0 16px;">
+            Your token has been sent directly to the doctor's screen.
+          </p>
 
           <div class="token-display-box">
             <div class="token-label">Your Token</div>
+          <div class="token-ticket">
+            <div class="token-ticket-label">Your Live OPD Token</div>
             <div id="token-display" class="token-number">#--</div>
+            <div class="token-ticket-sub">Live Real-Time Queue</div>
           </div>
 
           <div id="wait-status" class="status-live">
             Fetching queue position...
           </div>
+
+          <p style="font-size: 12px; color: #94a3b8; margin-top: 20px; line-height: 1.5;">
+            Please take a seat in the waiting area.<br />
+            Keep this screen open to track your live queue status.
+          </p>
         </section>
       </div>
     </main>
