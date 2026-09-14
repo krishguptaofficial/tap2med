@@ -2069,6 +2069,15 @@
     }, 3000);
   }
 
+  function getActiveClinicId() {
+    return (
+      activeClinicId ||
+      window.clinicId ||
+      localStorage.getItem("tap2med_clinic_id") ||
+      null
+    );
+  }
+
   // Open Lab Flowsheet Modal
   async function open(localToken, patientName, clinicId) {
     if (!localToken) {
@@ -2077,11 +2086,31 @@
     }
     activeLocalToken = localToken;
     activePatientName = patientName || "Patient";
-    activeClinicId = clinicId || window.clinicId || null;
+    activeClinicId =
+      clinicId ||
+      window.clinicId ||
+      localStorage.getItem("tap2med_clinic_id") ||
+      null;
 
-    const modal = document.getElementById("labs-modal");
+    let modal = document.getElementById("labs-modal");
     if (!modal) {
-      console.warn("labs-modal not yet injected in DOM");
+      try {
+        const resp = await fetch("/assets/layouts/labs.html");
+        if (resp.ok) {
+          const html = await resp.text();
+          const container = document.createElement("div");
+          container.innerHTML = html.trim();
+          while (container.firstChild) {
+            document.body.appendChild(container.firstChild);
+          }
+          modal = document.getElementById("labs-modal");
+        }
+      } catch (e) {
+        console.warn("Failed to inject labs layout", e);
+      }
+    }
+    if (!modal) {
+      console.warn("labs-modal could not be found or loaded");
       return;
     }
 
@@ -2104,6 +2133,7 @@
     if (searchInput) searchInput.value = "";
     closeSearchDropdown();
 
+    attachLiveInputListeners();
     await fetchLabData(activeLocalToken);
   }
 
@@ -2115,9 +2145,12 @@
 
   // Fetch labs from backend
   async function fetchLabData(token) {
-    const clinic = activeClinicId || window.clinicId || "";
+    const clinic = getActiveClinicId() || "";
     try {
-      const res = await fetch(`/api/events/labs/${token}?clinic_id=${clinic}`);
+      const url = clinic
+        ? `/api/events/labs/${token}?clinic_id=${encodeURIComponent(clinic)}`
+        : `/api/events/labs/${token}`;
+      const res = await fetch(url);
       const data = await res.json();
       activeLabRecords = data.labs || [];
       window.patientLabData = activeLabRecords;
@@ -2216,7 +2249,7 @@
     }
 
     const payload = {
-      clinic_id: activeClinicId || window.clinicId,
+      clinic_id: getActiveClinicId(),
       local_token: localToken,
       lab_record: { test_date: dateStr, results: results },
     };
@@ -2316,7 +2349,7 @@
     }
 
     const payload = {
-      clinic_id: activeClinicId || window.clinicId,
+      clinic_id: getActiveClinicId(),
       local_token: localToken,
       lab_record: { test_date: dateStr, results: results },
     };
@@ -2341,9 +2374,12 @@
         showToast(
           `✓ Added <strong>${escapeHtml(testDef.name)}</strong> to patient profile`,
         );
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.warn("Background persistence returned error", errJson);
       }
     } catch (e) {
-      console.warn("Background persistence failed", e);
+      console.warn("Background persistence network error", e);
     }
   }
 
@@ -2374,16 +2410,25 @@
     results._custom_defs = currentPatientCustomDefs;
 
     try {
-      await fetch("/api/events/labs", {
+      const res = await fetch("/api/events/labs", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          clinic_id: activeClinicId || window.clinicId,
+          clinic_id: getActiveClinicId(),
           local_token: localToken,
           lab_record: { test_date: dateStr, results: results },
         }),
       });
-      showToast(`Removed ${def.name} from profile`);
+      if (res.ok) {
+        let existingRec = activeLabRecords.find((l) => l.test_date === dateStr);
+        if (existingRec && existingRec.results) {
+          delete existingRec.results[key];
+          if (existingRec.results._custom_defs) {
+            delete existingRec.results._custom_defs[key];
+          }
+        }
+        showToast(`Removed ${def.name} from profile`);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -2494,9 +2539,14 @@
     checkRange(input);
     const select = document.getElementById("chart-parameter");
     if (!select) return;
-    const param = select.value;
     const inputKey = input.id.replace(/^lab-/, "");
-    if (param === inputKey) {
+    if (
+      select.value !== inputKey &&
+      select.querySelector(`option[value="${inputKey}"]`)
+    ) {
+      select.value = inputKey;
+    }
+    if (select.value === inputKey) {
       updateChart();
     }
   }
@@ -2515,8 +2565,10 @@
   }
 
   // -------------------------------------------------------------
-  // SMART AUTOCOMPLETE SEARCH & HEADING DROPDOWN
+  // SMART AUTOCOMPLETE SEARCH & HEADING DROPDOWN (HEALTHPLIX STYLE)
   // -------------------------------------------------------------
+
+  const expandedDropdownCategories = new Set();
 
   function handleSearchInput(query) {
     const dropdown = document.getElementById("lab-search-dropdown");
@@ -2549,7 +2601,110 @@
     searchDropdownOpen = false;
   }
 
-  function renderSearchDropdown(query) {
+  function toggleCategoryInDropdown(catName, event) {
+    if (event) event.stopPropagation();
+    if (expandedDropdownCategories.has(catName)) {
+      expandedDropdownCategories.delete(catName);
+    } else {
+      expandedDropdownCategories.add(catName);
+    }
+    const input = document.getElementById("lab-search-input");
+    renderSearchDropdown(input ? input.value : "", catName);
+  }
+
+  function selectCategoryHeading(catName) {
+    const searchInput = document.getElementById("lab-search-input");
+    if (searchInput) searchInput.value = catName;
+    expandedDropdownCategories.add(catName);
+    filterLabFields(catName);
+    renderSearchDropdown(catName);
+
+    // Scroll to heading in flowsheet
+    const headings = document.querySelectorAll(".lab-section-header");
+    for (const h of headings) {
+      if (h.textContent.toLowerCase().includes(catName.toLowerCase())) {
+        h.scrollIntoView({ behavior: "smooth", block: "start" });
+        break;
+      }
+    }
+  }
+
+  function addCatalogTest(testKey, btnEl) {
+    const catTest = TEST_MAP.get(testKey);
+    if (!catTest) return;
+
+    persistPatientTest({
+      key: catTest.key,
+      name: catTest.name,
+      category: catTest.category,
+      unit: catTest.unit,
+      min: catTest.min,
+      max: catTest.max,
+      isCustom: false,
+    });
+
+    if (btnEl) {
+      btnEl.outerHTML = `
+        <span style="font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 3px 8px; border-radius: 4px; border: 1px solid #bae6fd;">
+          ✓ In Profile
+        </span>
+      `;
+    }
+  }
+
+  async function addAllCategoryTests(catName) {
+    const testsInCat = ALL_TESTS.filter((t) => t.category === catName);
+    let addedCount = 0;
+    testsInCat.forEach((t) => {
+      if (
+        !currentPatientCustomDefs[t.key] &&
+        !STANDARD_FLOWSHEET_KEYS.includes(t.key)
+      ) {
+        currentPatientCustomDefs[t.key] = {
+          key: t.key,
+          name: t.name,
+          category: t.category,
+          unit: t.unit,
+          min: t.min,
+          max: t.max,
+          isCustom: false,
+        };
+        addedCount++;
+      }
+    });
+
+    renderDynamicPatientTests();
+    updateChartParameterOptions();
+
+    // Persist all
+    const localToken =
+      document.getElementById("lab-local-token")?.value || activeLocalToken;
+    const dateStr =
+      document.getElementById("lab-date")?.value ||
+      new Date().toISOString().slice(0, 10);
+    const results = gatherCurrentScreenResults();
+    results._custom_defs = currentPatientCustomDefs;
+
+    try {
+      await fetch("/api/events/labs", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clinic_id: getActiveClinicId(),
+          local_token: localToken,
+          lab_record: { test_date: dateStr, results: results },
+        }),
+      });
+      showToast(`✓ Added all ${addedCount} ${catName} tests to profile`);
+    } catch (e) {
+      console.error(e);
+    }
+
+    const input = document.getElementById("lab-search-input");
+    renderSearchDropdown(input ? input.value : "", catName);
+  }
+
+  function renderSearchDropdown(query, forceExpandCat = null) {
     const dropdown = document.getElementById("lab-search-dropdown");
     if (!dropdown) return;
 
@@ -2571,43 +2726,123 @@
       if (t.name.toLowerCase().includes(q)) return true;
       if (t.category.toLowerCase().includes(q)) return true;
       return (t.aliases || []).some((a) => a.toLowerCase().includes(q));
-    }).slice(0, 30);
+    }).slice(0, 25);
 
     let html = "";
 
-    // 1. Category Heading Matches (Doctor requested: "suppose doctor types haematology it should come on top")
+    // 1. Category Heading Matches with ACCORDION EXPANSION
     if (matchedCategories.length > 0) {
       html += `
-        <div style="padding: 6px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">
-          Matching Specialty Headings
+        <div style="padding: 6px 12px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px;">
+          Specialty Headings (Click to expand all tests under heading)
         </div>
       `;
       matchedCategories.forEach((cat) => {
         const testsInCat = ALL_TESTS.filter((t) => t.category === cat);
+        const isExpanded =
+          expandedDropdownCategories.has(cat) ||
+          (matchedCategories.length === 1 && q.length >= 4);
+
         html += `
-          <div
-            onclick="window.Tap2MedLabs.selectCategoryHeading('${escapeHtml(cat)}')"
-            style="padding: 10px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #f0f9ff; transition: background 0.15s;"
-            onmouseover="this.style.background='#e0f2fe'"
-            onmouseout="this.style.background='#f0f9ff'"
-          >
-            <div>
-              <strong style="color: #0369a1; font-size: 13px;">📂 ${escapeHtml(cat)}</strong>
-              <span style="font-size: 11px; color: #64748b; margin-left: 6px;">(${testsInCat.length} clinical tests)</span>
+          <div style="border-bottom: 1px solid #e2e8f0;">
+            <div
+              onclick="window.Tap2MedLabs.toggleCategoryInDropdown('${escapeHtml(cat)}', event)"
+              style="padding: 9px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: ${isExpanded ? "#f0f9ff" : "#ffffff"}; transition: background 0.15s;"
+              onmouseover="if(!${isExpanded}) this.style.background='#f8fafc'"
+              onmouseout="if(!${isExpanded}) this.style.background='#ffffff'"
+            >
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong style="color: ${isExpanded ? "#0369a1" : "#1e293b"}; font-size: 13px;">📂 ${escapeHtml(cat)}</strong>
+                <span style="font-size: 11px; color: #0284c7; background: #e0f2fe; padding: 1px 7px; border-radius: 10px; font-weight: 700;">
+                  ${testsInCat.length} Tests
+                </span>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700; color: #0284c7;">
+                ${isExpanded ? "▲ Close" : "▼ View All Tests"}
+              </span>
             </div>
-            <span style="font-size: 11.5px; font-weight: 700; color: #0284c7;">View Tests ▾</span>
+            ${
+              isExpanded
+                ? `
+              <div style="padding: 6px 10px 10px; background: #f8fafc; border-top: 1px dashed #cbd5e1;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 8px; border-bottom: 1px solid #e2e8f0; margin-bottom: 6px;">
+                  <span style="font-size: 11px; color: #64748b; font-weight: 600;">Available tests in ${escapeHtml(cat)}:</span>
+                  <button
+                    type="button"
+                    onclick="window.Tap2MedLabs.addAllCategoryTests('${escapeHtml(cat)}')"
+                    class="btn"
+                    style="background: #0284c7; color: white; border: none; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 5px; cursor: pointer;"
+                  >
+                    + Add All ${testsInCat.length} Tests
+                  </button>
+                </div>
+                <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px;">
+                  ${testsInCat
+                    .map((t) => {
+                      const isAdded = Boolean(
+                        currentPatientCustomDefs &&
+                        currentPatientCustomDefs[t.key],
+                      );
+                      const isStandard = STANDARD_FLOWSHEET_KEYS.includes(
+                        t.key,
+                      );
+                      const refStr =
+                        t.min !== null || t.max !== null
+                          ? `Ref: ${t.min ?? "-"} - ${t.max ?? "-"} ${t.unit}`
+                          : t.unit || "";
+                      return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: white; border: 1px solid #e2e8f0; border-radius: 6px;">
+                          <div>
+                            <strong style="font-size: 12px; color: #1e293b;">${escapeHtml(t.name)}</strong>
+                            <div style="font-size: 10.5px; color: #64748b;">${escapeHtml(refStr)}</div>
+                          </div>
+                          <div>
+                            ${
+                              isAdded || isStandard
+                                ? `
+                              <span style="font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 7px; border-radius: 4px; border: 1px solid #bae6fd;">
+                                ✓ ${isStandard ? "In Flowsheet" : "In Profile"}
+                              </span>
+                            `
+                                : `
+                              <button
+                                type="button"
+                                onclick="window.Tap2MedLabs.addCatalogTest('${escapeHtml(t.key)}', this)"
+                                class="btn btn-primary"
+                                style="font-size: 10.5px; font-weight: 700; padding: 3px 10px; border-radius: 5px;"
+                              >
+                                + Add
+                              </button>
+                            `
+                            }
+                          </div>
+                        </div>
+                      `;
+                    })
+                    .join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
           </div>
         `;
       });
     }
 
-    // 2. Matching Tests Section
+    // 2. Matching Individual Tests Section
     html += `
-      <div style="padding: 6px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between;">
+      <div style="padding: 6px 12px; background: #f1f5f9; border-bottom: 1px solid #e2e8f0; font-size: 11px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center;">
         <span>Standard Medical Tests (${matchedTests.length} matches)</span>
-        <span onclick="window.Tap2MedLabs.showCustomCreator('${escapeHtml(query)}')" style="color: #0284c7; cursor: pointer; font-weight: 700;">+ Custom Test</span>
+        <button
+          type="button"
+          onclick="window.Tap2MedLabs.showCustomCreator('${escapeHtml(query)}')"
+          style="background: none; border: none; color: #16a34a; cursor: pointer; font-size: 11.5px; font-weight: 700; padding: 0;"
+        >
+          ✨ + Custom Test
+        </button>
       </div>
-      <div style="max-height: 280px; overflow-y: auto;">
+      <div style="max-height: 260px; overflow-y: auto;">
     `;
 
     if (matchedTests.length === 0) {
@@ -2659,7 +2894,7 @@
                   : `
                 <button
                   type="button"
-                  onclick="window.Tap2MedLabs.addCatalogTest('${escapeHtml(t.key)}')"
+                  onclick="window.Tap2MedLabs.addCatalogTest('${escapeHtml(t.key)}', this)"
                   class="btn btn-primary"
                   style="font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 6px;"
                 >
@@ -2677,45 +2912,12 @@
 
     // 3. Compact Inline Custom Test Creator Drawer Container
     html += `
-      <div id="inline-custom-creator-box" style="display: none; padding: 12px; background: #f0fdf4; border-top: 1.5px solid #86efac;">
+      <div id="inline-custom-creator-box" style="display: none; padding: 14px; background: #f0fdf4; border-top: 1.5px solid #86efac;">
         <!-- Injected dynamically on click -->
       </div>
     `;
 
     dropdown.innerHTML = html;
-  }
-
-  function selectCategoryHeading(catName) {
-    const searchInput = document.getElementById("lab-search-input");
-    if (searchInput) searchInput.value = catName;
-    filterLabFields(catName);
-    closeSearchDropdown();
-
-    // Scroll to heading in flowsheet
-    const headings = document.querySelectorAll(".lab-section-header");
-    for (const h of headings) {
-      if (h.textContent.toLowerCase().includes(catName.toLowerCase())) {
-        h.scrollIntoView({ behavior: "smooth", block: "start" });
-        break;
-      }
-    }
-  }
-
-  function addCatalogTest(testKey) {
-    const catTest = TEST_MAP.get(testKey);
-    if (!catTest) return;
-
-    persistPatientTest({
-      key: catTest.key,
-      name: catTest.name,
-      category: catTest.category,
-      unit: catTest.unit,
-      min: catTest.min,
-      max: catTest.max,
-      isCustom: false,
-    });
-
-    closeSearchDropdown();
   }
 
   function showCustomCreator(prefillName = "") {
@@ -2725,27 +2927,47 @@
     box.style.display = "block";
     box.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <strong style="font-size: 12px; color: #15803d;">✨ Create & Add Custom Test</strong>
-        <span onclick="document.getElementById('inline-custom-creator-box').style.display='none'" style="font-size: 11px; color: #64748b; cursor: pointer;">✕ Cancel</span>
+        <strong style="font-size: 12.5px; color: #15803d; display: flex; align-items: center; gap: 6px;">
+          <span>✨</span> Create & Add Custom Investigation
+        </strong>
+        <span onclick="document.getElementById('inline-custom-creator-box').style.display='none'" style="font-size: 11px; color: #64748b; cursor: pointer; font-weight: 600;">✕ Cancel</span>
       </div>
       <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 8px; margin-bottom: 8px;">
-        <input type="text" id="inline-cust-name" class="input" placeholder="Test Name *" value="${escapeHtml(prefillName)}" style="font-size: 12px; height: 30px; background: white;" />
-        <select id="inline-cust-category" class="input" style="font-size: 11px; height: 30px; background: white;">
-          ${CATEGORY_ORDER.map((c) => `<option value="${c}">${c}</option>`).join("")}
-        </select>
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Test Name *</label>
+          <input type="text" id="inline-cust-name" class="input" placeholder="e.g. Serum Zinc, ANA 1:160" value="${escapeHtml(prefillName)}" style="font-size: 12px; height: 32px; background: white;" />
+        </div>
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Category *</label>
+          <select id="inline-cust-category" class="input" style="font-size: 11.5px; height: 32px; background: white;">
+            ${CATEGORY_ORDER.map((c) => `<option value="${c}">${c}</option>`).join("")}
+          </select>
+        </div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1.2fr; gap: 6px; margin-bottom: 10px;">
-        <input type="text" id="inline-cust-unit" class="input" placeholder="Unit (e.g. mg/dL)" style="font-size: 11px; height: 28px; background: white;" />
-        <input type="number" step="any" id="inline-cust-min" class="input" placeholder="Min Ref" style="font-size: 11px; height: 28px; background: white;" />
-        <input type="number" step="any" id="inline-cust-max" class="input" placeholder="Max Ref" style="font-size: 11px; height: 28px; background: white;" />
-        <input type="text" id="inline-cust-val" class="input" placeholder="Initial Value" style="font-size: 11px; height: 28px; background: white;" />
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Unit</label>
+          <input type="text" id="inline-cust-unit" class="input" placeholder="e.g. mg/dL" style="font-size: 11.5px; height: 30px; background: white;" />
+        </div>
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Normal Min</label>
+          <input type="number" step="any" id="inline-cust-min" class="input" placeholder="Min" style="font-size: 11.5px; height: 30px; background: white;" />
+        </div>
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Normal Max</label>
+          <input type="number" step="any" id="inline-cust-max" class="input" placeholder="Max" style="font-size: 11.5px; height: 30px; background: white;" />
+        </div>
+        <div>
+          <label style="font-size: 10.5px; font-weight: 700; color: #334155; display: block; margin-bottom: 2px;">Initial Value</label>
+          <input type="text" id="inline-cust-val" class="input" placeholder="Enter value" style="font-size: 11.5px; height: 30px; background: white;" />
+        </div>
       </div>
       <div style="display: flex; justify-content: flex-end;">
         <button
           type="button"
           onclick="window.Tap2MedLabs.submitInlineCustomTest()"
           class="btn"
-          style="background: #16a34a; color: white; border: none; font-size: 11.5px; font-weight: 700; padding: 5px 14px; border-radius: 6px; cursor: pointer;"
+          style="background: #16a34a; color: white; border: none; font-size: 12px; font-weight: 700; padding: 6px 16px; border-radius: 6px; cursor: pointer;"
         >
           + Save & Add to Patient Profile
         </button>
@@ -2912,8 +3134,19 @@
     updateChart();
   }
 
+  function ensureChartJsLoaded() {
+    if (typeof Chart !== "undefined") return Promise.resolve();
+    return new Promise((resolve) => {
+      const script = document.createElement("script");
+      script.src = "https://cdn.jsdelivr.net/npm/chart.js";
+      script.onload = () => resolve();
+      script.onerror = () => resolve();
+      document.head.appendChild(script);
+    });
+  }
+
   // Live Chart rendering with empty-state, live input merging, reference ranges
-  function updateChart() {
+  async function updateChart() {
     const select = document.getElementById("chart-parameter");
     if (!select) return;
 
@@ -2984,9 +3217,9 @@
         emptyState.style.display = "flex";
         emptyState.innerHTML = `
           <div style="text-align: center; padding: 24px 16px;">
-            <div style="font-size: 32px; margin-bottom: 8px;">📈</div>
-            <strong style="color: #1e293b; font-size: 14px; display: block;">No recorded data for ${escapeHtml(paramLabel)}</strong>
-            <p style="color: #64748b; font-size: 12px; margin: 6px 0 12px 0;">Enter a value in the flowsheet on the left to see trend lines, reference ranges, and clinical history.</p>
+            <div style="font-size: 34px; margin-bottom: 8px;">📊</div>
+            <strong style="color: #1e293b; font-size: 14.5px; display: block;">No recorded data for ${escapeHtml(paramLabel)}</strong>
+            <p style="color: #64748b; font-size: 12.5px; margin: 6px 0 12px 0;">Enter a value in the flowsheet on the left to see live trend lines, reference ranges, and clinical history.</p>
           </div>
         `;
       }
@@ -2998,6 +3231,11 @@
     if (canvas) canvas.style.display = "block";
     if (emptyState) emptyState.style.display = "none";
 
+    if (typeof Chart === "undefined") {
+      await ensureChartJsLoaded();
+    }
+    if (typeof Chart === "undefined" || !canvas) return;
+
     const labels = sortedDates.map((d) =>
       new Date(d).toLocaleDateString("en-IN", {
         month: "short",
@@ -3008,7 +3246,6 @@
     const dataPoints = sortedDates.map((d) => pointsByDate[d]);
 
     if (chartInstance) chartInstance.destroy();
-    if (!canvas || typeof Chart === "undefined") return;
 
     const ctx = canvas.getContext("2d");
 
@@ -3020,8 +3257,10 @@
     if (testDef && testDef.max !== null && !isNaN(testDef.max))
       suggestedMax = Math.max(suggestedMax, testDef.max);
 
-    const pad =
-      (suggestedMax - suggestedMin) * 0.15 || suggestedMin * 0.15 || 5;
+    let pad = (suggestedMax - suggestedMin) * 0.18;
+    if (!pad || pad === 0) {
+      pad = Math.abs(suggestedMin) * 0.18 || 5;
+    }
 
     chartInstance = new Chart(ctx, {
       type: "line",
@@ -3036,11 +3275,11 @@
             borderWidth: 2.5,
             pointBackgroundColor: "#ffffff",
             pointBorderColor: "#0284c7",
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8,
+            pointBorderWidth: 2.5,
+            pointRadius: dataPoints.length === 1 ? 8 : 6,
+            pointHoverRadius: 9,
             fill: true,
-            tension: 0.3,
+            tension: 0.25,
           },
         ],
       },
@@ -3130,6 +3369,17 @@
   });
 
   // Public Interface
+  function searchMedicalTestCatalog(query) {
+    const q = (query || "").toLowerCase().trim();
+    if (!q) return [];
+    return ALL_TESTS.filter(
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.category.toLowerCase().includes(q) ||
+        (t.aliases || []).some((a) => a.toLowerCase().includes(q)),
+    );
+  }
+
   const Tap2MedLabs = {
     open,
     close,
@@ -3148,14 +3398,25 @@
     openSearchDropdown,
     closeSearchDropdown,
     selectCategoryHeading,
+    toggleCategoryInDropdown,
+    addAllCategoryTests,
     addCatalogTest,
     showCustomCreator,
     submitInlineCustomTest,
+    searchMedicalTestCatalog,
     ALL_TESTS,
     TEST_MAP,
   };
 
   window.Tap2MedLabs = Tap2MedLabs;
+
+  // Global search and catalog helpers
+  window.searchMedicalTestCatalog = searchMedicalTestCatalog;
+  window.ALL_CATALOG_TESTS = ALL_TESTS;
+  window.COMPREHENSIVE_TEST_DATABASE = ALL_TESTS;
+  window.getTestByKey = (k) => TEST_MAP.get(k);
+  window.getTestByName = (n) =>
+    ALL_TESTS.find((t) => t.name.toLowerCase() === (n || "").toLowerCase());
 
   // Backward-compatibility global bindings
   window.openLabsModal = function (localToken, patientName, clinicId) {

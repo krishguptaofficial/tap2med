@@ -587,12 +587,13 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         clean_results = {k: v for k, v in payload.lab_record.results.items() if v != ""}
         
         if lab_record:
-            current_results = lab_record.results or {}
+            current_results = dict(lab_record.results or {})
             current_results.update(clean_results)
             for k in list(current_results.keys()):
                 if k not in clean_results and k in payload.lab_record.results:
                     del current_results[k]
             lab_record.results = current_results
+            flag_modified(lab_record, "results")
         else:
             new_lab = models.ClinicPatientLabRecord(
                 clinic_id=record.clinic_id,
@@ -609,8 +610,17 @@ def update_patient_labs(payload: LabUpdatePayload, db: Session = Depends(get_db)
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/labs/{local_token}")
-def get_patient_labs(local_token: str, clinic_id: uuid.UUID, db: Session = Depends(get_db)):
+def get_patient_labs(local_token: str, clinic_id: Optional[uuid.UUID] = None, db: Session = Depends(get_db)):
     try:
+        if not clinic_id:
+            rec = db.query(models.ClinicPatientRecord).filter(
+                models.ClinicPatientRecord.local_token == local_token
+            ).first()
+            if rec:
+                clinic_id = rec.clinic_id
+            else:
+                return {"status": "success", "labs": []}
+
         labs = db.query(models.ClinicPatientLabRecord).filter(
             models.ClinicPatientLabRecord.clinic_id == clinic_id, models.ClinicPatientLabRecord.local_token == local_token
         ).order_by(models.ClinicPatientLabRecord.test_date.asc()).all()
