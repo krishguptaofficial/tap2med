@@ -674,30 +674,61 @@ async function fetchLabData(token) {
   }
 }
 
+window.onLabCategoryChange = function (category) {
+  const searchInput = document.getElementById("lab-search-input");
+  if (searchInput) {
+    searchInput.value = category;
+  }
+  filterLabFields();
+};
+
 window.filterLabFields = function () {
   const searchTerm =
     document.getElementById("lab-search-input")?.value.trim().toLowerCase() ||
     "";
+  const catFilter =
+    document
+      .getElementById("lab-category-filter")
+      ?.value.trim()
+      .toLowerCase() || "";
+  const effectiveTerm = searchTerm || catFilter;
 
-  document.querySelectorAll(".lab-input-group").forEach((group) => {
-    const input = group.querySelector("input");
-    const label = group.querySelector("label")?.textContent || "";
-    const key = input ? input.id.replace(/^lab-/, "") : "";
-    const match =
-      !searchTerm || `${key} ${label}`.toLowerCase().includes(searchTerm);
-    group.style.display = match ? "" : "none";
-  });
+  let firstMatchedHeading = null;
 
   document.querySelectorAll(".lab-section-header").forEach((heading) => {
     const grid = heading.nextElementSibling;
     if (!grid || !grid.classList.contains("lab-grid")) return;
 
-    const hasVisible = [...grid.querySelectorAll(".lab-input-group")].some(
-      (group) => group.style.display !== "none",
+    const headingText = heading.textContent.toLowerCase();
+    const headingMatches = Boolean(
+      effectiveTerm && headingText.includes(effectiveTerm),
     );
-    heading.style.display = !searchTerm || hasVisible ? "" : "none";
-    grid.style.display = !searchTerm || hasVisible ? "" : "none";
+
+    let hasVisible = false;
+    grid.querySelectorAll(".lab-input-group").forEach((group) => {
+      const input = group.querySelector("input");
+      const label = group.querySelector("label")?.textContent || "";
+      const key = input ? input.id.replace(/^lab-/, "") : "";
+      const match =
+        !effectiveTerm ||
+        headingMatches ||
+        `${key} ${label}`.toLowerCase().includes(effectiveTerm);
+      group.style.display = match ? "" : "none";
+      if (match) hasVisible = true;
+    });
+
+    const showHeading = !effectiveTerm || headingMatches || hasVisible;
+    heading.style.display = showHeading ? "" : "none";
+    grid.style.display = showHeading ? "" : "none";
+
+    if (headingMatches && !firstMatchedHeading) {
+      firstMatchedHeading = heading;
+    }
   });
+
+  if (firstMatchedHeading && effectiveTerm) {
+    firstMatchedHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 };
 
 window.populateLabInputsForDate = function (dateStr) {

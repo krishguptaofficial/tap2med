@@ -107,6 +107,7 @@ function restorePrescriptionDraft(localToken) {
     if (complaints) complaints.value = draft.complaints || "";
     if (diagnosis) diagnosis.value = draft.diagnosis || "";
     if (tests) tests.value = draft.testsSuggested || "";
+    if (window.syncTestChips) window.syncTestChips();
     if (advice) advice.value = draft.advice || "";
     if (followup) followup.value = draft.followup || "3";
 
@@ -574,6 +575,7 @@ function clearPrescription() {
   if (fEl) fEl.value = "3";
   updateRowNumbers();
   setPrescriptionStatus("Waiting...", "warning");
+  if (window.syncTestChips) window.syncTestChips();
 }
 
 function getShortCode(tokenNumber) {
@@ -985,6 +987,7 @@ window.editRx = async function (
     if (diagEl) diagEl.value = visit.diagnosis || "";
     const testEl = document.getElementById("patient-tests");
     if (testEl) testEl.value = visit.tests_suggested || "";
+    if (window.syncTestChips) window.syncTestChips();
     const advEl = document.getElementById("patient-advice");
     if (advEl) advEl.value = visit.advice || "";
     const fEl = document.getElementById("patient-followup");
@@ -1480,31 +1483,61 @@ async function fetchLabData(token) {
   }
 }
 
+window.onLabCategoryChange = function (category) {
+  const searchInput = document.getElementById("lab-search-input");
+  if (searchInput) {
+    searchInput.value = category;
+  }
+  filterLabFields();
+};
+
 window.filterLabFields = function () {
   const searchTerm =
     document.getElementById("lab-search-input")?.value.trim().toLowerCase() ||
     "";
+  const catFilter =
+    document
+      .getElementById("lab-category-filter")
+      ?.value.trim()
+      .toLowerCase() || "";
+  const effectiveTerm = searchTerm || catFilter;
 
-  document.querySelectorAll(".lab-input-group").forEach((group) => {
-    const input = group.querySelector("input");
-    const label = group.querySelector("label")?.textContent || "";
-    const key = input ? input.id.replace(/^lab-/, "") : "";
-    const match =
-      !searchTerm || `${key} ${label}`.toLowerCase().includes(searchTerm);
-    group.style.display = match ? "" : "none";
-  });
+  let firstMatchedHeading = null;
 
   document.querySelectorAll(".lab-section-header").forEach((heading) => {
     const grid = heading.nextElementSibling;
     if (!grid || !grid.classList.contains("lab-grid")) return;
 
-    const hasVisible = [...grid.querySelectorAll(".lab-input-group")].some(
-      (group) => group.style.display !== "none",
+    const headingText = heading.textContent.toLowerCase();
+    const headingMatches = Boolean(
+      effectiveTerm && headingText.includes(effectiveTerm),
     );
 
-    heading.style.display = !searchTerm || hasVisible ? "" : "none";
-    grid.style.display = !searchTerm || hasVisible ? "" : "none";
+    let hasVisible = false;
+    grid.querySelectorAll(".lab-input-group").forEach((group) => {
+      const input = group.querySelector("input");
+      const label = group.querySelector("label")?.textContent || "";
+      const key = input ? input.id.replace(/^lab-/, "") : "";
+      const match =
+        !effectiveTerm ||
+        headingMatches ||
+        `${key} ${label}`.toLowerCase().includes(effectiveTerm);
+      group.style.display = match ? "" : "none";
+      if (match) hasVisible = true;
+    });
+
+    const showHeading = !effectiveTerm || headingMatches || hasVisible;
+    heading.style.display = showHeading ? "" : "none";
+    grid.style.display = showHeading ? "" : "none";
+
+    if (headingMatches && !firstMatchedHeading) {
+      firstMatchedHeading = heading;
+    }
   });
+
+  if (firstMatchedHeading && effectiveTerm) {
+    firstMatchedHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 };
 
 window.populateLabInputsForDate = function (dateStr) {
@@ -1718,6 +1751,708 @@ window.checkRange = function (input) {
     input.classList.remove("lab-input-abnormal");
   }
 };
+
+// =======================================================
+// CLINICAL TESTS CATALOG & INTERACTIVE DROPDOWN SYSTEM
+// =======================================================
+
+const LAB_TEST_CATALOG = [
+  {
+    category: "Haematology",
+    icon: "🩸",
+    aliases: [
+      "hematology",
+      "haem",
+      "hem",
+      "blood",
+      "cbc",
+      "cell",
+      "rbc",
+      "wbc",
+      "platelet",
+      "esr",
+    ],
+    tests: [
+      "Complete Blood Count (CBC)",
+      "Haemoglobin (Hb)",
+      "Total WBC Count (TLC)",
+      "Differential Leucocyte Count (DLC)",
+      "Platelet Count",
+      "ESR (Erythrocyte Sedimentation Rate)",
+      "Packed Cell Volume (PCV / Hematocrit)",
+      "Peripheral Blood Smear (PBS)",
+      "Blood Group & Rh Type",
+      "Reticulocyte Count",
+      "Absolute Eosinophil Count (AEC)",
+      "Bleeding Time & Clotting Time (BT/CT)",
+      "PT / INR (Prothrombin Time)",
+      "APTT (Activated Partial Thromboplastin Time)",
+      "Red Blood Cell (RBC) Count",
+      "MCV / MCH / MCHC",
+    ],
+  },
+  {
+    category: "Diabetes & Glucose",
+    icon: "🍬",
+    aliases: [
+      "diabetes",
+      "sugar",
+      "glucose",
+      "diab",
+      "fbs",
+      "ppbs",
+      "rbs",
+      "hba1c",
+    ],
+    tests: [
+      "Fasting Blood Sugar (FBS)",
+      "Post Prandial Blood Sugar (PPBS)",
+      "Random Blood Sugar (RBS)",
+      "HbA1c (Glycated Hemoglobin)",
+      "Glucose Tolerance Test (GTT)",
+      "Average Blood Glucose (MBG)",
+      "Serum Insulin (Fasting)",
+      "C-Peptide",
+    ],
+  },
+  {
+    category: "Lipid Profile",
+    icon: "🫀",
+    aliases: [
+      "lipid",
+      "cholesterol",
+      "triglyceride",
+      "heart",
+      "cardiac",
+      "hdl",
+      "ldl",
+    ],
+    tests: [
+      "Lipid Profile (Complete)",
+      "Total Cholesterol",
+      "Serum Triglycerides",
+      "HDL Cholesterol",
+      "LDL Cholesterol",
+      "VLDL Cholesterol",
+      "Total Cholesterol / HDL Ratio",
+    ],
+  },
+  {
+    category: "Liver Function Test (LFT)",
+    icon: "🫁",
+    aliases: [
+      "lft",
+      "liver",
+      "bilirubin",
+      "sgpt",
+      "sgot",
+      "jaundice",
+      "alt",
+      "ast",
+    ],
+    tests: [
+      "Liver Function Test (LFT Profile)",
+      "Serum Bilirubin (Total, Direct, Indirect)",
+      "SGPT / ALT",
+      "SGOT / AST",
+      "Serum Alkaline Phosphatase (ALP)",
+      "Total Protein, Albumin & Globulin (A/G Ratio)",
+      "Gamma GT (GGT)",
+      "Serum Amylase",
+      "Serum Lipase",
+    ],
+  },
+  {
+    category: "Kidney Function Test (KFT / RFT)",
+    icon: "🧪",
+    aliases: [
+      "kft",
+      "rft",
+      "kidney",
+      "renal",
+      "creatinine",
+      "urea",
+      "bun",
+      "electrolytes",
+    ],
+    tests: [
+      "Kidney Function Test (KFT / RFT Profile)",
+      "Serum Creatinine",
+      "Blood Urea",
+      "Blood Urea Nitrogen (BUN)",
+      "Serum Uric Acid",
+      "Serum Electrolytes (Sodium, Potassium, Chloride)",
+      "Serum Calcium",
+      "Serum Phosphorus",
+      "Estimated GFR (eGFR)",
+      "Urine Albumin to Creatinine Ratio (UACR)",
+    ],
+  },
+  {
+    category: "Thyroid Profile",
+    icon: "🦋",
+    aliases: ["thyroid", "tsh", "t3", "t4", "hypothyroid", "hyperthyroid"],
+    tests: [
+      "Thyroid Profile (Total T3, T4, TSH)",
+      "TSH (Ultrasensitive)",
+      "Free T3 (FT3)",
+      "Free T4 (FT4)",
+      "Anti-TPO Antibodies",
+    ],
+  },
+  {
+    category: "Urine & Stool Examination",
+    icon: "🧴",
+    aliases: ["urine", "stool", "urinalysis", "pus", "uti"],
+    tests: [
+      "Urine Routine & Microscopy (Urine R/M)",
+      "Urine Culture & Sensitivity (Urine C/S)",
+      "Urine Microalbumin",
+      "Urine Pregnancy Test (UPT)",
+      "Urine Bile Salts & Bile Pigments",
+      "Stool Routine & Microscopy",
+      "Stool Occult Blood",
+    ],
+  },
+  {
+    category: "Fever & Infectious Serology",
+    icon: "🌡️",
+    aliases: [
+      "fever",
+      "infection",
+      "dengue",
+      "malaria",
+      "typhoid",
+      "widal",
+      "crp",
+    ],
+    tests: [
+      "Widal Test (Typhoid)",
+      "Typhidot (IgM & IgG)",
+      "Dengue NS1 Antigen",
+      "Dengue Serology (IgM & IgG)",
+      "Malaria Antigen (Pv / Pf)",
+      "Chikungunya IgM",
+      "CRP (C-Reactive Protein - Quantitative)",
+      "High Sensitivity CRP (hs-CRP)",
+      "Procalcitonin",
+      "Blood Culture & Sensitivity",
+    ],
+  },
+  {
+    category: "Viral Markers & Immunology",
+    icon: "🔬",
+    aliases: [
+      "viral",
+      "hiv",
+      "hepatitis",
+      "hbsag",
+      "hcv",
+      "immunology",
+      "autoimmune",
+      "ra",
+      "ana",
+    ],
+    tests: [
+      "HIV I & II (Card / ELISA)",
+      "HBsAg (Hepatitis B Surface Antigen)",
+      "HCV (Hepatitis C Antibody)",
+      "VDRL / RPR (Syphilis)",
+      "RA Factor (Rheumatoid Arthritis)",
+      "ANA (Antinuclear Antibodies)",
+      "ASO Titre",
+    ],
+  },
+  {
+    category: "Vitamins & Minerals",
+    icon: "💊",
+    aliases: [
+      "vitamins",
+      "minerals",
+      "iron",
+      "deficiency",
+      "b12",
+      "d3",
+      "ferritin",
+    ],
+    tests: [
+      "Vitamin D3 (25-Hydroxy)",
+      "Vitamin B12",
+      "Serum Ferritin",
+      "Serum Iron & TIBC Profile",
+      "Serum Magnesium",
+      "Serum Zinc",
+    ],
+  },
+  {
+    category: "Cardiac & Hormones",
+    icon: "❤️",
+    aliases: [
+      "cardiac",
+      "heart",
+      "hormones",
+      "pcos",
+      "troponin",
+      "testosterone",
+    ],
+    tests: [
+      "Troponin-I (High Sensitivity)",
+      "CPK / CK-MB",
+      "NT-proBNP",
+      "Serum Prolactin",
+      "Serum Testosterone (Total)",
+      "FSH & LH",
+      "Serum Cortisol",
+    ],
+  },
+  {
+    category: "Imaging & Diagnostics",
+    icon: "📷",
+    aliases: [
+      "imaging",
+      "radiology",
+      "xray",
+      "x-ray",
+      "scan",
+      "usg",
+      "ecg",
+      "echo",
+    ],
+    tests: [
+      "ECG (12-Lead)",
+      "Chest X-Ray (PA View)",
+      "USG Whole Abdomen & Pelvis",
+      "USG KUB (Kidney, Ureter, Bladder)",
+      "2D Echocardiography",
+      "TMT (Treadmill Test)",
+    ],
+  },
+];
+
+let expandedCategoryNames = new Set();
+
+function getSelectedTestsList() {
+  const el = document.getElementById("patient-tests");
+  if (!el || !el.value) return [];
+  return el.value
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+window.syncTestChips = function () {
+  const chipsContainer = document.getElementById("rx-selected-tests-chips");
+  if (!chipsContainer) return;
+
+  const currentTests = getSelectedTestsList();
+  if (currentTests.length === 0) {
+    chipsContainer.innerHTML = "";
+    return;
+  }
+
+  chipsContainer.innerHTML = currentTests
+    .map((test) => {
+      const escaped = escapeHtml(test);
+      const encoded = encodeURIComponent(test);
+      return `
+        <span style="display: inline-flex; align-items: center; gap: 5px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; padding: 3px 8px; border-radius: 12px; font-size: 11.5px; font-weight: 600;">
+          <span>${escaped}</span>
+          <span onclick="window.removeTestFromPrescription(decodeURIComponent('${encoded}'))" style="cursor: pointer; color: #0284c7; font-weight: 800; font-size: 11px; margin-left: 2px;" title="Remove">✕</span>
+        </span>
+      `;
+    })
+    .join("");
+};
+
+window.addTestToPrescription = function (testName) {
+  if (!testName) return;
+  const textarea = document.getElementById("patient-tests");
+  if (!textarea) return;
+
+  const list = getSelectedTestsList();
+  const lowerTest = testName.trim().toLowerCase();
+  const alreadyExists = list.some((t) => t.toLowerCase() === lowerTest);
+
+  if (!alreadyExists) {
+    list.push(testName.trim());
+    textarea.value = list.join(", ");
+    textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  window.syncTestChips();
+  const searchInput = document.getElementById("rx-tests-search");
+  window.renderTestsDropdown(searchInput?.value || "");
+};
+
+window.removeTestFromPrescription = function (testName) {
+  if (!testName) return;
+  const textarea = document.getElementById("patient-tests");
+  if (!textarea) return;
+
+  const lowerTest = testName.trim().toLowerCase();
+  const list = getSelectedTestsList().filter(
+    (t) => t.toLowerCase() !== lowerTest,
+  );
+
+  textarea.value = list.join(", ");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  window.syncTestChips();
+
+  const searchInput = document.getElementById("rx-tests-search");
+  window.renderTestsDropdown(searchInput?.value || "");
+};
+
+window.addAllCategoryTests = function (categoryName) {
+  const cat = LAB_TEST_CATALOG.find((c) => c.category === categoryName);
+  if (!cat) return;
+
+  const textarea = document.getElementById("patient-tests");
+  if (!textarea) return;
+
+  const currentList = getSelectedTestsList();
+  const currentLower = new Set(currentList.map((t) => t.toLowerCase()));
+
+  cat.tests.forEach((test) => {
+    if (!currentLower.has(test.toLowerCase())) {
+      currentList.push(test);
+      currentLower.add(test.toLowerCase());
+    }
+  });
+
+  textarea.value = currentList.join(", ");
+  textarea.dispatchEvent(new Event("input", { bubbles: true }));
+  window.syncTestChips();
+
+  const searchInput = document.getElementById("rx-tests-search");
+  window.renderTestsDropdown(searchInput?.value || "");
+};
+
+window.toggleCategoryExpand = function (categoryName, event) {
+  if (event) event.stopPropagation();
+  if (expandedCategoryNames.has(categoryName)) {
+    expandedCategoryNames.delete(categoryName);
+  } else {
+    expandedCategoryNames.add(categoryName);
+  }
+  const searchInput = document.getElementById("rx-tests-search");
+  window.renderTestsDropdown(searchInput?.value || "");
+};
+
+window.clearTestSearch = function () {
+  const input = document.getElementById("rx-tests-search");
+  if (input) {
+    input.value = "";
+    input.focus();
+  }
+  window.renderTestsDropdown("");
+};
+
+window.toggleTestCategoriesDropdown = function () {
+  const dropdown = document.getElementById("rx-tests-dropdown");
+  const input = document.getElementById("rx-tests-search");
+  if (!dropdown) return;
+
+  if (dropdown.style.display === "block" && (!input || !input.value.trim())) {
+    dropdown.style.display = "none";
+  } else {
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+    window.renderTestsDropdown("", true);
+  }
+};
+
+window.renderTestsDropdown = function (query, forceCategoryMode) {
+  const dropdown = document.getElementById("rx-tests-dropdown");
+  const clearBtn = document.getElementById("rx-tests-search-clear");
+  if (!dropdown) return;
+
+  const q = (query || "").trim().toLowerCase();
+  if (clearBtn) clearBtn.style.display = q ? "block" : "none";
+
+  const selectedTests = new Set(
+    getSelectedTestsList().map((t) => t.toLowerCase()),
+  );
+  let html = "";
+
+  if (q) {
+    // 1. Check for matching categories
+    const matchingCategories = LAB_TEST_CATALOG.filter((cat) => {
+      if (cat.category.toLowerCase().includes(q)) return true;
+      return cat.aliases.some(
+        (alias) => alias.includes(q) || q.includes(alias),
+      );
+    });
+
+    // Auto-expand strongly matched categories so user sees tests immediately
+    matchingCategories.forEach((cat) => {
+      expandedCategoryNames.add(cat.category);
+    });
+
+    if (matchingCategories.length > 0) {
+      html += `
+        <div style="padding: 4px 10px 2px; font-size: 10.5px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em;">
+          Matching Headings / Categories (Click to open list):
+        </div>
+      `;
+
+      matchingCategories.forEach((cat) => {
+        const isExpanded = expandedCategoryNames.has(cat.category);
+        html += `
+          <div class="rx-cat-block" style="background: #f8fafc; border: 1.5px solid #bae6fd; border-radius: 8px; margin: 6px 8px; overflow: hidden;">
+            <div
+              onclick="window.toggleCategoryExpand('${escapeHtml(cat.category)}', event)"
+              style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #f0f9ff; user-select: none;"
+            >
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 15px;">${cat.icon}</span>
+                <strong style="font-size: 13px; color: #0369a1;">${escapeHtml(cat.category)}</strong>
+                <span style="font-size: 11px; font-weight: 700; background: #ffffff; color: #0284c7; padding: 2px 7px; border-radius: 10px; border: 1px solid #bae6fd;">
+                  ${cat.tests.length} Tests
+                </span>
+              </div>
+              <span style="font-size: 11.5px; font-weight: 700; color: #0284c7;">
+                ${isExpanded ? "▲ Hide Tests" : "▼ Open List of Tests"}
+              </span>
+            </div>
+            ${
+              isExpanded
+                ? `
+              <div style="padding: 6px 10px 10px; background: #ffffff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0 8px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 6px;">
+                  <span style="font-size: 11px; color: #64748b; font-weight: 600;">Click test name to add/remove:</span>
+                  <button type="button" onclick="window.addAllCategoryTests('${escapeHtml(cat.category)}')" class="btn btn-ghost" style="padding: 2px 8px; font-size: 11px; font-weight: 700; color: #0284c7; height: auto;">
+                    + Select All (${cat.tests.length})
+                  </button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 5px;">
+                  ${cat.tests
+                    .map((test) => {
+                      const isSelected = selectedTests.has(test.toLowerCase());
+                      const encoded = encodeURIComponent(test);
+                      return `
+                      <div
+                        onclick="window.${isSelected ? "removeTestFromPrescription" : "addTestToPrescription"}(decodeURIComponent('${encoded}'))"
+                        style="padding: 6px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid ${isSelected ? "#38bdf8" : "#f1f5f9"}; background: ${isSelected ? "#f0f9ff" : "#ffffff"};"
+                        onmouseover="if(!${isSelected}) this.style.background='#f8fafc'"
+                        onmouseout="if(!${isSelected}) this.style.background='#ffffff'"
+                      >
+                        <span style="font-weight: ${isSelected ? "700" : "500"}; color: ${isSelected ? "#0369a1" : "#334155"};">${escapeHtml(test)}</span>
+                        <span style="font-size: 11px; font-weight: 800; color: ${isSelected ? "#059669" : "#0284c7"};">${isSelected ? "✓ Added" : "+ Add"}</span>
+                      </div>
+                    `;
+                    })
+                    .join("")}
+                </div>
+              </div>
+            `
+                : ""
+            }
+          </div>
+        `;
+      });
+    }
+
+    // 2. Check for matching individual tests
+    const matchingTests = [];
+    LAB_TEST_CATALOG.forEach((cat) => {
+      cat.tests.forEach((test) => {
+        if (test.toLowerCase().includes(q)) {
+          matchingTests.push({ test, category: cat.category, icon: cat.icon });
+        }
+      });
+    });
+
+    if (matchingTests.length > 0) {
+      html += `
+        <div style="padding: 6px 10px 2px; font-size: 10.5px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px;">
+          Individual Tests matching "${escapeHtml(query)}":
+        </div>
+        <div style="padding: 2px 6px;">
+      `;
+
+      matchingTests.forEach((item) => {
+        const isSelected = selectedTests.has(item.test.toLowerCase());
+        const encoded = encodeURIComponent(item.test);
+        html += `
+          <div
+            onclick="window.${isSelected ? "removeTestFromPrescription" : "addTestToPrescription"}(decodeURIComponent('${encoded}'))"
+            style="padding: 8px 10px; border-radius: 6px; font-size: 12.5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; background: ${isSelected ? "#f0f9ff" : "white"};"
+            onmouseover="if(!${isSelected}) this.style.background='#f8fafc'"
+            onmouseout="if(!${isSelected}) this.style.background='white'"
+          >
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>${item.icon}</span>
+              <strong style="color: ${isSelected ? "#0369a1" : "#1e293b"}; font-weight: ${isSelected ? "700" : "600"};">${escapeHtml(item.test)}</strong>
+              <span style="font-size: 10.5px; color: #64748b; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;">${escapeHtml(item.category)}</span>
+            </div>
+            <span style="font-size: 11px; font-weight: 800; color: ${isSelected ? "#059669" : "#0284c7"};">${isSelected ? "✓ Added" : "+ Add"}</span>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    }
+
+    // 3. Option to add custom test if query doesn't exactly match
+    const exactMatch = matchingTests.some((t) => t.test.toLowerCase() === q);
+    if (!exactMatch && q.length > 1) {
+      const encodedQ = encodeURIComponent(query.trim());
+      html += `
+        <div
+          onclick="window.addTestToPrescription(decodeURIComponent('${encodedQ}'))"
+          style="padding: 10px 14px; margin: 6px 8px; border-radius: 6px; background: #faf5ff; border: 1px dashed #c084fc; cursor: pointer; display: flex; justify-content: space-between; align-items: center;"
+          onmouseover="this.style.background='#f3e8ff'"
+          onmouseout="this.style.background='#faf5ff'"
+        >
+          <span style="font-size: 12.5px; font-weight: 600; color: #7e22ce;">
+            + Add custom test: <strong>"${escapeHtml(query)}"</strong>
+          </span>
+          <span style="font-size: 11.5px; font-weight: 800; color: #7e22ce;">Add</span>
+        </div>
+      `;
+    }
+
+    if (
+      matchingCategories.length === 0 &&
+      matchingTests.length === 0 &&
+      q.length > 0
+    ) {
+      html += `
+        <div style="padding: 14px; text-align: center; color: #64748b; font-size: 12px;">
+          No standard test matching "${escapeHtml(query)}". Click the button above to add it as a custom test.
+        </div>
+      `;
+    }
+  } else {
+    // Empty query or force category mode: show all categories organized
+    html += `
+      <div style="padding: 6px 12px 4px; font-size: 11px; font-weight: 800; color: #0284c7; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
+        <span>Select Category to View All Tests:</span>
+        <span style="color: #64748b; font-weight: 500; font-size: 10.5px;">${LAB_TEST_CATALOG.length} Categories</span>
+      </div>
+      <div style="padding: 2px 6px;">
+    `;
+
+    LAB_TEST_CATALOG.forEach((cat) => {
+      const isExpanded = expandedCategoryNames.has(cat.category);
+      html += `
+        <div style="border-bottom: 1px solid #f1f5f9; margin-bottom: 2px;">
+          <div
+            onclick="window.toggleCategoryExpand('${escapeHtml(cat.category)}', event)"
+            style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 6px; background: ${isExpanded ? "#f0f9ff" : "white"};"
+            onmouseover="if(!${isExpanded}) this.style.background='#f8fafc'"
+            onmouseout="if(!${isExpanded}) this.style.background='${isExpanded ? "#f0f9ff" : "white"}'"
+          >
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 15px;">${cat.icon}</span>
+              <strong style="font-size: 12.5px; color: ${isExpanded ? "#0369a1" : "#1e293b"};">${escapeHtml(cat.category)}</strong>
+              <span style="font-size: 10.5px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 10px;">
+                ${cat.tests.length} Tests
+              </span>
+            </div>
+            <span style="font-size: 11px; font-weight: 700; color: #0284c7;">
+              ${isExpanded ? "▲ Close" : "▼ View Tests"}
+            </span>
+          </div>
+          ${
+            isExpanded
+              ? `
+            <div style="padding: 6px 8px 10px; background: #ffffff; border-left: 2px solid #38bdf8; margin: 2px 6px 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 6px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 4px;">
+                <span style="font-size: 11px; color: #64748b; font-weight: 600;">Select tests to add to prescription:</span>
+                <button type="button" onclick="window.addAllCategoryTests('${escapeHtml(cat.category)}')" class="btn btn-ghost" style="padding: 2px 8px; font-size: 11px; font-weight: 700; color: #0284c7; height: auto;">
+                  + Select All (${cat.tests.length})
+                </button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px;">
+                ${cat.tests
+                  .map((test) => {
+                    const isSelected = selectedTests.has(test.toLowerCase());
+                    const encoded = encodeURIComponent(test);
+                    return `
+                    <div
+                      onclick="window.${isSelected ? "removeTestFromPrescription" : "addTestToPrescription"}(decodeURIComponent('${encoded}'))"
+                      style="padding: 5px 8px; border-radius: 5px; font-size: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border: 1px solid ${isSelected ? "#38bdf8" : "#f1f5f9"}; background: ${isSelected ? "#f0f9ff" : "#ffffff"};"
+                      onmouseover="if(!${isSelected}) this.style.background='#f8fafc'"
+                      onmouseout="if(!${isSelected}) this.style.background='#ffffff'"
+                    >
+                      <span style="font-weight: ${isSelected ? "700" : "500"}; color: ${isSelected ? "#0369a1" : "#334155"};">${escapeHtml(test)}</span>
+                      <span style="font-size: 11px; font-weight: 800; color: ${isSelected ? "#059669" : "#0284c7"};">${isSelected ? "✓ Added" : "+ Add"}</span>
+                    </div>
+                  `;
+                  })
+                  .join("")}
+              </div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = "block";
+};
+
+// Initialize interactive listeners for tests input and dropdown
+function initTestsDropdownEvents() {
+  const searchInput = document.getElementById("rx-tests-search");
+  const dropdown = document.getElementById("rx-tests-dropdown");
+  const textarea = document.getElementById("patient-tests");
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (e) => {
+      window.renderTestsDropdown(e.target.value);
+    });
+
+    searchInput.addEventListener("focus", (e) => {
+      window.renderTestsDropdown(e.target.value);
+    });
+
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && dropdown) {
+        dropdown.style.display = "none";
+      }
+    });
+  }
+
+  if (textarea) {
+    textarea.addEventListener("input", () => {
+      window.syncTestChips();
+    });
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!dropdown || dropdown.style.display === "none") return;
+    const isInsideSearch = e.target.closest(".rx-tests-search-wrap");
+    if (!isInsideSearch) {
+      dropdown.style.display = "none";
+    }
+  });
+
+  window.syncTestChips();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initTestsDropdownEvents);
+} else {
+  initTestsDropdownEvents();
+}
 
 loadQueue();
 setInterval(loadQueue, 5000);

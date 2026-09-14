@@ -278,27 +278,145 @@
                 border-top: 1px dashed #cbd5e1;
               "
             >
-              <label
+              <div
                 style="
-                  font-size: 12px;
-                  font-weight: 800;
-                  color: #0284c7;
-                  text-transform: uppercase;
-                  letter-spacing: 0.05em;
-                  display: block;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
                   margin-bottom: 8px;
                 "
-                >Tests Requested</label
               >
+                <label
+                  style="
+                    font-size: 12px;
+                    font-weight: 800;
+                    color: #0284c7;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                    margin: 0;
+                  "
+                  >Tests Requested</label
+                >
+                <span
+                  style="font-size: 11.5px; color: #64748b; font-weight: 500"
+                >
+                  Search test or heading (e.g. Haematology, CBC, Lipid...)
+                </span>
+              </div>
+
+              <!-- Interactive Search & Dropdown Container -->
+              <div
+                class="rx-tests-search-wrap"
+                style="position: relative; margin-bottom: 8px"
+              >
+                <div style="display: flex; gap: 6px; align-items: center">
+                  <div style="position: relative; flex: 1">
+                    <input
+                      type="text"
+                      id="rx-tests-search"
+                      class="input"
+                      placeholder="Type a test (e.g. CBC, TSH) or category (e.g. Haematology)..."
+                      style="
+                        width: 100%;
+                        height: 36px;
+                        font-size: 13px;
+                        font-weight: 600;
+                        background: #ffffff;
+                        border: 1.5px solid #7dd3fc;
+                        padding: 6px 32px 6px 12px;
+                        box-sizing: border-box;
+                        border-radius: 6px;
+                      "
+                      autocomplete="off"
+                    />
+                    <span
+                      id="rx-tests-search-clear"
+                      onclick="
+                        window.clearTestSearch && window.clearTestSearch()
+                      "
+                      style="
+                        display: none;
+                        position: absolute;
+                        right: 10px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        cursor: pointer;
+                        color: #94a3b8;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      title="Clear search"
+                      >✕</span
+                    >
+                  </div>
+                  <button
+                    type="button"
+                    id="rx-tests-categories-btn"
+                    onclick="
+                      window.toggleTestCategoriesDropdown &&
+                        window.toggleTestCategoriesDropdown()
+                    "
+                    class="btn btn-secondary btn-sm"
+                    style="
+                      height: 36px;
+                      padding: 0 14px;
+                      font-size: 12px;
+                      font-weight: 700;
+                      color: #0284c7;
+                      border: 1px solid #bae6fd;
+                      background: #f0f9ff;
+                      white-space: nowrap;
+                      border-radius: 6px;
+                    "
+                  >
+                    Categories ▾
+                  </button>
+                </div>
+
+                <!-- Floating Dropdown Menu -->
+                <div
+                  id="rx-tests-dropdown"
+                  style="
+                    display: none;
+                    position: absolute;
+                    top: calc(100% + 4px);
+                    left: 0;
+                    right: 0;
+                    max-height: 380px;
+                    overflow-y: auto;
+                    background: #ffffff;
+                    border: 1.5px solid #38bdf8;
+                    border-radius: 8px;
+                    box-shadow:
+                      0 12px 28px -4px rgba(0, 0, 0, 0.15),
+                      0 4px 10px -2px rgba(0, 0, 0, 0.06);
+                    z-index: 1050;
+                    padding: 4px 0;
+                  "
+                ></div>
+              </div>
+
+              <!-- Selected Test Chips -->
+              <div
+                id="rx-selected-tests-chips"
+                style="
+                  display: flex;
+                  flex-wrap: wrap;
+                  gap: 6px;
+                  margin-bottom: 8px;
+                "
+              ></div>
+
               <textarea
                 id="patient-tests"
                 class="textarea"
-                placeholder="e.g. CBC, Dengue NS1"
+                placeholder="e.g. Complete Blood Count (CBC), Fasting Blood Sugar (FBS)... (Selected tests will appear here; you can also type custom tests directly)"
                 style="
                   min-height: 60px;
-                  font-size: 14px;
+                  font-size: 13.5px;
                   border-color: #bae6fd;
                   background: #f0f9ff;
+                  line-height: 1.5;
                 "
               ></textarea>
             </div>
@@ -587,7 +705,7 @@
     <script src="/assets/js/print_engine.js?v=20260910_1"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/assets/js/pages/dashboard.js?v=20260910_1"></script>
-    <script src="/assets/js/load_layouts.js"></script>
+    <script src="/assets/js/pages/dashboard.js?v=20260914_1"></script>
+    <script src="/assets/js/load_layouts.js?v=20260914_1"></script>
   </body>
 </html>
