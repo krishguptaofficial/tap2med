@@ -1866,8 +1866,928 @@
     aliases: item[6] || [],
   }));
 
+  // Standard flowsheet definitions: [key, name, category, unit, min, max]
+  const RAW_FLOWSHEET = [
+  [
+    "diab_sap",
+    "Serum Alkaline Phosphatase",
+    "Diabetes & Glycemic",
+    "IU/L",
+    44,
+    147
+  ],
+  [
+    "diab_fbs",
+    "Fasting Blood Sugar (FBS)",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    70,
+    99
+  ],
+  [
+    "diab_hba1c",
+    "Glycosylated Haemoglobin (HbA1c)",
+    "Diabetes & Glycemic",
+    "%",
+    4,
+    5.6
+  ],
+  [
+    "diab_creat",
+    "Serum Creatinine",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    0.6,
+    1.2
+  ],
+  [
+    "diab_egfr",
+    "eGFR - Creatinine Clearance",
+    "Diabetes & Glycemic",
+    "mL/min/1.73m2",
+    90,
+    null
+  ],
+  [
+    "diab_sacr",
+    "Spot Albumin Creatinine Ratio",
+    "Diabetes & Glycemic",
+    "mg/g",
+    null,
+    30
+  ],
+  [
+    "diab_chol",
+    "Total Cholesterol",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    null,
+    200
+  ],
+  [
+    "diab_tg",
+    "Serum Triglycerides",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    null,
+    150
+  ],
+  [
+    "diab_ldl",
+    "Serum LDL Cholesterol",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    null,
+    100
+  ],
+  [
+    "diab_hdl",
+    "Serum HDL Cholesterol",
+    "Diabetes & Glycemic",
+    "mg/dL",
+    40,
+    null
+  ],
+  [
+    "haem_aec",
+    "Absolute Eosinophil Count (AEC)",
+    "Haematology",
+    "cells/mcL",
+    40,
+    440
+  ],
+  [
+    "haem_hb",
+    "Haemoglobin (Hb)",
+    "Haematology",
+    "g/dL",
+    12,
+    16
+  ],
+  [
+    "haem_wbc",
+    "Total WBC / TLC",
+    "Haematology",
+    "cells/mcL",
+    4000,
+    11000
+  ],
+  [
+    "haem_pcv",
+    "Packed Cell Volume (PCV)",
+    "Haematology",
+    "%",
+    36,
+    48
+  ],
+  [
+    "haem_neut",
+    "Neutrophils",
+    "Haematology",
+    "%",
+    40,
+    75
+  ],
+  [
+    "haem_lymph",
+    "Lymphocytes",
+    "Haematology",
+    "%",
+    20,
+    45
+  ],
+  [
+    "haem_eos",
+    "Eosinophils",
+    "Haematology",
+    "%",
+    1,
+    6
+  ],
+  [
+    "haem_mono",
+    "Monocytes",
+    "Haematology",
+    "%",
+    2,
+    10
+  ],
+  [
+    "haem_baso",
+    "Basophils",
+    "Haematology",
+    "%",
+    0,
+    1
+  ],
+  [
+    "haem_rbc",
+    "Total RBC Count",
+    "Haematology",
+    "million/mcL",
+    4.2,
+    5.8
+  ],
+  [
+    "haem_esr",
+    "ESR (Erythrocyte Sedimentation Rate)",
+    "Haematology",
+    "mm/hr",
+    0,
+    20
+  ],
+  [
+    "haem_rbcs",
+    "RBCs",
+    "Haematology",
+    "-",
+    null,
+    null
+  ],
+  [
+    "haem_wbcs",
+    "WBCs",
+    "Haematology",
+    "thousand cells/µL",
+    null,
+    null
+  ],
+  [
+    "haem_plt",
+    "Platelet Count",
+    "Haematology",
+    "lakhs/mcL",
+    1.5,
+    4.5
+  ],
+  [
+    "haem_para",
+    "Haemoparasites",
+    "Haematology",
+    "-",
+    null,
+    null
+  ],
+  [
+    "haem_imp",
+    "Impression",
+    "Haematology",
+    "-",
+    null,
+    null
+  ],
+  [
+    "haem_mcv",
+    "Mean Corpuscular Volume (MCV)",
+    "Haematology",
+    "fL",
+    80,
+    100
+  ],
+  [
+    "haem_mch",
+    "Mean Corpuscular Hemoglobin (MCH)",
+    "Haematology",
+    "pg",
+    27,
+    33
+  ],
+  [
+    "haem_mchc",
+    "MCHC",
+    "Haematology",
+    "g/dL",
+    32,
+    36
+  ],
+  [
+    "bio_fus",
+    "Fasting Urine Sugar (FUS)",
+    "Bio Chemistry",
+    "-",
+    null,
+    null
+  ],
+  [
+    "bio_ppbs",
+    "Post Prandial Blood Sugar (PPBS)",
+    "Bio Chemistry",
+    "mg/dL",
+    70,
+    140
+  ],
+  [
+    "bio_ppus",
+    "Post Prandial Urine Sugar - PPUS",
+    "Bio Chemistry",
+    "-",
+    null,
+    null
+  ],
+  [
+    "bio_mbg",
+    "Mean Blood Glucose (MBG)",
+    "Bio Chemistry",
+    "mg/dL",
+    70,
+    126
+  ],
+  [
+    "bio_rbs",
+    "Random Blood Sugar (RBS)",
+    "Bio Chemistry",
+    "mg/dL",
+    70,
+    140
+  ],
+  [
+    "bio_rus",
+    "Random Urine Sugar",
+    "Bio Chemistry",
+    "-",
+    null,
+    null
+  ],
+  [
+    "bio_ket",
+    "Ketone",
+    "Bio Chemistry",
+    "-",
+    null,
+    null
+  ],
+  [
+    "bio_prot",
+    "Protein",
+    "Bio Chemistry",
+    "-",
+    null,
+    null
+  ],
+  [
+    "bio_urea",
+    "Blood Urea",
+    "Bio Chemistry",
+    "mg/dL",
+    15,
+    40
+  ],
+  [
+    "bio_na",
+    "Serum Sodium (Na+)",
+    "Bio Chemistry",
+    "mEq/L",
+    135,
+    145
+  ],
+  [
+    "bio_k",
+    "Serum Potassium (K+)",
+    "Bio Chemistry",
+    "mEq/L",
+    3.5,
+    5.1
+  ],
+  [
+    "bio_cl",
+    "Serum Chloride (Cl-)",
+    "Bio Chemistry",
+    "mEq/L",
+    96,
+    106
+  ],
+  [
+    "bio_uric",
+    "Uric Acid",
+    "Bio Chemistry",
+    "mg/dL",
+    3.5,
+    7.2
+  ],
+  [
+    "bio_bun",
+    "Blood Urea Nitrogen (BUN)",
+    "Bio Chemistry",
+    "mg/dL",
+    7,
+    20
+  ],
+  [
+    "bio_hco3",
+    "Serum Bicarbonate (HCO3)",
+    "Bio Chemistry",
+    "mEq/L",
+    22,
+    29
+  ],
+  [
+    "bio_cal",
+    "Serum Calcium",
+    "Bio Chemistry",
+    "mg/dL",
+    8.5,
+    10.5
+  ],
+  [
+    "lft_bili_tot",
+    "Total Bilirubin",
+    "Liver Function (LFT)",
+    "mg/dL",
+    0.2,
+    1.2
+  ],
+  [
+    "lft_bili_dir",
+    "Direct Bilirubin",
+    "Liver Function (LFT)",
+    "mg/dL",
+    0,
+    0.3
+  ],
+  [
+    "lft_bili_ind",
+    "Indirect Bilirubin",
+    "Liver Function (LFT)",
+    "mg/dL",
+    0.1,
+    0.8
+  ],
+  [
+    "lft_prot_tot",
+    "Total Protein",
+    "Liver Function (LFT)",
+    "g/dL",
+    6,
+    8.3
+  ],
+  [
+    "lft_prot_alb",
+    "Serum Albumin",
+    "Liver Function (LFT)",
+    "g/dL",
+    3.5,
+    5
+  ],
+  [
+    "lft_prot_glob",
+    "Serum Globulin",
+    "Liver Function (LFT)",
+    "g/dL",
+    2,
+    3.5
+  ],
+  [
+    "lft_sgot",
+    "SGOT / AST",
+    "Liver Function (LFT)",
+    "U/L",
+    null,
+    40
+  ],
+  [
+    "lft_sgpt",
+    "SGPT / ALT",
+    "Liver Function (LFT)",
+    "U/L",
+    null,
+    45
+  ],
+  [
+    "lft_ggt",
+    "Gamma GT (GGT)",
+    "Liver Function (LFT)",
+    "U/L",
+    9,
+    48
+  ],
+  [
+    "lft_mg",
+    "Serum Magnesium",
+    "Liver Function (LFT)",
+    "mg/dL",
+    1.7,
+    2.2
+  ],
+  [
+    "uacr_alb",
+    "Urine Microalbumin",
+    "Urine & Stool",
+    "mg/L",
+    null,
+    20
+  ],
+  [
+    "uacr_malb",
+    "Microalbumin / Creatinine Ratio",
+    "Urine & Stool",
+    "mg/g",
+    null,
+    30
+  ],
+  [
+    "uacr_creat",
+    "Urine Creatinine",
+    "Urine & Stool",
+    "mg/dL",
+    20,
+    320
+  ],
+  [
+    "ur_app",
+    "Appearance",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "ur_reac",
+    "Reaction",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "ur_alb",
+    "Albumin",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "ur_pus",
+    "Urine Pus Cells",
+    "Urine & Stool",
+    "/HPF",
+    0,
+    5
+  ],
+  [
+    "ur_rbc",
+    "Urine RBCs",
+    "Urine & Stool",
+    "/HPF",
+    0,
+    2
+  ],
+  [
+    "ur_casts",
+    "Casts",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "ur_cryst",
+    "Crystals",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "ur_bact",
+    "Urine Bacteria",
+    "Urine & Stool",
+    "-",
+    null,
+    null
+  ],
+  [
+    "thy_tsh",
+    "Thyroid Stimulating Hormone (TSH)",
+    "Thyroid Profile",
+    "mIU/L",
+    0.4,
+    4.5
+  ],
+  [
+    "thy_tsh_ultra",
+    "TSH Ultrasensitive",
+    "Thyroid Profile",
+    "mIU/L",
+    0.35,
+    4.94
+  ],
+  [
+    "thy_t3",
+    "Total T3",
+    "Thyroid Profile",
+    "ng/dL",
+    60,
+    180
+  ],
+  [
+    "thy_t4",
+    "Total T4",
+    "Thyroid Profile",
+    "mcg/dL",
+    4.5,
+    12
+  ],
+  [
+    "thy_ft3",
+    "Free T3 (FT3)",
+    "Thyroid Profile",
+    "pg/mL",
+    2,
+    4.4
+  ],
+  [
+    "thy_ft4",
+    "Free T4 (FT4)",
+    "Thyroid Profile",
+    "ng/dL",
+    0.8,
+    1.8
+  ],
+  [
+    "thy_tpo",
+    "Anti-TPO Antibodies",
+    "Thyroid Profile",
+    "IU/mL",
+    null,
+    34
+  ],
+  [
+    "thy_tg_ab",
+    "Thyroglobulin Antibodies",
+    "Thyroid Profile",
+    "IU/mL",
+    null,
+    4
+  ],
+  [
+    "thy_anti_tg",
+    "Anti-Thyroglobulin (Anti-TG)",
+    "Thyroid Profile",
+    "IU/mL",
+    null,
+    115
+  ],
+  [
+    "pcos_lh",
+    "Luteinizing Hormone (LH)",
+    "Hormones & Endocrine",
+    "mIU/mL",
+    1.5,
+    12
+  ],
+  [
+    "pcos_fsh",
+    "Follicle Stimulating Hormone (FSH)",
+    "Hormones & Endocrine",
+    "mIU/mL",
+    1.5,
+    12
+  ],
+  [
+    "pcos_prol",
+    "Serum Prolactin",
+    "Hormones & Endocrine",
+    "ng/mL",
+    2,
+    25
+  ],
+  [
+    "pcos_testo",
+    "Serum Testosterone (Total)",
+    "Hormones & Endocrine",
+    "ng/dL",
+    15,
+    70
+  ],
+  [
+    "pcos_dheas",
+    "DHEA-Sulfate (DHEA-S)",
+    "Hormones & Endocrine",
+    "mcg/dL",
+    65,
+    380
+  ],
+  [
+    "pcos_shbg",
+    "Sex Hormone Binding Globulin (SHBG)",
+    "Hormones & Endocrine",
+    "nmol/L",
+    18,
+    114
+  ],
+  [
+    "pcos_oest",
+    "Serum Estradiol (E2)",
+    "Hormones & Endocrine",
+    "pg/mL",
+    20,
+    350
+  ],
+  [
+    "pcos_fgw",
+    "FGW - Scoring",
+    "Hormones & Endocrine",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_ecg",
+    "ECG",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_usg",
+    "ULTRASOUND Abdomen",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_fnac",
+    "FNAC",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_trop",
+    "Troponin-I (High Sensitivity)",
+    "Other Investigations",
+    "ng/mL",
+    null,
+    0.04
+  ],
+  [
+    "oth_pft",
+    "Pulmonary Function Test (PFT)",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_vpt",
+    "VPT",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_vitb12",
+    "Vitamin B12",
+    "Other Investigations",
+    "pg/mL",
+    211,
+    911
+  ],
+  [
+    "oth_echo",
+    "2D Echo",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_iron_prof",
+    "Iron Profile",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_serum_iron",
+    "Serum Iron",
+    "Other Investigations",
+    "mcg/dL",
+    60,
+    170
+  ],
+  [
+    "oth_tibc",
+    "Total Iron Binding Capacity (TIBC)",
+    "Other Investigations",
+    "mcg/dL",
+    240,
+    450
+  ],
+  [
+    "oth_vitd3",
+    "Vitamin D3 (25-OH)",
+    "Other Investigations",
+    "ng/mL",
+    30,
+    100
+  ],
+  [
+    "oth_crp",
+    "C-Reactive Protein (CRP)",
+    "Other Investigations",
+    "mg/L",
+    null,
+    5
+  ],
+  [
+    "oth_hscrp",
+    "High-Sensitivity CRP (hs-CRP)",
+    "Other Investigations",
+    "mg/L",
+    null,
+    1
+  ],
+  [
+    "oth_ferritin",
+    "Serum Ferritin",
+    "Other Investigations",
+    "ng/mL",
+    15,
+    300
+  ],
+  [
+    "oth_mri",
+    "MRI",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_ct",
+    "CT SCAN",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_fibro",
+    "Fibroscan",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_ttg",
+    "Anti-tTG IgA (Celiac)",
+    "Other Investigations",
+    "U/mL",
+    null,
+    10
+  ],
+  [
+    "oth_cect",
+    "CECT Abdomen",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_mri_brain",
+    "MRI BRAIN",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ],
+  [
+    "oth_ige",
+    "Serum IgE (Total)",
+    "Other Investigations",
+    "IU/mL",
+    null,
+    100
+  ],
+  [
+    "oth_ptinr",
+    "PT / INR",
+    "Other Investigations",
+    "Ratio",
+    0.8,
+    1.2
+  ],
+  [
+    "oth_pth",
+    "Parathyroid Hormone (PTH)",
+    "Other Investigations",
+    "pg/mL",
+    15,
+    65
+  ],
+  [
+    "oth_anti_tpo",
+    "Anti Tpo",
+    "Other Investigations",
+    "-",
+    null,
+    null
+  ]
+];
+
+  const FLOWSHEET_TESTS = RAW_FLOWSHEET.map((item) => ({
+    key: item[0],
+    name: item[1],
+    category: item[2],
+    unit: item[3] || "",
+    min: item[4],
+    max: item[5],
+    isFlowsheet: true,
+  }));
+
+  const STANDARD_FLOWSHEET_KEYS = new Set(FLOWSHEET_TESTS.map((t) => t.key));
+
+  function isFlowsheetField(key) {
+    if (!key) return false;
+    if (STANDARD_FLOWSHEET_KEYS.has(key)) return true;
+    const el = document.getElementById("lab-" + key);
+    return Boolean(el && !el.closest("#dynamic-lab-section"));
+  }
+
   const TEST_MAP = new Map();
+  // 1. Register all 200+ catalog tests
   ALL_TESTS.forEach((t) => TEST_MAP.set(t.key, t));
+  // 2. Register all flowsheet tests (ensures exact keys like haem_plt, bio_na, etc. resolve)
+  FLOWSHEET_TESTS.forEach((t) => TEST_MAP.set(t.key, t));
+
+  // 3. Register common aliases
+  const CROSS_ALIASES = {
+    haem_platelets: "haem_plt",
+    haem_neutrophils: "haem_neut",
+    haem_lymphocytes: "haem_lymph",
+    haem_monocytes: "haem_mono",
+    haem_eosinophils: "haem_eos",
+    haem_basophils: "haem_baso",
+    bio_sodium: "bio_na",
+    bio_potassium: "bio_k",
+    bio_chloride: "bio_cl",
+    bio_calcium: "bio_cal",
+    bio_protein_tot: "lft_prot_tot",
+    bio_albumin: "lft_prot_alb",
+    bio_globulin: "lft_prot_glob",
+    diab_urea: "bio_urea",
+    lft_alk_phos: "diab_sap",
+    uri_pus_cells: "ur_pus",
+    uri_rbc: "ur_rbc",
+    uacr_ratio: "uacr_malb",
+  };
+  Object.keys(CROSS_ALIASES).forEach((from) => {
+    const to = CROSS_ALIASES[from];
+    if (TEST_MAP.has(to) && !TEST_MAP.has(from)) {
+      TEST_MAP.set(from, TEST_MAP.get(to));
+    } else if (TEST_MAP.has(from) && !TEST_MAP.has(to)) {
+      TEST_MAP.set(to, TEST_MAP.get(from));
+    }
+  });
 
   const CATEGORY_ORDER = [
     "Haematology",
@@ -1887,136 +2807,6 @@
     "Urine & Stool",
     "Radiology & Imaging",
     "Other Investigations",
-  ];
-
-  // Standard hardcoded lab keys in base flowsheet
-  const STANDARD_FLOWSHEET_KEYS = [
-    "diab_fbs",
-    "diab_ppbs",
-    "diab_rbs",
-    "diab_hba1c",
-    "diab_fast_ins",
-    "diab_pp_ins",
-    "diab_c_pep",
-    "diab_creat",
-    "diab_urea",
-    "diab_bun",
-    "diab_egfr",
-    "diab_chol",
-    "diab_tg",
-    "diab_hdl",
-    "diab_ldl",
-    "diab_vldl",
-    "diab_non_hdl",
-    "diab_chol_hdl",
-    "diab_ldl_hdl",
-    "haem_hb",
-    "haem_wbc",
-    "haem_rbc",
-    "haem_platelets",
-    "haem_pcv",
-    "haem_mcv",
-    "haem_mch",
-    "haem_mchc",
-    "haem_rdw",
-    "haem_neutrophils",
-    "haem_lymphocytes",
-    "haem_monocytes",
-    "haem_eosinophils",
-    "haem_basophils",
-    "haem_esr",
-    "haem_aec",
-    "haem_peripheral_smear",
-    "bio_bilirubin_tot",
-    "bio_bilirubin_dir",
-    "bio_bilirubin_ind",
-    "bio_sgot",
-    "bio_sgpt",
-    "bio_alp",
-    "bio_ggt",
-    "bio_protein_tot",
-    "bio_albumin",
-    "bio_globulin",
-    "bio_ag_ratio",
-    "bio_sodium",
-    "bio_potassium",
-    "bio_chloride",
-    "bio_calcium",
-    "bio_phosphorus",
-    "bio_uric",
-    "lft_bili_tot",
-    "lft_bili_dir",
-    "lft_bili_indir",
-    "lft_sgot",
-    "lft_sgpt",
-    "lft_alk_phos",
-    "lft_ggt",
-    "lft_protein_tot",
-    "lft_albumin",
-    "lft_globulin",
-    "lft_ag_ratio",
-    "uacr_urine_alb",
-    "uacr_urine_creat",
-    "uacr_ratio",
-    "uri_color",
-    "uri_appearance",
-    "uri_sp_gravity",
-    "uri_ph",
-    "uri_protein",
-    "uri_glucose",
-    "uri_ketones",
-    "uri_blood",
-    "uri_bilirubin",
-    "uri_urobilinogen",
-    "uri_nitrite",
-    "uri_leukocytes",
-    "uri_pus_cells",
-    "uri_rbc",
-    "uri_epithelial",
-    "uri_casts",
-    "uri_crystals",
-    "uri_bacteria",
-    "thy_t3",
-    "thy_t4",
-    "thy_tsh",
-    "thy_ft3",
-    "thy_ft4",
-    "thy_anti_tpo",
-    "thy_anti_tg",
-    "pcos_lh",
-    "pcos_fsh",
-    "pcos_lh_fsh_ratio",
-    "pcos_prolactin",
-    "pcos_testo_tot",
-    "pcos_testo_free",
-    "pcos_dheas",
-    "pcos_amh",
-    "pcos_17ohp",
-    "oth_ecg",
-    "oth_usg",
-    "oth_fnac",
-    "oth_trop",
-    "oth_pft",
-    "oth_vpt",
-    "oth_vitb12",
-    "oth_echo",
-    "oth_iron_prof",
-    "oth_serum_iron",
-    "oth_tibc",
-    "oth_vitd3",
-    "oth_crp",
-    "oth_hscrp",
-    "oth_ferritin",
-    "oth_mri",
-    "oth_ct",
-    "oth_fibro",
-    "oth_ttg",
-    "oth_cect",
-    "oth_mri_brain",
-    "oth_ige",
-    "oth_ptinr",
-    "oth_pth",
-    "oth_anti_tpo",
   ];
 
   // Component State
@@ -2163,7 +2953,15 @@
         }
         if (rec.results) {
           Object.keys(rec.results).forEach((k) => {
-            if (k === "_custom_defs" || STANDARD_FLOWSHEET_KEYS.includes(k))
+            // Skip UI controls & known flowsheet fields
+            if (
+              k === "_custom_defs" ||
+              k === "category-filter" ||
+              k === "search-input" ||
+              k === "search-dropdown" ||
+              k === "modal-patient-name" ||
+              isFlowsheetField(k)
+            )
               return;
             if (!currentPatientCustomDefs[k]) {
               const catTest = TEST_MAP.get(k);
@@ -2193,6 +2991,13 @@
         }
       });
 
+      // Purge any stale flowsheet or control keys that were saved in _custom_defs previously
+      Object.keys(currentPatientCustomDefs).forEach((k) => {
+        if (isFlowsheetField(k) || LAB_CONTROL_IDS.has("lab-" + k)) {
+          delete currentPatientCustomDefs[k];
+        }
+      });
+
       window.currentPatientCustomDefs = currentPatientCustomDefs;
 
       renderDynamicPatientTests();
@@ -2206,12 +3011,28 @@
     }
   }
 
+  // Reserved IDs that are controls, not lab data fields
+  const LAB_CONTROL_IDS = new Set([
+    "lab-date",
+    "lab-local-token",
+    "lab-search-input",
+    "lab-search-dropdown",
+    "lab-category-filter",
+    "lab-modal-patient-name",
+  ]);
+
+  function isLabDataInput(el) {
+    return (
+      (el.tagName === "INPUT" || el.tagName === "TEXTAREA") &&
+      !LAB_CONTROL_IDS.has(el.id)
+    );
+  }
+
   // Populate input fields for the selected date
   function populateLabInputsForDate(dateStr) {
     // Clear all flowsheet inputs
     document.querySelectorAll('[id^="lab-"]').forEach((el) => {
-      if (["lab-date", "lab-local-token", "lab-search-input"].includes(el.id))
-        return;
+      if (!isLabDataInput(el)) return;
       el.value = "";
       checkRange(el);
     });
@@ -2284,8 +3105,7 @@
   function gatherCurrentScreenResults() {
     const results = {};
     document.querySelectorAll('[id^="lab-"]').forEach((el) => {
-      if (["lab-date", "lab-local-token", "lab-search-input"].includes(el.id))
-        return;
+      if (!isLabDataInput(el)) return;
       const key = el.id.replace(/^lab-/, "");
       if (el.value && el.value.trim() !== "") {
         results[key] = el.value.trim();
@@ -2516,12 +3336,24 @@
       return;
     }
 
-    const min = parseFloat(
+    let min = parseFloat(
       minStr !== undefined ? minStr : input.getAttribute("data-min"),
     );
-    const max = parseFloat(
+    let max = parseFloat(
       maxStr !== undefined ? maxStr : input.getAttribute("data-max"),
     );
+
+    // Fallback to TEST_MAP definition if min or max attribute is missing
+    if (isNaN(min) || isNaN(max)) {
+      const inputKey = input.id.replace(/^lab-/, "");
+      const def =
+        (currentPatientCustomDefs && currentPatientCustomDefs[inputKey]) ||
+        TEST_MAP.get(inputKey);
+      if (def) {
+        if (isNaN(min) && def.min !== null && def.min !== undefined) min = def.min;
+        if (isNaN(max) && def.max !== null && def.max !== undefined) max = def.max;
+      }
+    }
 
     let isAbnormal = false;
     if (!isNaN(min) && val < min) isAbnormal = true;
@@ -2540,21 +3372,32 @@
     const select = document.getElementById("chart-parameter");
     if (!select) return;
     const inputKey = input.id.replace(/^lab-/, "");
-    if (
-      select.value !== inputKey &&
-      select.querySelector(`option[value="${inputKey}"]`)
-    ) {
+
+    // Check if option exists; if not, add it dynamically so chart immediately plots it
+    let opt = select.querySelector(`option[value="${inputKey}"]`);
+    if (!opt) {
+      const def =
+        (currentPatientCustomDefs && currentPatientCustomDefs[inputKey]) ||
+        TEST_MAP.get(inputKey);
+      if (def) {
+        opt = document.createElement("option");
+        opt.value = inputKey;
+        opt.textContent = `${def.name} ${def.unit ? `(${def.unit})` : ""}`;
+        const targetGroup =
+          select.querySelector("#chart-optgroup-dynamic") || select;
+        targetGroup.appendChild(opt);
+      }
+    }
+
+    if (opt) {
       select.value = inputKey;
     }
-    if (select.value === inputKey) {
-      updateChart();
-    }
+    updateChart();
   }
 
   function attachLiveInputListeners() {
     document.querySelectorAll('[id^="lab-"]').forEach((el) => {
-      if (["lab-date", "lab-local-token", "lab-search-input"].includes(el.id))
-        return;
+      if (!isLabDataInput(el)) return;
       if (!el._hasLabListener) {
         el._hasLabListener = true;
         el.addEventListener("input", function () {
@@ -2658,7 +3501,7 @@
     testsInCat.forEach((t) => {
       if (
         !currentPatientCustomDefs[t.key] &&
-        !STANDARD_FLOWSHEET_KEYS.includes(t.key)
+        !isFlowsheetField(t.key)
       ) {
         currentPatientCustomDefs[t.key] = {
           key: t.key,
@@ -3065,34 +3908,134 @@
     const select = document.getElementById("chart-parameter");
     if (!select) return;
 
-    // Preserve current selected value if possible
     const currentSelected = select.value;
+    select.innerHTML = "";
 
-    const existingGroup = document.getElementById("chart-optgroup-dynamic");
-    if (existingGroup) existingGroup.remove();
-
+    // 1. ⭐ Added & Custom Investigations (Patient Specific)
     const customKeys = Object.keys(currentPatientCustomDefs || {});
+    const dynamicGroup = document.createElement("optgroup");
+    dynamicGroup.id = "chart-optgroup-dynamic";
+    dynamicGroup.label = "⭐ Added & Custom Investigations";
+
+    customKeys.forEach((key) => {
+      const def = currentPatientCustomDefs[key];
+      const opt = document.createElement("option");
+      opt.value = key;
+      opt.textContent = `${def.name} ${def.unit ? `(${def.unit})` : ""}`;
+      dynamicGroup.appendChild(opt);
+    });
+
     if (customKeys.length > 0) {
-      const optgroup = document.createElement("optgroup");
-      optgroup.id = "chart-optgroup-dynamic";
-      optgroup.label = "⭐ Added & Custom Tests";
-
-      customKeys.forEach((key) => {
-        const def = currentPatientCustomDefs[key];
-        const opt = document.createElement("option");
-        opt.value = key;
-        opt.textContent = `${def.name} ${def.unit ? `(${def.unit})` : ""}`;
-        optgroup.appendChild(opt);
-      });
-
-      select.prepend(optgroup);
+      select.appendChild(dynamicGroup);
     }
 
+    // 2. Structured Flowsheet Clinical Categories
+    const CATEGORIES = [
+      {
+        label: "Haematology (CBC)",
+        keys: [
+          "haem_hb", "haem_wbc", "haem_rbc", "haem_plt", "haem_pcv", "haem_esr",
+          "haem_mcv", "haem_mch", "haem_mchc", "haem_neut", "haem_lymph",
+          "haem_eos", "haem_mono", "haem_baso", "haem_aec"
+        ],
+      },
+      {
+        label: "Diabetes & Glycemic",
+        keys: [
+          "diab_hba1c", "diab_fbs", "bio_ppbs", "bio_rbs", "bio_mbg",
+          "diab_creat", "diab_egfr", "diab_sacr", "diab_sap"
+        ],
+      },
+      {
+        label: "Liver Function (LFT)",
+        keys: [
+          "lft_sgpt", "lft_sgot", "lft_bili_tot", "lft_bili_dir", "lft_bili_ind",
+          "lft_prot_tot", "lft_prot_alb", "lft_prot_glob", "lft_ggt", "lft_mg"
+        ],
+      },
+      {
+        label: "Kidney Function & Bio Chemistry (KFT)",
+        keys: [
+          "diab_creat", "bio_urea", "bio_bun", "bio_uric", "bio_na", "bio_k",
+          "bio_cl", "bio_cal", "bio_hco3"
+        ],
+      },
+      {
+        label: "Lipid Profile",
+        keys: ["diab_chol", "diab_tg", "diab_ldl", "diab_hdl"],
+      },
+      {
+        label: "Thyroid Profile",
+        keys: [
+          "thy_tsh", "thy_ft3", "thy_ft4", "thy_t3", "thy_t4", "thy_tsh_ultra",
+          "thy_tpo", "thy_anti_tg", "thy_tg_ab"
+        ],
+      },
+      {
+        label: "Vitamins, Iron & Inflammatory",
+        keys: [
+          "oth_vitd3", "oth_vitb12", "oth_ferritin", "oth_serum_iron", "oth_tibc",
+          "oth_crp", "oth_hscrp", "oth_trop", "oth_ptinr", "oth_pth"
+        ],
+      },
+      {
+        label: "Hormones & Endocrine",
+        keys: [
+          "pcos_prol", "pcos_testo", "pcos_lh", "pcos_fsh", "pcos_dheas",
+          "pcos_shbg", "pcos_oest"
+        ],
+      },
+      {
+        label: "Urine Routine & UACR",
+        keys: ["uacr_malb", "uacr_alb", "uacr_creat", "ur_pus", "ur_rbc"],
+      },
+    ];
+
+    CATEGORIES.forEach((cat) => {
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = cat.label;
+      cat.keys.forEach((k) => {
+        const def = TEST_MAP.get(k);
+        if (def) {
+          const opt = document.createElement("option");
+          opt.value = k;
+          opt.textContent = `${def.name} ${def.unit ? `(${def.unit})` : ""}`;
+          optgroup.appendChild(opt);
+        }
+      });
+      if (optgroup.children.length > 0) {
+        select.appendChild(optgroup);
+      }
+    });
+
+    // 3. Select restored or first recorded test
     if (
       currentSelected &&
       select.querySelector(`option[value="${currentSelected}"]`)
     ) {
       select.value = currentSelected;
+    } else {
+      // Auto-pick first parameter that has recorded data in activeLabRecords
+      let foundRecorded = null;
+      for (const rec of (activeLabRecords || [])) {
+        if (!rec.results) continue;
+        for (const [k, v] of Object.entries(rec.results)) {
+          if (k !== "_custom_defs" && v && !isNaN(parseFloat(v))) {
+            if (select.querySelector(`option[value="${k}"]`) && !foundRecorded) {
+              foundRecorded = k;
+              break;
+            }
+          }
+        }
+        if (foundRecorded) break;
+      }
+      if (foundRecorded) {
+        select.value = foundRecorded;
+      } else if (customKeys.length > 0) {
+        select.value = customKeys[0];
+      } else {
+        select.value = "haem_hb";
+      }
     }
   }
 

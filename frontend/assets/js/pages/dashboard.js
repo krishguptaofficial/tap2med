@@ -809,8 +809,9 @@ async function loadQueue() {
               <span style="color: var(--success-color); font-size: 12px;">Completed</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-              <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">Edit</button>
-              <button onclick="rePrintRx('${patient.local_token}', '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">Print</button>
+              <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${(patient.patient_name || "Patient").replace(/'/g, "\\'")}', '${patient.display_id || "--"}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">Edit</button>
+              <button onclick="openLabsModal('${patient.local_token}', '${(patient.patient_name || "Patient").replace(/'/g, "\\'")}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white; border: 1px dashed #cbd5e1;">Labs</button>
+              <button onclick="rePrintRx('${patient.local_token}', '${(patient.patient_name || "Patient").replace(/'/g, "\\'")}', '${patient.display_id || "--"}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">Print</button>
             </div>
           `;
           completedList.appendChild(card);
@@ -1344,11 +1345,12 @@ async function fetchActiveVitals() {
 setInterval(fetchActiveVitals, 2000);
 
 // --- LAB FLOWSHEET & TRENDS (DECOUPLED COMPONENT) ---
-window.openLabsModal = async function () {
-  if (!currentLocalToken) return alert("Please select a patient first.");
-  const patientName = window.currentPatientName || "Patient";
+window.openLabsModal = async function (localToken, patientName) {
+  const token = localToken || currentLocalToken;
+  if (!token) return alert("Please select a patient first.");
+  const name = patientName || window.currentPatientName || "Patient";
   if (window.Tap2MedLabs) {
-    window.Tap2MedLabs.open(currentLocalToken, patientName, clinicId);
+    window.Tap2MedLabs.open(token, name, clinicId);
   }
 };
 
@@ -1360,6 +1362,10 @@ window.closeLabsModal = function () {
     if (modal) modal.style.display = "none";
   }
 };
+
+// Fallback billing stubs to prevent unhandled clicks
+window.openBillModal = window.openBillModal || function () {};
+window.executePrintBill = window.executePrintBill || function () {};
 
 // =======================================================
 // CLINICAL TESTS CATALOG & INTERACTIVE DROPDOWN SYSTEM

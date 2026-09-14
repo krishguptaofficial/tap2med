@@ -91,82 +91,34 @@
           style="position: relative; margin-bottom: 16px"
           class="lab-search-container"
         >
-          <div
+          <label
+            for="lab-search-input"
             style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
+              font-size: 12px;
+              font-weight: 700;
+              color: #475569;
+              display: block;
               margin-bottom: 6px;
             "
+            >🔍 Search tests or specialty (e.g. CBC, Zinc, Haematology,
+            Thyroid…)</label
           >
-            <label
-              for="lab-search-input"
-              style="
-                font-size: 12px;
-                font-weight: 700;
-                color: #475569;
-                margin: 0;
-              "
-              >🔍 Search standard tests or specialty heading</label
-            >
-            <span style="font-size: 11px; color: #0284c7; font-weight: 600"
-              >Category Filter:</span
-            >
-          </div>
-          <div style="display: flex; gap: 8px">
-            <input
-              type="text"
-              id="lab-search-input"
-              class="input"
-              style="flex: 1.8; font-size: 13px"
-              placeholder="e.g. CBC, Zinc, Thyroid, Haematology, Troponin..."
-              oninput="
-                if (window.Tap2MedLabs)
-                  window.Tap2MedLabs.handleSearchInput(this.value);
-                else filterLabFields();
-              "
-              onfocus="
-                if (window.Tap2MedLabs) window.Tap2MedLabs.openSearchDropdown();
-              "
-              autocomplete="off"
-            />
-            <select
-              id="lab-category-filter"
-              class="input"
-              style="
-                flex: 1.2;
-                background: white;
-                font-size: 12px;
-                font-weight: 600;
-              "
-              onchange="
-                if (window.Tap2MedLabs)
-                  window.Tap2MedLabs.selectCategoryHeading(this.value);
-                else if (window.onLabCategoryChange)
-                  window.onLabCategoryChange(this.value);
-              "
-            >
-              <option value="">All Categories ▾</option>
-              <option value="Haematology">Haematology</option>
-              <option value="Diabetes & Glycemic">Diabetes & Glycemic</option>
-              <option value="Bio Chemistry">Bio Chemistry</option>
-              <option value="Liver Function (LFT)">Liver Function (LFT)</option>
-              <option value="Kidney Function (KFT)">
-                Kidney Function (KFT)
-              </option>
-              <option value="Lipid Profile">Lipid Profile</option>
-              <option value="Thyroid Profile">Thyroid Profile</option>
-              <option value="Cardiac Markers">Cardiac Markers</option>
-              <option value="Hormones & Endocrine">Hormones & Endocrine</option>
-              <option value="Vitamins & Minerals">Vitamins & Minerals</option>
-              <option value="Infectious & Serology">
-                Infectious & Serology
-              </option>
-              <option value="Urine & Stool">Urine & Stool</option>
-              <option value="Radiology & Imaging">Radiology & Imaging</option>
-              <option value="Other Investigations">Others</option>
-            </select>
-          </div>
+          <input
+            type="text"
+            id="lab-search-input"
+            class="input"
+            style="width: 100%; font-size: 13px; box-sizing: border-box"
+            placeholder="Type to search — specialty headings expand all tests in that category"
+            oninput="
+              if (window.Tap2MedLabs)
+                window.Tap2MedLabs.handleSearchInput(this.value);
+              else filterLabFields();
+            "
+            onfocus="
+              if (window.Tap2MedLabs) window.Tap2MedLabs.openSearchDropdown();
+            "
+            autocomplete="off"
+          />
 
           <!-- Floating Autocomplete Dropdown Attached Directly to Search Bar -->
           <div
@@ -186,6 +138,8 @@
                 0 10px 25px -5px rgba(0, 0, 0, 0.15),
                 0 8px 10px -6px rgba(0, 0, 0, 0.1);
               overflow: hidden;
+              max-height: 420px;
+              overflow-y: auto;
             "
           ></div>
         </div>
