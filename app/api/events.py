@@ -199,7 +199,7 @@ def start_visit(
             
             if patient:
                 user_salt = str(patient.user_salt)
-                patient_id_to_return = str(patient.patient_id) 
+                patient_id_to_return = str(patient.patient_id)
                 network_token = hashing.generate_network_token(phone, member_id, user_salt)
             else:
                 user_salt = hashing.generate_user_salt()
