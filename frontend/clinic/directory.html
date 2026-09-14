@@ -707,6 +707,2340 @@
       };
       window.submitVitals = window.saveDirectoryVitals;
 
+      /**
+       * Tap2Med Comprehensive Clinical Medical Tests Database
+       * Contains standard clinical laboratory investigations across all major medical specialties
+       * with standardized units, normal reference ranges, and search keywords.
+       */
+
+      (function () {
+        const TEST_DATABASE = [
+          // ==========================================
+          // 1. HAEMATOLOGY & COAGULATION
+          // ==========================================
+          {
+            key: "haem_cbc",
+            name: "Complete Blood Count (CBC)",
+            category: "Haematology",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: [
+              "cbc",
+              "hemogram",
+              "blood count",
+              "complete blood picture",
+              "cbp",
+            ],
+          },
+          {
+            key: "haem_hb",
+            name: "Haemoglobin (Hb)",
+            category: "Haematology",
+            unit: "g/dL",
+            min: 12.0,
+            max: 16.0,
+            aliases: ["hb", "hemoglobin", "anaemia", "anemia"],
+          },
+          {
+            key: "haem_rbc",
+            name: "Total RBC Count",
+            category: "Haematology",
+            unit: "million/mcL",
+            min: 4.2,
+            max: 5.8,
+            aliases: ["rbc", "red blood cells", "erythrocyte count"],
+          },
+          {
+            key: "haem_wbc",
+            name: "Total Leucocyte Count (TLC / WBC)",
+            category: "Haematology",
+            unit: "cells/mcL",
+            min: 4000,
+            max: 11000,
+            aliases: ["wbc", "tlc", "white blood cells", "leucocytes"],
+          },
+          {
+            key: "haem_platelets",
+            name: "Platelet Count",
+            category: "Haematology",
+            unit: "lakhs/mcL",
+            min: 1.5,
+            max: 4.5,
+            aliases: ["platelets", "thrombocytes", "plt", "dengue count"],
+          },
+          {
+            key: "haem_pcv",
+            name: "Packed Cell Volume (PCV / Hematocrit)",
+            category: "Haematology",
+            unit: "%",
+            min: 36.0,
+            max: 50.0,
+            aliases: ["pcv", "hematocrit", "hct"],
+          },
+          {
+            key: "haem_mcv",
+            name: "Mean Corpuscular Volume (MCV)",
+            category: "Haematology",
+            unit: "fL",
+            min: 80.0,
+            max: 100.0,
+            aliases: ["mcv", "rbc indices"],
+          },
+          {
+            key: "haem_mch",
+            name: "Mean Corpuscular Hemoglobin (MCH)",
+            category: "Haematology",
+            unit: "pg",
+            min: 27.0,
+            max: 33.0,
+            aliases: ["mch"],
+          },
+          {
+            key: "haem_mchc",
+            name: "MCHC",
+            category: "Haematology",
+            unit: "g/dL",
+            min: 32.0,
+            max: 36.0,
+            aliases: ["mchc"],
+          },
+          {
+            key: "haem_rdw",
+            name: "RDW (Red Cell Distribution Width)",
+            category: "Haematology",
+            unit: "%",
+            min: 11.5,
+            max: 14.5,
+            aliases: ["rdw", "anisocytosis"],
+          },
+          {
+            key: "haem_neutrophils",
+            name: "Neutrophils (%)",
+            category: "Haematology",
+            unit: "%",
+            min: 40,
+            max: 75,
+            aliases: ["neutrophil", "polymorphs", "dlc"],
+          },
+          {
+            key: "haem_lymphocytes",
+            name: "Lymphocytes (%)",
+            category: "Haematology",
+            unit: "%",
+            min: 20,
+            max: 45,
+            aliases: ["lymphocyte", "dlc"],
+          },
+          {
+            key: "haem_monocytes",
+            name: "Monocytes (%)",
+            category: "Haematology",
+            unit: "%",
+            min: 2,
+            max: 10,
+            aliases: ["monocyte", "dlc"],
+          },
+          {
+            key: "haem_eosinophils",
+            name: "Eosinophils (%)",
+            category: "Haematology",
+            unit: "%",
+            min: 1,
+            max: 6,
+            aliases: ["eosinophil", "allergy cell", "dlc"],
+          },
+          {
+            key: "haem_basophils",
+            name: "Basophils (%)",
+            category: "Haematology",
+            unit: "%",
+            min: 0,
+            max: 1,
+            aliases: ["basophil", "dlc"],
+          },
+          {
+            key: "haem_aec",
+            name: "Absolute Eosinophil Count (AEC)",
+            category: "Haematology",
+            unit: "cells/mcL",
+            min: 40,
+            max: 450,
+            aliases: ["aec", "absolute eosinophils", "allergy count", "asthma"],
+          },
+          {
+            key: "haem_anc",
+            name: "Absolute Neutrophil Count (ANC)",
+            category: "Haematology",
+            unit: "cells/mcL",
+            min: 1500,
+            max: 8000,
+            aliases: ["anc", "absolute neutrophils", "neutropenia"],
+          },
+          {
+            key: "haem_alc",
+            name: "Absolute Lymphocyte Count (ALC)",
+            category: "Haematology",
+            unit: "cells/mcL",
+            min: 1000,
+            max: 4000,
+            aliases: ["alc", "absolute lymphocytes"],
+          },
+          {
+            key: "haem_esr",
+            name: "ESR (Erythrocyte Sedimentation Rate)",
+            category: "Haematology",
+            unit: "mm/hr",
+            min: 0,
+            max: 20,
+            aliases: ["esr", "sed rate", "westergren", "inflammation"],
+          },
+          {
+            key: "haem_retic",
+            name: "Reticulocyte Count",
+            category: "Haematology",
+            unit: "%",
+            min: 0.5,
+            max: 2.5,
+            aliases: ["reticulocyte", "retic", "bone marrow response"],
+          },
+          {
+            key: "haem_pbs",
+            name: "Peripheral Blood Smear (PBS)",
+            category: "Haematology",
+            unit: "Microscopy",
+            min: null,
+            max: null,
+            aliases: [
+              "pbs",
+              "blood smear",
+              "malaria parasite smear",
+              "morphology",
+            ],
+          },
+          {
+            key: "haem_bt_ct",
+            name: "Bleeding Time & Clotting Time (BT/CT)",
+            category: "Haematology",
+            unit: "Minutes",
+            min: null,
+            max: null,
+            aliases: ["bt", "ct", "bleeding time", "clotting time"],
+          },
+          {
+            key: "haem_pt_inr",
+            name: "Prothrombin Time & INR (PT/INR)",
+            category: "Haematology",
+            unit: "INR",
+            min: 0.8,
+            max: 1.2,
+            aliases: [
+              "pt",
+              "inr",
+              "prothrombin",
+              "warfarin monitoring",
+              "coagulation",
+            ],
+          },
+          {
+            key: "haem_aptt",
+            name: "Activated Partial Thromboplastin Time (APTT)",
+            category: "Haematology",
+            unit: "Seconds",
+            min: 26.0,
+            max: 38.0,
+            aliases: ["aptt", "ptt", "heparin monitoring", "clotting"],
+          },
+          {
+            key: "haem_d_dimer",
+            name: "D-Dimer (Quantitative)",
+            category: "Haematology",
+            unit: "ng/mL",
+            min: 0,
+            max: 500,
+            aliases: [
+              "d dimer",
+              "ddimer",
+              "thrombosis",
+              "dvt",
+              "pulmonary embolism",
+            ],
+          },
+          {
+            key: "haem_fibrinogen",
+            name: "Serum Fibrinogen",
+            category: "Haematology",
+            unit: "mg/dL",
+            min: 200,
+            max: 400,
+            aliases: ["fibrinogen", "factor 1", "clotting factor"],
+          },
+          {
+            key: "haem_blood_group",
+            name: "Blood Group & Rh Typing",
+            category: "Haematology",
+            unit: "Typing",
+            min: null,
+            max: null,
+            aliases: [
+              "blood group",
+              "abo",
+              "rh factor",
+              "rh positive",
+              "rh negative",
+            ],
+          },
+          {
+            key: "haem_coombs_direct",
+            name: "Direct Coombs Test (DAT)",
+            category: "Haematology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["coombs direct", "dat", "hemolytic anemia"],
+          },
+          {
+            key: "haem_coombs_indirect",
+            name: "Indirect Coombs Test (ICT)",
+            category: "Haematology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: [
+              "coombs indirect",
+              "ict",
+              "antibody screening",
+              "antenatal",
+            ],
+          },
+          {
+            key: "haem_hb_electrophoresis",
+            name: "Hemoglobin Electrophoresis / HPLC",
+            category: "Haematology",
+            unit: "Analysis",
+            min: null,
+            max: null,
+            aliases: ["hplc", "thalassemia", "sickle cell", "hb a2", "hb f"],
+          },
+          {
+            key: "haem_g6pd",
+            name: "G6PD Quantitative Assay",
+            category: "Haematology",
+            unit: "U/g Hb",
+            min: 4.6,
+            max: 13.5,
+            aliases: ["g6pd", "favism", "hemolysis enzyme"],
+          },
+
+          // ==========================================
+          // 2. DIABETES & GLYCEMIC METABOLISM
+          // ==========================================
+          {
+            key: "diab_fbs",
+            name: "Fasting Blood Sugar (FBS)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/dL",
+            min: 70,
+            max: 99,
+            aliases: ["fbs", "fasting glucose", "sugar fasting", "diabetes"],
+          },
+          {
+            key: "diab_ppbs",
+            name: "Post Prandial Blood Sugar (PPBS)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/dL",
+            min: 90,
+            max: 140,
+            aliases: [
+              "ppbs",
+              "pp blood sugar",
+              "post meals glucose",
+              "2hr sugar",
+            ],
+          },
+          {
+            key: "diab_rbs",
+            name: "Random Blood Sugar (RBS)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/dL",
+            min: 70,
+            max: 140,
+            aliases: ["rbs", "random sugar", "glucose random"],
+          },
+          {
+            key: "diab_hba1c",
+            name: "Glycosylated Haemoglobin (HbA1c)",
+            category: "Diabetes & Glycemic",
+            unit: "%",
+            min: 4.0,
+            max: 5.6,
+            aliases: ["hba1c", "a1c", "glycated hemoglobin", "3 month sugar"],
+          },
+          {
+            key: "diab_eag",
+            name: "Estimated Average Glucose (eAG)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/dL",
+            min: 70,
+            max: 126,
+            aliases: ["eag", "mean blood glucose", "mbg"],
+          },
+          {
+            key: "diab_insulin_fasting",
+            name: "Serum Insulin (Fasting)",
+            category: "Diabetes & Glycemic",
+            unit: "mcIU/mL",
+            min: 2.6,
+            max: 24.9,
+            aliases: ["insulin fasting", "fasting insulin", "hyperinsulinemia"],
+          },
+          {
+            key: "diab_insulin_pp",
+            name: "Serum Insulin (Post Prandial)",
+            category: "Diabetes & Glycemic",
+            unit: "mcIU/mL",
+            min: 16.0,
+            max: 166.0,
+            aliases: ["insulin pp", "post prandial insulin"],
+          },
+          {
+            key: "diab_c_peptide",
+            name: "C-Peptide (Fasting)",
+            category: "Diabetes & Glycemic",
+            unit: "ng/mL",
+            min: 0.9,
+            max: 4.0,
+            aliases: [
+              "c peptide",
+              "c-peptide",
+              "beta cell reserve",
+              "type 1 diabetes",
+            ],
+          },
+          {
+            key: "diab_homa_ir",
+            name: "HOMA-IR (Insulin Resistance Index)",
+            category: "Diabetes & Glycemic",
+            unit: "Score",
+            min: 0.5,
+            max: 1.9,
+            aliases: ["homa ir", "insulin resistance", "metabolic syndrome"],
+          },
+          {
+            key: "diab_fructosamine",
+            name: "Serum Fructosamine",
+            category: "Diabetes & Glycemic",
+            unit: "umol/L",
+            min: 200,
+            max: 285,
+            aliases: ["fructosamine", "glycated protein", "short term sugar"],
+          },
+          {
+            key: "diab_gtt",
+            name: "Oral Glucose Tolerance Test (OGTT - 75g)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/dL",
+            min: null,
+            max: 140,
+            aliases: [
+              "gtt",
+              "ogtt",
+              "glucose tolerance",
+              "gestational diabetes",
+            ],
+          },
+          {
+            key: "diab_microalbumin_spot",
+            name: "Urine Microalbumin (Spot)",
+            category: "Diabetes & Glycemic",
+            unit: "mg/L",
+            min: 0,
+            max: 20,
+            aliases: [
+              "urine microalbumin",
+              "early nephropathy",
+              "diabetic kidney",
+            ],
+          },
+
+          // ==========================================
+          // 3. BIOCHEMISTRY & ROUTINE ELECTROLYTES
+          // ==========================================
+          {
+            key: "bio_sodium",
+            name: "Serum Sodium (Na+)",
+            category: "Bio Chemistry",
+            unit: "mEq/L",
+            min: 135,
+            max: 145,
+            aliases: [
+              "sodium",
+              "na",
+              "electrolytes",
+              "hyponatremia",
+              "hypernatremia",
+            ],
+          },
+          {
+            key: "bio_potassium",
+            name: "Serum Potassium (K+)",
+            category: "Bio Chemistry",
+            unit: "mEq/L",
+            min: 3.5,
+            max: 5.1,
+            aliases: ["potassium", "k", "hypokalemia", "hyperkalemia"],
+          },
+          {
+            key: "bio_chloride",
+            name: "Serum Chloride (Cl-)",
+            category: "Bio Chemistry",
+            unit: "mEq/L",
+            min: 96,
+            max: 106,
+            aliases: ["chloride", "cl", "electrolytes"],
+          },
+          {
+            key: "bio_bicarbonate",
+            name: "Serum Bicarbonate (HCO3)",
+            category: "Bio Chemistry",
+            unit: "mEq/L",
+            min: 22,
+            max: 29,
+            aliases: [
+              "bicarbonate",
+              "hco3",
+              "acid base balance",
+              "metabolic acidosis",
+            ],
+          },
+          {
+            key: "bio_calcium",
+            name: "Serum Calcium (Total)",
+            category: "Bio Chemistry",
+            unit: "mg/dL",
+            min: 8.5,
+            max: 10.5,
+            aliases: [
+              "calcium",
+              "total calcium",
+              "hypocalcemia",
+              "hypercalcemia",
+            ],
+          },
+          {
+            key: "bio_ionic_calcium",
+            name: "Ionized Calcium",
+            category: "Bio Chemistry",
+            unit: "mmol/L",
+            min: 1.15,
+            max: 1.33,
+            aliases: ["ionized calcium", "free calcium"],
+          },
+          {
+            key: "bio_phosphorus",
+            name: "Serum Phosphorus (Inorganic)",
+            category: "Bio Chemistry",
+            unit: "mg/dL",
+            min: 2.5,
+            max: 4.5,
+            aliases: ["phosphorus", "phosphate", "bone mineral"],
+          },
+          {
+            key: "bio_magnesium",
+            name: "Serum Magnesium",
+            category: "Bio Chemistry",
+            unit: "mg/dL",
+            min: 1.7,
+            max: 2.4,
+            aliases: ["magnesium", "mg", "hypomagnesemia", "cramps"],
+          },
+          {
+            key: "bio_uric_acid",
+            name: "Serum Uric Acid",
+            category: "Bio Chemistry",
+            unit: "mg/dL",
+            min: 3.5,
+            max: 7.2,
+            aliases: ["uric acid", "gout", "hyperuricemia", "joint pain"],
+          },
+
+          // ==========================================
+          // 4. LIVER FUNCTION TESTS (LFT)
+          // ==========================================
+          {
+            key: "lft_panel",
+            name: "Liver Function Test (LFT Profile)",
+            category: "Liver Function (LFT)",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: [
+              "lft",
+              "liver panel",
+              "hepatic function",
+              "jaundice profile",
+            ],
+          },
+          {
+            key: "lft_bili_tot",
+            name: "Serum Bilirubin (Total)",
+            category: "Liver Function (LFT)",
+            unit: "mg/dL",
+            min: 0.2,
+            max: 1.2,
+            aliases: ["total bilirubin", "bilirubin", "jaundice"],
+          },
+          {
+            key: "lft_bili_dir",
+            name: "Serum Bilirubin (Direct / Conjugated)",
+            category: "Liver Function (LFT)",
+            unit: "mg/dL",
+            min: 0.0,
+            max: 0.3,
+            aliases: ["direct bilirubin", "conjugated bilirubin"],
+          },
+          {
+            key: "lft_bili_ind",
+            name: "Serum Bilirubin (Indirect / Unconjugated)",
+            category: "Liver Function (LFT)",
+            unit: "mg/dL",
+            min: 0.1,
+            max: 0.9,
+            aliases: ["indirect bilirubin", "unconjugated bilirubin"],
+          },
+          {
+            key: "lft_sgpt",
+            name: "SGPT / ALT (Alanine Aminotransferase)",
+            category: "Liver Function (LFT)",
+            unit: "U/L",
+            min: 7,
+            max: 45,
+            aliases: [
+              "sgpt",
+              "alt",
+              "alanine aminotransferase",
+              "liver enzyme",
+            ],
+          },
+          {
+            key: "lft_sgot",
+            name: "SGOT / AST (Aspartate Aminotransferase)",
+            category: "Liver Function (LFT)",
+            unit: "U/L",
+            min: 8,
+            max: 40,
+            aliases: ["sgot", "ast", "aspartate aminotransferase"],
+          },
+          {
+            key: "lft_alp",
+            name: "Alkaline Phosphatase (ALP)",
+            category: "Liver Function (LFT)",
+            unit: "U/L",
+            min: 44,
+            max: 147,
+            aliases: [
+              "alp",
+              "alkaline phosphatase",
+              "biliary enzyme",
+              "bone enzyme",
+            ],
+          },
+          {
+            key: "lft_ggt",
+            name: "Gamma GT (GGT)",
+            category: "Liver Function (LFT)",
+            unit: "U/L",
+            min: 9,
+            max: 48,
+            aliases: [
+              "ggt",
+              "ggtp",
+              "gamma glutamyl transferase",
+              "alcohol liver",
+            ],
+          },
+          {
+            key: "lft_protein_tot",
+            name: "Total Protein",
+            category: "Liver Function (LFT)",
+            unit: "g/dL",
+            min: 6.0,
+            max: 8.3,
+            aliases: ["total protein", "proteins"],
+          },
+          {
+            key: "lft_albumin",
+            name: "Serum Albumin",
+            category: "Liver Function (LFT)",
+            unit: "g/dL",
+            min: 3.5,
+            max: 5.0,
+            aliases: ["albumin", "hypoalbuminemia", "edema"],
+          },
+          {
+            key: "lft_globulin",
+            name: "Serum Globulin",
+            category: "Liver Function (LFT)",
+            unit: "g/dL",
+            min: 2.0,
+            max: 3.5,
+            aliases: ["globulin", "immune proteins"],
+          },
+          {
+            key: "lft_ag_ratio",
+            name: "A/G Ratio (Albumin / Globulin)",
+            category: "Liver Function (LFT)",
+            unit: "Ratio",
+            min: 1.1,
+            max: 2.2,
+            aliases: ["a/g ratio", "ag ratio", "albumin globulin ratio"],
+          },
+          {
+            key: "lft_ldh",
+            name: "Serum LDH (Lactate Dehydrogenase)",
+            category: "Liver Function (LFT)",
+            unit: "U/L",
+            min: 140,
+            max: 280,
+            aliases: ["ldh", "lactate dehydrogenase", "tissue necrosis marker"],
+          },
+
+          // ==========================================
+          // 5. KIDNEY FUNCTION & RENAL PROFILE (KFT/RFT)
+          // ==========================================
+          {
+            key: "kft_panel",
+            name: "Kidney Function Test (KFT / RFT Profile)",
+            category: "Kidney Function (KFT)",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: ["kft", "rft", "renal panel", "kidney profile"],
+          },
+          {
+            key: "kft_creatinine",
+            name: "Serum Creatinine",
+            category: "Kidney Function (KFT)",
+            unit: "mg/dL",
+            min: 0.6,
+            max: 1.2,
+            aliases: [
+              "creatinine",
+              "creat",
+              "kidney failure",
+              "renal function",
+            ],
+          },
+          {
+            key: "kft_urea",
+            name: "Blood Urea",
+            category: "Kidney Function (KFT)",
+            unit: "mg/dL",
+            min: 15,
+            max: 40,
+            aliases: ["blood urea", "urea", "uremia"],
+          },
+          {
+            key: "kft_bun",
+            name: "Blood Urea Nitrogen (BUN)",
+            category: "Kidney Function (KFT)",
+            unit: "mg/dL",
+            min: 7,
+            max: 20,
+            aliases: ["bun", "urea nitrogen"],
+          },
+          {
+            key: "kft_egfr",
+            name: "Estimated GFR (eGFR - CKD-EPI)",
+            category: "Kidney Function (KFT)",
+            unit: "mL/min/1.73m2",
+            min: 90,
+            max: 140,
+            aliases: ["egfr", "gfr", "creatinine clearance", "ckd staging"],
+          },
+          {
+            key: "kft_uacr",
+            name: "Urine Albumin to Creatinine Ratio (UACR)",
+            category: "Kidney Function (KFT)",
+            unit: "mg/g",
+            min: 0,
+            max: 30,
+            aliases: [
+              "uacr",
+              "spot uacr",
+              "albuminuria",
+              "microalbumin creatinine",
+            ],
+          },
+          {
+            key: "kft_24hr_protein",
+            name: "24-Hour Urine Protein",
+            category: "Kidney Function (KFT)",
+            unit: "mg/24hr",
+            min: 0,
+            max: 150,
+            aliases: ["24hr urine protein", "proteinuria", "nephrotic"],
+          },
+          {
+            key: "kft_cystatin_c",
+            name: "Serum Cystatin C",
+            category: "Kidney Function (KFT)",
+            unit: "mg/L",
+            min: 0.55,
+            max: 1.05,
+            aliases: ["cystatin c", "sensitive gfr"],
+          },
+
+          // ==========================================
+          // 6. LIPID PROFILE & CARDIAC BIOMARKERS
+          // ==========================================
+          {
+            key: "lipid_panel",
+            name: "Lipid Profile (Complete Panel)",
+            category: "Lipid Profile",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: [
+              "lipid profile",
+              "cholesterol panel",
+              "lipids",
+              "cardiac risk",
+            ],
+          },
+          {
+            key: "lipid_cholesterol_total",
+            name: "Total Cholesterol",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 125,
+            max: 200,
+            aliases: [
+              "cholesterol",
+              "total cholesterol",
+              "hypercholesterolemia",
+            ],
+          },
+          {
+            key: "lipid_triglycerides",
+            name: "Serum Triglycerides (TG)",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 50,
+            max: 150,
+            aliases: ["triglycerides", "tg", "hypertriglyceridemia"],
+          },
+          {
+            key: "lipid_hdl",
+            name: "HDL Cholesterol (Good Cholesterol)",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 40,
+            max: 60,
+            aliases: ["hdl", "good cholesterol", "high density lipoprotein"],
+          },
+          {
+            key: "lipid_ldl",
+            name: "LDL Cholesterol (Direct / Calculated)",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 0,
+            max: 100,
+            aliases: ["ldl", "bad cholesterol", "low density lipoprotein"],
+          },
+          {
+            key: "lipid_vldl",
+            name: "VLDL Cholesterol",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 5,
+            max: 30,
+            aliases: ["vldl"],
+          },
+          {
+            key: "lipid_non_hdl",
+            name: "Non-HDL Cholesterol",
+            category: "Lipid Profile",
+            unit: "mg/dL",
+            min: 0,
+            max: 130,
+            aliases: ["non hdl", "atherogenic cholesterol"],
+          },
+          {
+            key: "lipid_tc_hdl_ratio",
+            name: "Total Cholesterol / HDL Ratio",
+            category: "Lipid Profile",
+            unit: "Ratio",
+            min: 0,
+            max: 4.5,
+            aliases: ["cholesterol hdl ratio", "tc/hdl"],
+          },
+          {
+            key: "card_trop_i",
+            name: "Troponin-I (High Sensitivity - hs-cTnI)",
+            category: "Cardiac Markers",
+            unit: "pg/mL",
+            min: 0,
+            max: 14,
+            aliases: [
+              "troponin",
+              "troponin i",
+              "hs ctnI",
+              "heart attack",
+              "myocardial infarction",
+            ],
+          },
+          {
+            key: "card_trop_t",
+            name: "Troponin-T (High Sensitivity - hs-cTnT)",
+            category: "Cardiac Markers",
+            unit: "pg/mL",
+            min: 0,
+            max: 14,
+            aliases: ["troponin t", "hs ctnt", "cardiac necrosis"],
+          },
+          {
+            key: "card_cpk_total",
+            name: "CPK Total (Creatine Phosphokinase)",
+            category: "Cardiac Markers",
+            unit: "U/L",
+            min: 30,
+            max: 200,
+            aliases: [
+              "cpk",
+              "ck",
+              "creatine kinase",
+              "rhabdomyolysis",
+              "muscle enzyme",
+            ],
+          },
+          {
+            key: "card_ck_mb",
+            name: "CK-MB (Creatine Kinase-MB)",
+            category: "Cardiac Markers",
+            unit: "ng/mL",
+            min: 0,
+            max: 5.0,
+            aliases: ["ck mb", "ck-mb", "cpk mb"],
+          },
+          {
+            key: "card_nt_probnp",
+            name: "NT-proBNP (N-Terminal pro-B-type Natriuretic Peptide)",
+            category: "Cardiac Markers",
+            unit: "pg/mL",
+            min: 0,
+            max: 125,
+            aliases: ["bnp", "nt probnp", "heart failure marker", "dyspnea"],
+          },
+          {
+            key: "card_homocysteine",
+            name: "Serum Homocysteine",
+            category: "Cardiac Markers",
+            unit: "umol/L",
+            min: 5,
+            max: 15,
+            aliases: ["homocysteine", "vascular risk", "thrombophilia"],
+          },
+          {
+            key: "card_lp_a",
+            name: "Lipoprotein (a) [Lp(a)]",
+            category: "Cardiac Markers",
+            unit: "mg/dL",
+            min: 0,
+            max: 30,
+            aliases: ["lp(a)", "lipoprotein a", "genetic cardiac risk"],
+          },
+          {
+            key: "card_apo_a1",
+            name: "Apolipoprotein A1 (Apo-A1)",
+            category: "Cardiac Markers",
+            unit: "mg/dL",
+            min: 119,
+            max: 240,
+            aliases: ["apo a1", "apolipoprotein a1"],
+          },
+          {
+            key: "card_apo_b",
+            name: "Apolipoprotein B (Apo-B)",
+            category: "Cardiac Markers",
+            unit: "mg/dL",
+            min: 55,
+            max: 130,
+            aliases: ["apo b", "apolipoprotein b"],
+          },
+
+          // ==========================================
+          // 7. THYROID & ENDOCRINE PROFILE
+          // ==========================================
+          {
+            key: "thy_profile",
+            name: "Thyroid Profile (Total T3, T4, TSH)",
+            category: "Thyroid Profile",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: ["thyroid profile", "tft", "t3 t4 tsh"],
+          },
+          {
+            key: "thy_tsh",
+            name: "TSH (Ultrasensitive Thyroid Stimulating Hormone)",
+            category: "Thyroid Profile",
+            unit: "uIU/mL",
+            min: 0.4,
+            max: 4.5,
+            aliases: ["tsh", "thyrotropin", "hypothyroid", "hyperthyroid"],
+          },
+          {
+            key: "thy_ft3",
+            name: "Free T3 (FT3)",
+            category: "Thyroid Profile",
+            unit: "pg/mL",
+            min: 2.0,
+            max: 4.4,
+            aliases: ["ft3", "free triiodothyronine"],
+          },
+          {
+            key: "thy_ft4",
+            name: "Free T4 (FT4)",
+            category: "Thyroid Profile",
+            unit: "ng/dL",
+            min: 0.8,
+            max: 1.8,
+            aliases: ["ft4", "free thyroxine"],
+          },
+          {
+            key: "thy_total_t3",
+            name: "Total Triiodothyronine (T3)",
+            category: "Thyroid Profile",
+            unit: "ng/dL",
+            min: 80,
+            max: 200,
+            aliases: ["total t3", "t3"],
+          },
+          {
+            key: "thy_total_t4",
+            name: "Total Thyroxine (T4)",
+            category: "Thyroid Profile",
+            unit: "ug/dL",
+            min: 5.0,
+            max: 12.0,
+            aliases: ["total t4", "t4"],
+          },
+          {
+            key: "thy_anti_tpo",
+            name: "Anti-TPO Antibodies (Thyroid Peroxidase)",
+            category: "Thyroid Profile",
+            unit: "IU/mL",
+            min: 0,
+            max: 34,
+            aliases: [
+              "anti tpo",
+              "hashimotos",
+              "thyroid antibodies",
+              "autoimmune thyroid",
+            ],
+          },
+          {
+            key: "thy_anti_tg",
+            name: "Anti-Thyroglobulin Antibodies (Anti-Tg)",
+            category: "Thyroid Profile",
+            unit: "IU/mL",
+            min: 0,
+            max: 115,
+            aliases: ["anti tg", "thyroglobulin antibodies"],
+          },
+          {
+            key: "thy_pth",
+            name: "Intact Parathyroid Hormone (iPTH)",
+            category: "Thyroid Profile",
+            unit: "pg/mL",
+            min: 15,
+            max: 65,
+            aliases: [
+              "pth",
+              "parathyroid",
+              "hyperparathyroidism",
+              "calcium regulation",
+            ],
+          },
+          {
+            key: "endo_cortisol_am",
+            name: "Serum Cortisol (Morning 8 AM)",
+            category: "Hormones & Endocrine",
+            unit: "ug/dL",
+            min: 6.2,
+            max: 19.4,
+            aliases: [
+              "cortisol",
+              "morning cortisol",
+              "stress hormone",
+              "adrenal",
+              "cushing",
+            ],
+          },
+          {
+            key: "endo_cortisol_pm",
+            name: "Serum Cortisol (Evening 4 PM)",
+            category: "Hormones & Endocrine",
+            unit: "ug/dL",
+            min: 2.3,
+            max: 11.9,
+            aliases: ["cortisol pm", "evening cortisol"],
+          },
+          {
+            key: "endo_acth",
+            name: "Plasma ACTH (Adrenocorticotropic Hormone)",
+            category: "Hormones & Endocrine",
+            unit: "pg/mL",
+            min: 7.2,
+            max: 63.3,
+            aliases: ["acth", "adrenocorticotropic", "pituitary hormone"],
+          },
+          {
+            key: "endo_prolactin",
+            name: "Serum Prolactin",
+            category: "Hormones & Endocrine",
+            unit: "ng/mL",
+            min: 3.0,
+            max: 25.0,
+            aliases: [
+              "prolactin",
+              "hyperprolactinemia",
+              "galactorrhea",
+              "pituitary",
+            ],
+          },
+          {
+            key: "endo_testosterone_total",
+            name: "Serum Testosterone (Total)",
+            category: "Hormones & Endocrine",
+            unit: "ng/dL",
+            min: 240,
+            max: 850,
+            aliases: [
+              "testosterone",
+              "total testosterone",
+              "androgen",
+              "hypogonadism",
+              "male hormone",
+            ],
+          },
+          {
+            key: "endo_testosterone_free",
+            name: "Free Testosterone",
+            category: "Hormones & Endocrine",
+            unit: "pg/mL",
+            min: 4.5,
+            max: 25.0,
+            aliases: ["free testosterone", "bioavailable testosterone"],
+          },
+          {
+            key: "endo_dhea_s",
+            name: "DHEA-S (Dehydroepiandrosterone Sulfate)",
+            category: "Hormones & Endocrine",
+            unit: "ug/dL",
+            min: 80,
+            max: 420,
+            aliases: ["dhea", "dhea-s", "pcos androgen", "adrenal androgen"],
+          },
+          {
+            key: "endo_amh",
+            name: "Anti-Mullerian Hormone (AMH)",
+            category: "Hormones & Endocrine",
+            unit: "ng/mL",
+            min: 1.0,
+            max: 4.0,
+            aliases: ["amh", "ovarian reserve", "fertility", "pcos"],
+          },
+          {
+            key: "endo_fsh",
+            name: "FSH (Follicle Stimulating Hormone)",
+            category: "Hormones & Endocrine",
+            unit: "mIU/mL",
+            min: 1.5,
+            max: 12.4,
+            aliases: [
+              "fsh",
+              "gonadotropin",
+              "ovulation",
+              "menopause",
+              "fertility",
+            ],
+          },
+          {
+            key: "endo_lh",
+            name: "LH (Luteinizing Hormone)",
+            category: "Hormones & Endocrine",
+            unit: "mIU/mL",
+            min: 1.7,
+            max: 8.6,
+            aliases: ["lh", "luteinizing hormone", "pcos ratio"],
+          },
+          {
+            key: "endo_estradiol",
+            name: "Serum Estradiol (E2)",
+            category: "Hormones & Endocrine",
+            unit: "pg/mL",
+            min: 20,
+            max: 350,
+            aliases: ["estrogen", "estradiol", "e2", "female hormone"],
+          },
+          {
+            key: "endo_progesterone",
+            name: "Serum Progesterone",
+            category: "Hormones & Endocrine",
+            unit: "ng/mL",
+            min: 0.1,
+            max: 25.0,
+            aliases: ["progesterone", "corpus luteum", "pregnancy hormone"],
+          },
+          {
+            key: "endo_beta_hcg",
+            name: "Beta-hCG (Total / Quantitative)",
+            category: "Hormones & Endocrine",
+            unit: "mIU/mL",
+            min: 0,
+            max: 5,
+            aliases: [
+              "hcg",
+              "beta hcg",
+              "pregnancy test quantitative",
+              "ectopic pregnancy",
+            ],
+          },
+          {
+            key: "endo_growth_hormone",
+            name: "Serum Growth Hormone (GH)",
+            category: "Hormones & Endocrine",
+            unit: "ng/mL",
+            min: 0.05,
+            max: 6.0,
+            aliases: ["growth hormone", "gh", "acromegaly", "short stature"],
+          },
+          {
+            key: "endo_igf_1",
+            name: "IGF-1 (Somatomedin-C)",
+            category: "Hormones & Endocrine",
+            unit: "ng/mL",
+            min: 115,
+            max: 300,
+            aliases: ["igf 1", "somatomedin", "growth hormone axis"],
+          },
+          {
+            key: "endo_17_ohp",
+            name: "17-Hydroxyprogesterone (17-OHP)",
+            category: "Hormones & Endocrine",
+            unit: "ng/dL",
+            min: 20,
+            max: 200,
+            aliases: ["17 ohp", "congenital adrenal hyperplasia", "cah"],
+          },
+
+          // ==========================================
+          // 8. VITAMINS, IRON & MINERAL DEFICIENCIES
+          // ==========================================
+          {
+            key: "vit_d3",
+            name: "Vitamin D3 (25-Hydroxy Cholecalciferol)",
+            category: "Vitamins & Minerals",
+            unit: "ng/mL",
+            min: 30.0,
+            max: 100.0,
+            aliases: [
+              "vitamin d",
+              "vit d3",
+              "25 oh vit d",
+              "bone health",
+              "deficiency",
+            ],
+          },
+          {
+            key: "vit_b12",
+            name: "Vitamin B12 (Cyanocobalamin)",
+            category: "Vitamins & Minerals",
+            unit: "pg/mL",
+            min: 211,
+            max: 911,
+            aliases: [
+              "vitamin b12",
+              "vit b12",
+              "cobalamin",
+              "neuropathy",
+              "megaloblastic",
+            ],
+          },
+          {
+            key: "vit_folic_acid",
+            name: "Serum Folic Acid (Folate)",
+            category: "Vitamins & Minerals",
+            unit: "ng/mL",
+            min: 4.0,
+            max: 20.0,
+            aliases: [
+              "folic acid",
+              "folate",
+              "macrocytic anemia",
+              "pregnancy vitamin",
+            ],
+          },
+          {
+            key: "vit_iron_profile",
+            name: "Iron Studies & TIBC Profile",
+            category: "Vitamins & Minerals",
+            unit: "Profile",
+            min: null,
+            max: null,
+            aliases: ["iron profile", "iron studies", "anemia workup"],
+          },
+          {
+            key: "vit_serum_iron",
+            name: "Serum Iron",
+            category: "Vitamins & Minerals",
+            unit: "ug/dL",
+            min: 60,
+            max: 170,
+            aliases: ["iron", "serum iron", "fe"],
+          },
+          {
+            key: "vit_tibc",
+            name: "Total Iron Binding Capacity (TIBC)",
+            category: "Vitamins & Minerals",
+            unit: "ug/dL",
+            min: 250,
+            max: 425,
+            aliases: ["tibc", "iron binding capacity"],
+          },
+          {
+            key: "vit_uibc",
+            name: "Unsaturated Iron Binding Capacity (UIBC)",
+            category: "Vitamins & Minerals",
+            unit: "ug/dL",
+            min: 155,
+            max: 355,
+            aliases: ["uibc"],
+          },
+          {
+            key: "vit_transferrin_sat",
+            name: "Transferrin Saturation (%)",
+            category: "Vitamins & Minerals",
+            unit: "%",
+            min: 20,
+            max: 50,
+            aliases: ["transferrin saturation", "iron saturation", "tsat"],
+          },
+          {
+            key: "vit_ferritin",
+            name: "Serum Ferritin",
+            category: "Vitamins & Minerals",
+            unit: "ng/mL",
+            min: 30,
+            max: 300,
+            aliases: [
+              "ferritin",
+              "iron stores",
+              "hemochromatosis",
+              "acute phase reactant",
+            ],
+          },
+          {
+            key: "vit_zinc",
+            name: "Serum Zinc",
+            category: "Vitamins & Minerals",
+            unit: "ug/dL",
+            min: 70,
+            max: 120,
+            aliases: ["zinc", "trace element", "immunity mineral", "hair loss"],
+          },
+          {
+            key: "vit_copper",
+            name: "Serum Copper",
+            category: "Vitamins & Minerals",
+            unit: "ug/dL",
+            min: 70,
+            max: 140,
+            aliases: ["copper", "wilsons disease", "ceruloplasmin"],
+          },
+          {
+            key: "vit_ceruloplasmin",
+            name: "Serum Ceruloplasmin",
+            category: "Vitamins & Minerals",
+            unit: "mg/dL",
+            min: 20,
+            max: 60,
+            aliases: ["ceruloplasmin", "copper protein"],
+          },
+
+          // ==========================================
+          // 9. FEVER & INFECTIOUS DISEASE SEROLOGY
+          // ==========================================
+          {
+            key: "inf_crp",
+            name: "C-Reactive Protein (CRP - Quantitative)",
+            category: "Infectious & Serology",
+            unit: "mg/L",
+            min: 0,
+            max: 5.0,
+            aliases: [
+              "crp",
+              "c reactive protein",
+              "inflammation marker",
+              "infection",
+            ],
+          },
+          {
+            key: "inf_hscrp",
+            name: "High Sensitivity CRP (hs-CRP)",
+            category: "Infectious & Serology",
+            unit: "mg/L",
+            min: 0,
+            max: 1.0,
+            aliases: ["hs crp", "hscrp", "cardiac inflammation"],
+          },
+          {
+            key: "inf_procalcitonin",
+            name: "Procalcitonin (PCT)",
+            category: "Infectious & Serology",
+            unit: "ng/mL",
+            min: 0,
+            max: 0.5,
+            aliases: [
+              "pct",
+              "procalcitonin",
+              "bacterial sepsis",
+              "icu infection",
+            ],
+          },
+          {
+            key: "inf_widal",
+            name: "Widal Slide / Tube Agglutination (Typhoid)",
+            category: "Infectious & Serology",
+            unit: "Titre",
+            min: null,
+            max: null,
+            aliases: ["widal", "typhoid", "enteric fever", "salmonella"],
+          },
+          {
+            key: "inf_typhidot",
+            name: "Typhidot (IgM & IgG Antibodies)",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["typhidot", "typhoid antibody", "salmonella typhi"],
+          },
+          {
+            key: "inf_dengue_ns1",
+            name: "Dengue NS1 Antigen (Rapid / ELISA)",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["dengue ns1", "ns1", "early dengue", "mosquito fever"],
+          },
+          {
+            key: "inf_dengue_serology",
+            name: "Dengue Serology (IgM & IgG Antibodies)",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["dengue igm", "dengue igg", "dengue antibody"],
+          },
+          {
+            key: "inf_malaria_antigen",
+            name: "Malaria Antigen Rapid Card (Pv / Pf)",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: [
+              "malaria",
+              "mp antigen",
+              "plasmodium vivax",
+              "plasmodium falciparum",
+            ],
+          },
+          {
+            key: "inf_chikungunya_igm",
+            name: "Chikungunya IgM Antibody",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["chikungunya", "chikingunya", "joint fever"],
+          },
+          {
+            key: "inf_leptospira_igm",
+            name: "Leptospira IgM Antibodies",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["leptospira", "weils disease", "monsoon fever"],
+          },
+          {
+            key: "inf_scrub_typhus",
+            name: "Scrub Typhus IgM Antibodies",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: [
+              "scrub typhus",
+              "orientia",
+              "mite borne typhus",
+              "eschar fever",
+            ],
+          },
+          {
+            key: "inf_blood_cs",
+            name: "Blood Culture & Sensitivity (Aerobic/Anaerobic)",
+            category: "Infectious & Serology",
+            unit: "Culture",
+            min: null,
+            max: null,
+            aliases: [
+              "blood culture",
+              "blood c/s",
+              "sepsis culture",
+              "bacteremia",
+            ],
+          },
+          {
+            key: "inf_urine_cs",
+            name: "Urine Culture & Sensitivity (Urine C/S)",
+            category: "Infectious & Serology",
+            unit: "Culture",
+            min: null,
+            max: null,
+            aliases: [
+              "urine culture",
+              "urine c/s",
+              "uti culture",
+              "antibiotic sensitivity",
+            ],
+          },
+          {
+            key: "inf_mantoux",
+            name: "Mantoux Test (Tuberculin Skin Test - PPD)",
+            category: "Infectious & Serology",
+            unit: "mm induration",
+            min: 0,
+            max: 10,
+            aliases: ["mantoux", "ppd", "tuberculin", "tb skin test"],
+          },
+          {
+            key: "inf_tb_gold",
+            name: "TB Gold / QuantiFERON (IGRA - Interferon Gamma)",
+            category: "Infectious & Serology",
+            unit: "IU/mL",
+            min: 0,
+            max: 0.35,
+            aliases: ["tb gold", "quantiferon", "igra", "latent tb"],
+          },
+          {
+            key: "inf_sputum_afb",
+            name: "Sputum for Acid Fast Bacilli (AFB Smear)",
+            category: "Infectious & Serology",
+            unit: "Microscopy",
+            min: null,
+            max: null,
+            aliases: [
+              "sputum afb",
+              "afb smear",
+              "tuberculosis smear",
+              "zn stain",
+            ],
+          },
+          {
+            key: "inf_gene_xpert",
+            name: "GeneXpert MTB/RIF (CBNAAT)",
+            category: "Infectious & Serology",
+            unit: "PCR Assay",
+            min: null,
+            max: null,
+            aliases: [
+              "cbnaat",
+              "genexpert",
+              "mtb pcr",
+              "rifampicin resistance",
+            ],
+          },
+
+          // ==========================================
+          // 10. VIRAL MARKERS & STD SCREENING
+          // ==========================================
+          {
+            key: "viral_hiv",
+            name: "HIV I & II (Antibody & p24 Antigen 4th Gen)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["hiv", "aids screening", "elisa hiv", "retro"],
+          },
+          {
+            key: "viral_hbsag",
+            name: "HBsAg (Hepatitis B Surface Antigen)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["hbsag", "hepatitis b", "australia antigen", "hbv"],
+          },
+          {
+            key: "viral_anti_hbs",
+            name: "Anti-HBs Antibody Titre (Hep B Immunity)",
+            category: "Viral & STD Markers",
+            unit: "mIU/mL",
+            min: 10,
+            max: 1000,
+            aliases: ["anti hbs", "hepatitis b vaccine titre", "hbv immunity"],
+          },
+          {
+            key: "viral_hcv",
+            name: "HCV (Hepatitis C Total Antibodies)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["hcv", "anti hcv", "hepatitis c"],
+          },
+          {
+            key: "viral_vdrl",
+            name: "VDRL / RPR (Syphilis Screening)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["vdrl", "rpr", "syphilis", "treponema"],
+          },
+          {
+            key: "viral_tpha",
+            name: "TPHA (Treponema Pallidum Hemagglutination)",
+            category: "Viral & STD Markers",
+            unit: "Titre",
+            min: null,
+            max: null,
+            aliases: ["tpha", "syphilis confirmatory"],
+          },
+          {
+            key: "viral_hav_igm",
+            name: "Hepatitis A Virus (HAV IgM)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["hav igm", "acute hepatitis a", "viral jaundice"],
+          },
+          {
+            key: "viral_hev_igm",
+            name: "Hepatitis E Virus (HEV IgM)",
+            category: "Viral & STD Markers",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["hev igm", "acute hepatitis e", "waterborne hepatitis"],
+          },
+          {
+            key: "viral_hsv_1_2",
+            name: "Herpes Simplex Virus (HSV 1 & 2 IgG/IgM)",
+            category: "Viral & STD Markers",
+            unit: "Index",
+            min: 0,
+            max: 0.9,
+            aliases: ["hsv", "herpes", "cold sores", "genital herpes"],
+          },
+
+          // ==========================================
+          // 11. IMMUNOLOGY, ALLERGY & AUTOIMMUNE
+          // ==========================================
+          {
+            key: "imm_ra_factor",
+            name: "Rheumatoid Factor (RA / RF - Quantitative)",
+            category: "Immunology & Autoimmune",
+            unit: "IU/mL",
+            min: 0,
+            max: 14,
+            aliases: [
+              "ra factor",
+              "rf",
+              "rheumatoid arthritis",
+              "joint swelling",
+            ],
+          },
+          {
+            key: "imm_anti_ccp",
+            name: "Anti-CCP Antibodies (Cyclic Citrullinated Peptide)",
+            category: "Immunology & Autoimmune",
+            unit: "U/mL",
+            min: 0,
+            max: 20,
+            aliases: ["anti ccp", "citrullinated peptide", "ra confirmatory"],
+          },
+          {
+            key: "imm_ana_ifa",
+            name: "ANA by IFA (Antinuclear Antibodies)",
+            category: "Immunology & Autoimmune",
+            unit: "Titre/Pattern",
+            min: null,
+            max: null,
+            aliases: ["ana", "antinuclear", "lupus", "sle", "ifa pattern"],
+          },
+          {
+            key: "imm_ana_profile",
+            name: "ANA Profile / Blot (16-Parameter Immunoblot)",
+            category: "Immunology & Autoimmune",
+            unit: "Immunoblot",
+            min: null,
+            max: null,
+            aliases: [
+              "ana profile",
+              "dsdna",
+              "smith antibody",
+              "ro",
+              "la",
+              "scl 70",
+              "jo 1",
+            ],
+          },
+          {
+            key: "imm_dsdna",
+            name: "Anti-dsDNA Antibodies",
+            category: "Immunology & Autoimmune",
+            unit: "IU/mL",
+            min: 0,
+            max: 25,
+            aliases: ["dsdna", "double stranded dna", "lupus flare"],
+          },
+          {
+            key: "imm_hla_b27",
+            name: "HLA-B27 by Flow Cytometry / PCR",
+            category: "Immunology & Autoimmune",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: [
+              "hla b27",
+              "ankylosing spondylitis",
+              "back pain genetic",
+              "sacroiliitis",
+            ],
+          },
+          {
+            key: "imm_aso_titre",
+            name: "ASO Titre (Anti-Streptolysin O)",
+            category: "Immunology & Autoimmune",
+            unit: "IU/mL",
+            min: 0,
+            max: 200,
+            aliases: ["aso", "aso titre", "strep infection", "rheumatic fever"],
+          },
+          {
+            key: "imm_ige_total",
+            name: "Total Serum IgE (Immunoglobulin E)",
+            category: "Immunology & Autoimmune",
+            unit: "IU/mL",
+            min: 0,
+            max: 100,
+            aliases: [
+              "ige",
+              "total ige",
+              "allergy marker",
+              "atopy",
+              "allergic rhinitis",
+            ],
+          },
+          {
+            key: "imm_anti_ttg_iga",
+            name: "Anti-Tissue Transglutaminase IgA (Anti-tTG)",
+            category: "Immunology & Autoimmune",
+            unit: "U/mL",
+            min: 0,
+            max: 10,
+            aliases: ["ttg", "anti ttg", "celiac disease", "gluten allergy"],
+          },
+          {
+            key: "imm_anca",
+            name: "ANCA (p-ANCA & c-ANCA)",
+            category: "Immunology & Autoimmune",
+            unit: "Titre",
+            min: null,
+            max: null,
+            aliases: ["anca", "p-anca", "c-anca", "vasculitis", "wegeners"],
+          },
+
+          // ==========================================
+          // 12. TUMOR & ONCOLOGY MARKERS
+          // ==========================================
+          {
+            key: "tumor_psa_total",
+            name: "PSA Total (Prostate Specific Antigen)",
+            category: "Tumor Markers",
+            unit: "ng/mL",
+            min: 0,
+            max: 4.0,
+            aliases: [
+              "psa",
+              "total psa",
+              "prostate cancer",
+              "bph",
+              "prostatitis",
+            ],
+          },
+          {
+            key: "tumor_psa_free",
+            name: "Free PSA & Free/Total PSA Ratio",
+            category: "Tumor Markers",
+            unit: "%",
+            min: 25,
+            max: 100,
+            aliases: ["free psa", "psa ratio"],
+          },
+          {
+            key: "tumor_cea",
+            name: "Carcinoembryonic Antigen (CEA)",
+            category: "Tumor Markers",
+            unit: "ng/mL",
+            min: 0,
+            max: 5.0,
+            aliases: ["cea", "colon cancer", "rectal cancer", "gi malignancy"],
+          },
+          {
+            key: "tumor_ca125",
+            name: "CA 125 (Ovarian Cancer Marker)",
+            category: "Tumor Markers",
+            unit: "U/mL",
+            min: 0,
+            max: 35,
+            aliases: [
+              "ca 125",
+              "ca125",
+              "ovarian cancer",
+              "endometriosis",
+              "pelvic mass",
+            ],
+          },
+          {
+            key: "tumor_ca19_9",
+            name: "CA 19-9 (Pancreatic & Biliary Marker)",
+            category: "Tumor Markers",
+            unit: "U/mL",
+            min: 0,
+            max: 37,
+            aliases: [
+              "ca 19-9",
+              "ca199",
+              "pancreatic cancer",
+              "cholangiocarcinoma",
+              "gallbladder",
+            ],
+          },
+          {
+            key: "tumor_ca15_3",
+            name: "CA 15-3 (Breast Cancer Marker)",
+            category: "Tumor Markers",
+            unit: "U/mL",
+            min: 0,
+            max: 30,
+            aliases: ["ca 15-3", "ca153", "breast cancer recurrence"],
+          },
+          {
+            key: "tumor_afp",
+            name: "Alpha-Fetoprotein (AFP)",
+            category: "Tumor Markers",
+            unit: "ng/mL",
+            min: 0,
+            max: 8.5,
+            aliases: [
+              "afp",
+              "alpha fetoprotein",
+              "liver cancer",
+              "hcc",
+              "teratoma",
+            ],
+          },
+          {
+            key: "tumor_spep",
+            name: "Serum Protein Electrophoresis (SPEP / M-Spike)",
+            category: "Tumor Markers",
+            unit: "Analysis",
+            min: null,
+            max: null,
+            aliases: ["spep", "m band", "multiple myeloma", "paraprotein"],
+          },
+          {
+            key: "tumor_free_light_chains",
+            name: "Serum Free Light Chains (Kappa / Lambda)",
+            category: "Tumor Markers",
+            unit: "mg/L",
+            min: null,
+            max: null,
+            aliases: ["sflc", "kappa lambda ratio", "myeloma light chains"],
+          },
+
+          // ==========================================
+          // 13. URINE & STOOL ROUTINE
+          // ==========================================
+          {
+            key: "urine_rm",
+            name: "Urine Routine & Microscopy (Urine R/M)",
+            category: "Urine & Stool",
+            unit: "Complete",
+            min: null,
+            max: null,
+            aliases: [
+              "urine routine",
+              "urinalysis",
+              "urine microscopy",
+              "urine r/m",
+            ],
+          },
+          {
+            key: "urine_ph",
+            name: "Urine pH",
+            category: "Urine & Stool",
+            unit: "pH",
+            min: 5.0,
+            max: 8.0,
+            aliases: ["urine ph", "acidic urine"],
+          },
+          {
+            key: "urine_specific_gravity",
+            name: "Urine Specific Gravity",
+            category: "Urine & Stool",
+            unit: "Gravity",
+            min: 1.005,
+            max: 1.03,
+            aliases: ["specific gravity", "sp gravity"],
+          },
+          {
+            key: "urine_pus_cells",
+            name: "Urine Pus Cells (Leucocytes)",
+            category: "Urine & Stool",
+            unit: "/hpf",
+            min: 0,
+            max: 5,
+            aliases: ["pus cells", "urine wbc", "pyuria", "uti pus"],
+          },
+          {
+            key: "urine_rbc",
+            name: "Urine RBCs (Red Blood Cells)",
+            category: "Urine & Stool",
+            unit: "/hpf",
+            min: 0,
+            max: 2,
+            aliases: ["urine rbc", "hematuria", "blood in urine"],
+          },
+          {
+            key: "urine_protein",
+            name: "Urine Protein / Albumin",
+            category: "Urine & Stool",
+            unit: "Dipstick",
+            min: null,
+            max: null,
+            aliases: ["urine protein", "urine albumin", "albuminuria"],
+          },
+          {
+            key: "urine_sugar",
+            name: "Urine Sugar / Glucose",
+            category: "Urine & Stool",
+            unit: "Dipstick",
+            min: null,
+            max: null,
+            aliases: ["urine sugar", "glycosuria"],
+          },
+          {
+            key: "urine_ketones",
+            name: "Urine Ketones (Acetoacetate)",
+            category: "Urine & Stool",
+            unit: "Dipstick",
+            min: null,
+            max: null,
+            aliases: [
+              "urine ketones",
+              "ketonuria",
+              "dka",
+              "diabetic ketoacidosis",
+            ],
+          },
+          {
+            key: "urine_bile_salts",
+            name: "Urine Bile Salts & Pigments",
+            category: "Urine & Stool",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["bile salts", "bile pigments", "obstructive jaundice"],
+          },
+          {
+            key: "urine_upt",
+            name: "Urine Pregnancy Test (UPT)",
+            category: "Urine & Stool",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["upt", "pregnancy test card", "urine hcg"],
+          },
+          {
+            key: "stool_rm",
+            name: "Stool Routine & Microscopy",
+            category: "Urine & Stool",
+            unit: "Microscopy",
+            min: null,
+            max: null,
+            aliases: [
+              "stool routine",
+              "stool r/m",
+              "ova cyst",
+              "ameba",
+              "giardia",
+            ],
+          },
+          {
+            key: "stool_occult_blood",
+            name: "Stool Occult Blood (FOBT)",
+            category: "Urine & Stool",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: [
+              "fobt",
+              "stool occult blood",
+              "gi bleeding",
+              "colon cancer screening",
+            ],
+          },
+          {
+            key: "stool_calprotectin",
+            name: "Fecal Calprotectin",
+            category: "Urine & Stool",
+            unit: "ug/g",
+            min: 0,
+            max: 50,
+            aliases: ["calprotectin", "ibd", "crohns", "ulcerative colitis"],
+          },
+
+          // ==========================================
+          // 14. PANCREATIC & GASTROINTESTINAL
+          // ==========================================
+          {
+            key: "gi_amylase",
+            name: "Serum Amylase",
+            category: "Bio Chemistry",
+            unit: "U/L",
+            min: 28,
+            max: 100,
+            aliases: ["amylase", "acute pancreatitis", "abdominal pain enzyme"],
+          },
+          {
+            key: "gi_lipase",
+            name: "Serum Lipase",
+            category: "Bio Chemistry",
+            unit: "U/L",
+            min: 13,
+            max: 60,
+            aliases: ["lipase", "pancreatitis specific enzyme"],
+          },
+          {
+            key: "gi_h_pylori_antigen",
+            name: "H. Pylori Stool Antigen / Serology",
+            category: "Infectious & Serology",
+            unit: "Qualitative",
+            min: null,
+            max: null,
+            aliases: ["h pylori", "helicobacter", "peptic ulcer", "gastritis"],
+          },
+
+          // ==========================================
+          // 15. RADIOLOGY & DIAGNOSTIC INVESTIGATIONS
+          // ==========================================
+          {
+            key: "diag_ecg",
+            name: "12-Lead Electrocardiogram (ECG)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "ecg",
+              "ekg",
+              "electrocardiogram",
+              "heart rhythm",
+              "ischemia",
+            ],
+          },
+          {
+            key: "diag_echo",
+            name: "2D Echocardiography & Color Doppler",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "echo",
+              "2d echo",
+              "echocardiogram",
+              "ejection fraction",
+              "valves",
+            ],
+          },
+          {
+            key: "diag_tmt",
+            name: "Treadmill Exercise Stress Test (TMT)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["tmt", "stress test", "treadmill test", "cardiac stress"],
+          },
+          {
+            key: "diag_cxr",
+            name: "Chest X-Ray (PA View)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "cxr",
+              "chest x ray",
+              "chest radiograph",
+              "lungs",
+              "cardiomegaly",
+            ],
+          },
+          {
+            key: "diag_usg_abdomen",
+            name: "USG Whole Abdomen & Pelvis",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "usg abdomen",
+              "ultrasound abdomen",
+              "sonography abdomen",
+              "fatty liver usg",
+            ],
+          },
+          {
+            key: "diag_usg_kub",
+            name: "USG KUB (Kidney, Ureter, Bladder)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["usg kub", "kidney ultrasound", "renal calculi", "stone"],
+          },
+          {
+            key: "diag_usg_neck",
+            name: "USG Neck & Thyroid",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["usg thyroid", "neck ultrasound", "thyroid nodule"],
+          },
+          {
+            key: "diag_ct_brain",
+            name: "CT Brain (Plain / Contrast)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["ct brain", "ct head", "stroke ct", "head injury"],
+          },
+          {
+            key: "diag_hrct_chest",
+            name: "HRCT Chest (High-Resolution CT)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "hrct",
+              "hrct chest",
+              "interstitial lung disease",
+              "corads",
+              "covid lung",
+            ],
+          },
+          {
+            key: "diag_mri_brain",
+            name: "MRI Brain with Diffusion (DWI)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["mri brain", "brain mri", "infarct mri", "seizure mri"],
+          },
+          {
+            key: "diag_mri_spine",
+            name: "MRI Spine (Lumbar / Cervical)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: [
+              "mri spine",
+              "lumbar spine mri",
+              "disc prolapse",
+              "sciatica",
+            ],
+          },
+          {
+            key: "diag_fibroscan",
+            name: "FibroScan (Liver Transient Elastography)",
+            category: "Radiology & Imaging",
+            unit: "kPa / dB/m",
+            min: null,
+            max: 7.0,
+            aliases: [
+              "fibroscan",
+              "liver stiffness",
+              "steatosis",
+              "cap score",
+              "cirrhosis",
+            ],
+          },
+          {
+            key: "diag_pft",
+            name: "Pulmonary Function Test (PFT / Spirometry)",
+            category: "Radiology & Imaging",
+            unit: "Report",
+            min: null,
+            max: null,
+            aliases: ["pft", "spirometry", "fev1", "asthma test", "copd test"],
+          },
+          {
+            key: "diag_dexa",
+            name: "DEXA Bone Mineral Density (BMD)",
+            category: "Radiology & Imaging",
+            unit: "T-Score",
+            min: -1.0,
+            max: null,
+            aliases: [
+              "dexa",
+              "bmd",
+              "bone density",
+              "osteopenia",
+              "osteoporosis",
+            ],
+          },
+        ];
+
+        const CATEGORY_ORDER = [
+          "Haematology",
+          "Diabetes & Glycemic",
+          "Bio Chemistry",
+          "Liver Function (LFT)",
+          "Kidney Function (KFT)",
+          "Lipid Profile",
+          "Thyroid Profile",
+          "Cardiac Markers",
+          "Hormones & Endocrine",
+          "Vitamins & Minerals",
+          "Infectious & Serology",
+          "Viral & STD Markers",
+          "Immunology & Autoimmune",
+          "Tumor Markers",
+          "Urine & Stool",
+          "Radiology & Imaging",
+          "Other Investigations",
+        ];
+
+        // Utility to generate a clean, safe input ID
+        function slugifyTestName(name) {
+          if (!name) return "custom_" + Date.now();
+          return (
+            "cust_" +
+            name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "_")
+              .replace(/^_+|_+$/g, "")
+              .substring(0, 32)
+          );
+        }
+
+        // Fast fuzzy search across Test Name, Category, and Aliases
+        function searchMedicalTestCatalog(query) {
+          const q = (query || "").trim().toLowerCase();
+          if (!q) return TEST_DATABASE;
+
+          return TEST_DATABASE.filter((test) => {
+            if (test.name.toLowerCase().includes(q)) return true;
+            if (test.category.toLowerCase().includes(q)) return true;
+            if (test.key.toLowerCase().includes(q)) return true;
+            if (
+              test.aliases &&
+              test.aliases.some(
+                (alias) => alias.includes(q) || q.includes(alias),
+              )
+            ) {
+              return true;
+            }
+            return false;
+          });
+        }
+
+        // Find a test in the catalog by key
+        function getTestByKey(key) {
+          return TEST_DATABASE.find((t) => t.key === key) || null;
+        }
+
+        // Find a test by exact name (case insensitive)
+        function getTestByName(name) {
+          if (!name) return null;
+          const lower = name.trim().toLowerCase();
+          return (
+            TEST_DATABASE.find((t) => t.name.toLowerCase() === lower) || null
+          );
+        }
+
+        // Reconstruct patient custom definitions from historical records
+        function reconstructPatientCustomDefs(labRecords) {
+          if (!window.currentPatientCustomDefs)
+            window.currentPatientCustomDefs = {};
+          (labRecords || []).forEach((rec) => {
+            if (rec.results && rec.results._custom_defs) {
+              Object.assign(
+                window.currentPatientCustomDefs,
+                rec.results._custom_defs,
+              );
+            }
+            if (rec.results) {
+              Object.keys(rec.results).forEach((k) => {
+                if (k === "_custom_defs") return;
+                if (!window.currentPatientCustomDefs[k]) {
+                  const catTest = getTestByKey(k);
+                  if (catTest) {
+                    window.currentPatientCustomDefs[k] = {
+                      key: catTest.key,
+                      name: catTest.name,
+                      category: catTest.category,
+                      unit: catTest.unit,
+                      min: catTest.min,
+                      max: catTest.max,
+                      isCustom: false,
+                    };
+                  }
+                }
+              });
+            }
+          });
+          return window.currentPatientCustomDefs;
+        }
+
+        // Export to window
+        window.COMPREHENSIVE_TEST_DATABASE = TEST_DATABASE;
+        window.LAB_TEST_CATEGORIES = CATEGORY_ORDER;
+        window.searchMedicalTestCatalog = searchMedicalTestCatalog;
+        window.getTestByKey = getTestByKey;
+        window.getTestByName = getTestByName;
+        window.slugifyTestName = slugifyTestName;
+        window.reconstructPatientCustomDefs = reconstructPatientCustomDefs;
+      })();
+
       window.openLabsEditor = async function (localToken, patientName) {
         activeRecordToken = localToken;
         document.getElementById("lab-modal-patient-name").textContent =
@@ -720,6 +3054,14 @@
         );
         const data = await response.json();
         window.directoryLabRecords = data.labs || [];
+
+        if (window.reconstructPatientCustomDefs) {
+          window.reconstructPatientCustomDefs(window.directoryLabRecords);
+        }
+        if (window.renderDynamicPatientTests) {
+          window.renderDynamicPatientTests();
+        }
+
         document.querySelectorAll('[id^="lab-"]').forEach((input) => {
           if (
             input.id !== "lab-date" &&
@@ -744,18 +3086,25 @@
             !["lab-date", "lab-local-token", "lab-search-input"].includes(
               input.id,
             )
-          )
+          ) {
             input.value = "";
+            checkRange(input);
+          }
         });
         Object.entries(record?.results || {}).forEach(([key, value]) => {
+          if (key === "_custom_defs") return;
           const input = document.getElementById(`lab-${key}`);
-          if (input) input.value = value;
+          if (input) {
+            input.value = value;
+            checkRange(input);
+          }
         });
       };
 
       window.onLabCategoryChange = function (category) {
         const searchInput = document.getElementById("lab-search-input");
-        if (searchInput) searchInput.value = category;
+        if (searchInput)
+          searchInput.value = category === "added" ? "" : category;
         filterLabFields();
       };
 
@@ -772,10 +3121,39 @@
             .toLowerCase() || "";
         const effectiveTerm = searchTerm || catFilter;
 
+        const isAddedFilter = catFilter === "added";
+        const dynamicSection = document.getElementById("dynamic-lab-section");
+        if (
+          dynamicSection &&
+          Object.keys(window.currentPatientCustomDefs || {}).length > 0
+        ) {
+          if (isAddedFilter) {
+            dynamicSection.style.display = "block";
+            dynamicSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          } else if (effectiveTerm) {
+            const matchDynamic =
+              effectiveTerm.includes("custom") ||
+              effectiveTerm.includes("added");
+            dynamicSection.style.display = matchDynamic ? "block" : "none";
+          } else {
+            dynamicSection.style.display = "block";
+          }
+        }
+
         let firstMatchedHeading = null;
         document.querySelectorAll(".lab-section-header").forEach((heading) => {
+          if (heading.closest("#dynamic-lab-section")) return;
           const grid = heading.nextElementSibling;
           if (!grid || !grid.classList.contains("lab-grid")) return;
+
+          if (isAddedFilter) {
+            heading.style.display = "none";
+            grid.style.display = "none";
+            return;
+          }
 
           const headingText = heading.textContent.toLowerCase();
           const headingMatches = Boolean(
@@ -804,18 +3182,39 @@
           }
         });
 
-        if (firstMatchedHeading && effectiveTerm) {
+        if (firstMatchedHeading && effectiveTerm && !isAddedFilter) {
           firstMatchedHeading.scrollIntoView({
             behavior: "smooth",
             block: "start",
           });
         }
       };
-      window.checkRange = function () {};
+
+      window.checkRange = function (input, minStr, maxStr) {
+        if (!input) return;
+        const val = parseFloat(input.value);
+        if (isNaN(val)) {
+          input.classList.remove("lab-input-abnormal");
+          return;
+        }
+        const min = parseFloat(
+          minStr !== undefined ? minStr : input.getAttribute("data-min"),
+        );
+        const max = parseFloat(
+          maxStr !== undefined ? maxStr : input.getAttribute("data-max"),
+        );
+        let isAbnormal = false;
+        if (!isNaN(min) && val < min) isAbnormal = true;
+        if (!isNaN(max) && val > max) isAbnormal = true;
+        if (isAbnormal) input.classList.add("lab-input-abnormal");
+        else input.classList.remove("lab-input-abnormal");
+      };
+
       window.updateChart = function () {};
 
       window.saveLabs = async function () {
         const date = document.getElementById("lab-date").value;
+        if (!date) return alert("Please select a date.");
         const results = {};
         document.querySelectorAll('[id^="lab-"]').forEach((input) => {
           if (
@@ -826,6 +3225,14 @@
           )
             results[input.id.replace("lab-", "")] = input.value.trim();
         });
+
+        if (
+          window.currentPatientCustomDefs &&
+          Object.keys(window.currentPatientCustomDefs).length > 0
+        ) {
+          results._custom_defs = window.currentPatientCustomDefs;
+        }
+
         const response = await fetch("/api/events/labs", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
