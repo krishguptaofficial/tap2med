@@ -32,7 +32,7 @@
           style="
             display: flex;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             align-items: center;
             justify-content: space-between;
           "
@@ -42,48 +42,61 @@
               type="date"
               id="lab-date"
               class="input"
-              style="max-width: 170px"
-              onchange="populateLabInputsForDate(this.value)"
+              style="max-width: 160px"
+              onchange="
+                if (window.Tap2MedLabs)
+                  window.Tap2MedLabs.populateInputsForDate(this.value);
+                else populateLabInputsForDate(this.value);
+              "
             />
             <button
-              onclick="saveLabs()"
+              id="btn-save-labs"
+              onclick="
+                if (window.Tap2MedLabs) window.Tap2MedLabs.saveLabs();
+                else saveLabs();
+              "
               class="btn btn-primary"
-              style="white-space: nowrap"
+              style="white-space: nowrap; font-weight: 700"
             >
               Save Values
             </button>
           </div>
           <button
             type="button"
-            onclick="openAddTestModal()"
+            onclick="
+              if (window.Tap2MedLabs) window.Tap2MedLabs.showCustomCreator();
+            "
             class="btn"
             style="
-              background: #0284c7;
-              color: white;
-              border: none;
+              background: #f0f9ff;
+              color: #0284c7;
+              border: 1.5px dashed #0284c7;
               font-weight: 700;
-              font-size: 12.5px;
+              font-size: 12px;
               display: flex;
               align-items: center;
               gap: 6px;
-              box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
-              padding: 7px 14px;
+              padding: 6px 14px;
               border-radius: 6px;
               cursor: pointer;
               white-space: nowrap;
             "
           >
-            <span style="font-size: 15px; font-weight: 900">+</span> Add Tests /
-            Investigations
+            <span>✨</span> + Add Custom Test
           </button>
         </div>
-        <div style="margin-bottom: 16px">
+
+        <!-- SMART TEST & CATEGORY SEARCH WITH AUTOCOMPLETE DROPDOWN -->
+        <div
+          style="position: relative; margin-bottom: 16px"
+          class="lab-search-container"
+        >
           <div
             style="
               display: flex;
               justify-content: space-between;
               align-items: center;
-              margin-bottom: 8px;
+              margin-bottom: 6px;
             "
           >
             <label
@@ -91,13 +104,13 @@
               style="
                 font-size: 12px;
                 font-weight: 700;
-                color: var(--text-muted);
+                color: #475569;
                 margin: 0;
               "
-              >Search tests or heading</label
+              >🔍 Search standard tests or specialty heading</label
             >
             <span style="font-size: 11px; color: #0284c7; font-weight: 600"
-              >Category:</span
+              >Category Filter:</span
             >
           </div>
           <div style="display: flex; gap: 8px">
@@ -105,9 +118,17 @@
               type="text"
               id="lab-search-input"
               class="input"
-              style="flex: 1.8"
-              placeholder="e.g. Haematology, Hb, FBS, TSH, Creatinine..."
-              oninput="filterLabFields()"
+              style="flex: 1.8; font-size: 13px"
+              placeholder="e.g. CBC, Zinc, Thyroid, Haematology, Troponin..."
+              oninput="
+                if (window.Tap2MedLabs)
+                  window.Tap2MedLabs.handleSearchInput(this.value);
+                else filterLabFields();
+              "
+              onfocus="
+                if (window.Tap2MedLabs) window.Tap2MedLabs.openSearchDropdown();
+              "
+              autocomplete="off"
             />
             <select
               id="lab-category-filter"
@@ -119,23 +140,54 @@
                 font-weight: 600;
               "
               onchange="
-                if (window.onLabCategoryChange)
+                if (window.Tap2MedLabs)
+                  window.Tap2MedLabs.selectCategoryHeading(this.value);
+                else if (window.onLabCategoryChange)
                   window.onLabCategoryChange(this.value);
               "
             >
               <option value="">All Categories ▾</option>
-              <option value="added">⭐ Added & Custom Tests</option>
-              <option value="haematology">Haematology</option>
-              <option value="diabetes">Diabetes Profile</option>
-              <option value="bio chemistry">Bio Chemistry</option>
-              <option value="lft">LFT (Liver Function)</option>
-              <option value="uacr">UACR</option>
-              <option value="urine">Urine Routine</option>
-              <option value="thyroid">Thyroid Profile</option>
-              <option value="pcos">PCOS</option>
-              <option value="others">Others</option>
+              <option value="Haematology">Haematology</option>
+              <option value="Diabetes & Glycemic">Diabetes & Glycemic</option>
+              <option value="Bio Chemistry">Bio Chemistry</option>
+              <option value="Liver Function (LFT)">Liver Function (LFT)</option>
+              <option value="Kidney Function (KFT)">
+                Kidney Function (KFT)
+              </option>
+              <option value="Lipid Profile">Lipid Profile</option>
+              <option value="Thyroid Profile">Thyroid Profile</option>
+              <option value="Cardiac Markers">Cardiac Markers</option>
+              <option value="Hormones & Endocrine">Hormones & Endocrine</option>
+              <option value="Vitamins & Minerals">Vitamins & Minerals</option>
+              <option value="Infectious & Serology">
+                Infectious & Serology
+              </option>
+              <option value="Urine & Stool">Urine & Stool</option>
+              <option value="Radiology & Imaging">Radiology & Imaging</option>
+              <option value="Other Investigations">Others</option>
             </select>
           </div>
+
+          <!-- Floating Autocomplete Dropdown Attached Directly to Search Bar -->
+          <div
+            id="lab-search-dropdown"
+            style="
+              display: none;
+              position: absolute;
+              top: 100%;
+              left: 0;
+              right: 0;
+              z-index: 10050;
+              margin-top: 4px;
+              background: white;
+              border: 1px solid #cbd5e1;
+              border-radius: 8px;
+              box-shadow:
+                0 10px 25px -5px rgba(0, 0, 0, 0.15),
+                0 8px 10px -6px rgba(0, 0, 0, 0.1);
+              overflow: hidden;
+            "
+          ></div>
         </div>
 
         <!-- ADDED & CUSTOM INVESTIGATIONS -->
@@ -1261,388 +1313,40 @@
             <option value="oth_vitd3">Vitamin D3</option>
           </optgroup>
         </select>
-        <div class="chart-container">
+        <div
+          class="chart-container"
+          style="
+            position: relative;
+            min-height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <div
+            id="chart-empty-state"
+            style="
+              display: none;
+              width: 100%;
+              height: 100%;
+              align-items: center;
+              justify-content: center;
+            "
+          ></div>
           <canvas id="labChart"></canvas>
         </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ADD TEST TO PATIENT PROFILE MODAL -->
-<div id="add-test-modal" class="backdrop" style="display: none; z-index: 10050">
-  <div
-    class="card"
-    style="
-      max-width: 680px;
-      width: 95%;
-      max-height: 88vh;
-      display: flex;
-      flex-direction: column;
-      padding: 0;
-      overflow: hidden;
-      border-radius: 12px;
-      box-shadow:
-        0 20px 25px -5px rgba(0, 0, 0, 0.2),
-        0 10px 10px -5px rgba(0, 0, 0, 0.1);
-      background: white;
-    "
-  >
-    <!-- Modal Header -->
-    <div
-      style="
-        padding: 16px 20px;
-        border-bottom: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f8fafc;
-      "
-    >
-      <div>
-        <h3
-          style="
-            margin: 0;
-            font-size: 17px;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          "
-        >
-          <span>🔍</span> Add Tests / Investigations
-        </h3>
-        <span style="font-size: 12px; color: var(--text-muted)">
-          Search from 250+ standard tests or create a custom test for this
-          patient
-        </span>
-      </div>
-      <button
-        onclick="closeAddTestModal()"
-        style="
-          background: none;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          color: #94a3b8;
-          line-height: 1;
-          padding: 4px;
-        "
-      >
-        &times;
-      </button>
-    </div>
-
-    <!-- Modal Body -->
-    <div style="padding: 16px 20px; overflow-y: auto; flex: 1">
-      <!-- Search Mode Bar -->
-      <div style="margin-bottom: 12px">
-        <div style="display: flex; gap: 8px">
-          <input
-            type="text"
-            id="add-test-search-input"
-            class="input"
-            style="
-              flex: 1;
-              font-size: 13.5px;
-              padding: 9px 12px;
-              border-radius: 6px;
-            "
-            placeholder="Search test name (e.g. Zinc, Troponin, D-Dimer, Amylase, CEA...)"
-            oninput="searchAddTestModal(this.value)"
-          />
-          <button
-            type="button"
-            onclick="toggleCustomTestDrawer()"
-            id="btn-toggle-custom-test"
-            class="btn btn-secondary"
-            style="
-              white-space: nowrap;
-              font-size: 12px;
-              background: #f8fafc;
-              border: 1px dashed #0284c7;
-              color: #0284c7;
-              font-weight: 700;
-              border-radius: 6px;
-            "
-          >
-            + Create Custom Test
-          </button>
-        </div>
-      </div>
-
-      <!-- Custom Test Creator Drawer (Collapsible) -->
-      <div
-        id="custom-test-drawer"
-        style="
-          display: none;
-          background: #f0fdf4;
-          border: 1.5px solid #86efac;
-          border-radius: 8px;
-          padding: 14px;
-          margin-bottom: 16px;
-        "
-      >
         <div
+          id="chart-summary-stats"
           style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            display: none;
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
           "
-        >
-          <strong
-            style="
-              font-size: 13px;
-              color: #15803d;
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            "
-          >
-            <span>✨</span> Create Custom Investigation
-          </strong>
-          <span
-            onclick="toggleCustomTestDrawer(false)"
-            style="
-              font-size: 11.5px;
-              color: #64748b;
-              cursor: pointer;
-              font-weight: 600;
-            "
-            >Cancel ✕</span
-          >
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1.4fr 1.1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-          "
-        >
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Test Name *</label
-            >
-            <input
-              type="text"
-              id="cust-test-name"
-              class="input"
-              placeholder="e.g. Serum Copper, ANA 1:160"
-              style="background: white"
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Category *</label
-            >
-            <select
-              id="cust-test-category"
-              class="input"
-              style="background: white; font-size: 12px"
-            >
-              <option value="Haematology">Haematology</option>
-              <option value="Diabetes & Glycemic">Diabetes & Glycemic</option>
-              <option value="Bio Chemistry">Bio Chemistry</option>
-              <option value="Liver Function (LFT)">Liver Function (LFT)</option>
-              <option value="Kidney Function (KFT)">
-                Kidney Function (KFT)
-              </option>
-              <option value="Lipid Profile">Lipid Profile</option>
-              <option value="Thyroid Profile">Thyroid Profile</option>
-              <option value="Cardiac Markers">Cardiac Markers</option>
-              <option value="Hormones & Endocrine">Hormones & Endocrine</option>
-              <option value="Vitamins & Minerals">Vitamins & Minerals</option>
-              <option value="Infectious & Serology">
-                Infectious & Serology
-              </option>
-              <option value="Viral & STD Markers">Viral & STD Markers</option>
-              <option value="Immunology & Autoimmune">
-                Immunology & Autoimmune
-              </option>
-              <option value="Tumor Markers">Tumor Markers</option>
-              <option value="Urine & Stool">Urine & Stool</option>
-              <option value="Radiology & Imaging">Radiology & Imaging</option>
-              <option value="Other Investigations" selected>
-                Other Investigations
-              </option>
-            </select>
-          </div>
-        </div>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-          "
-        >
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Unit</label
-            >
-            <input
-              type="text"
-              id="cust-test-unit"
-              class="input"
-              placeholder="e.g. mg/dL, pg/mL"
-              style="background: white"
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Normal Min</label
-            >
-            <input
-              type="number"
-              step="any"
-              id="cust-test-min"
-              class="input"
-              placeholder="Min"
-              style="background: white"
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Normal Max</label
-            >
-            <input
-              type="number"
-              step="any"
-              id="cust-test-max"
-              class="input"
-              placeholder="Max"
-              style="background: white"
-            />
-          </div>
-          <div>
-            <label
-              style="
-                font-size: 11px;
-                font-weight: 700;
-                color: #334155;
-                display: block;
-                margin-bottom: 3px;
-              "
-              >Value (Current Date)</label
-            >
-            <input
-              type="text"
-              id="cust-test-val"
-              class="input"
-              placeholder="Enter value"
-              style="background: white"
-            />
-          </div>
-        </div>
-        <div style="display: flex; justify-content: flex-end; gap: 8px">
-          <button
-            type="button"
-            onclick="submitCustomTest()"
-            class="btn"
-            style="
-              background: #16a34a;
-              color: white;
-              border: none;
-              font-size: 12px;
-              font-weight: 700;
-              padding: 7px 16px;
-              border-radius: 6px;
-              cursor: pointer;
-            "
-          >
-            + Save & Add to Patient Profile
-          </button>
-        </div>
+        ></div>
       </div>
-
-      <!-- Category Filter Pills for Search -->
-      <div
-        id="add-test-category-pills"
-        style="
-          display: flex;
-          gap: 6px;
-          overflow-x: auto;
-          padding-bottom: 8px;
-          margin-bottom: 10px;
-        "
-      >
-        <!-- Injected by JS -->
-      </div>
-
-      <!-- Results Container -->
-      <div
-        id="add-test-results-container"
-        style="
-          max-height: 380px;
-          overflow-y: auto;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          padding-right: 4px;
-        "
-      >
-        <!-- Tests list rendered here -->
-      </div>
-    </div>
-
-    <!-- Modal Footer -->
-    <div
-      style="
-        padding: 12px 20px;
-        border-top: 1px solid #e2e8f0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #f8fafc;
-      "
-    >
-      <span id="add-test-status-summary" style="font-size: 12px; color: #64748b"
-        >Showing standard tests</span
-      >
-      <button
-        onclick="closeAddTestModal()"
-        class="btn btn-secondary"
-        style="font-size: 12px; padding: 6px 16px; border-radius: 6px"
-      >
-        Done
-      </button>
     </div>
   </div>
 </div>
