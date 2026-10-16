@@ -70,15 +70,6 @@ function toggleSidebar() {
   localStorage.setItem("tap2med_sidebar_state", isClosed ? "closed" : "open");
 }
 
-
-
-
-
-
-
-
-
-
 function getShortCode(tokenNumber) {
   if (tokenNumber === undefined || tokenNumber === null) return "--";
   const letters = "ABCDEFGHJKLMNPQRSTUVWXYZ";
