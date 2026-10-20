@@ -3,15 +3,18 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel, field_validator
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
-from sqlalchemy import func
+from sqlalchemy import func, text
 import secrets
 import time
 import json
 from collections import defaultdict
 from typing import List, Optional
 import re
+import hmac
+import hashlib
+from app.config import settings
 
 
 from app.core import hashing
@@ -1136,4 +1139,121 @@ def update_visit_type(payload: VisitTypePayload, db: Session = Depends(get_db)):
         return {"status": "success"}
     except Exception as e:
         db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------------------------------------------------------------------------
+# HEALTH CREDIT SCORE (insurer underwriting)
+# ---------------------------------------------------------------------------
+
+def _score_band(score: int) -> str:
+    if score >= 750:
+        return "Excellent"
+    if score >= 650:
+        return "Good"
+    if score >= 550:
+        return "Fair"
+    return "Building"
+
+
+@router.get("/credit-score/{network_token}")
+def get_credit_score(network_token: str, db: Session = Depends(get_db)):
+    try:
+        events = db.query(models.Event).filter(
+            models.Event.network_token == network_token,
+            models.Event.status.in_(["waiting", "completed"]),
+        ).order_by(models.Event.timestamp.asc()).all()
+
+        if not events:
+            raise HTTPException(status_code=404, detail="No health record found for this token")
+
+        completed = [e for e in events if e.status == "completed"]
+        now = datetime.now(IST)
+
+        # 1. Completed visits (caps at 10)
+        visits_score = min(len(completed), 10) / 10
+
+        # 2. Follow-up adherence: of follow-ups already due, how many were kept
+        due = 0
+        kept = 0
+        for ev in completed:
+            days = ev.follow_up_days or 0
+            if days <= 0 or not ev.timestamp:
+                continue
+            deadline = ev.timestamp + timedelta(days=days + 3)
+            if deadline > now:
+                continue
+            due += 1
+            if any(
+                other.event_id != ev.event_id
+                and other.timestamp
+                and ev.timestamp < other.timestamp <= deadline
+                for other in events
+            ):
+                kept += 1
+        adherence_score = (kept / due) if due else 0.5  # neutral when nothing is due yet
+
+        # 3. Verified lab records (caps at 5)
+        lab_count = db.query(models.ClinicPatientLabRecord).filter(
+            models.ClinicPatientLabRecord.network_token == network_token
+        ).count()
+        labs_score = min(lab_count, 5) / 5
+
+        # 4. Pharmacy dispense ratio (uses Mahi's pharmacy_dispenses table)
+        rx_visits = db.query(func.count(func.distinct(models.Prescription.event_id))).filter(
+            models.Prescription.network_token == network_token
+        ).scalar() or 0
+
+        fulfilled_visits = db.execute(
+            text(
+                "SELECT COUNT(DISTINCT d.event_id) "
+                "FROM pharmacy_dispenses d "
+                "JOIN events e ON e.event_id = d.event_id "
+                "WHERE e.network_token = :t "
+                "AND d.status IN ('dispensed', 'routed_epharmacy')"
+            ),
+            {"t": network_token},
+        ).scalar() or 0
+
+        dispense_score = min(fulfilled_visits / rx_visits, 1.0) if rx_visits else 0.5
+
+        composite = (
+            0.25 * visits_score
+            + 0.30 * adherence_score
+            + 0.20 * labs_score
+            + 0.25 * dispense_score
+        )
+        score = max(300, min(900, 300 + round(600 * composite)))
+
+        payload = {
+            "subject_ref": hashlib.sha256(network_token.encode()).hexdigest()[:16],
+            "score": score,
+            "band": _score_band(score),
+            "components": {
+                "completed_visits": len(completed),
+                "followups_due": due,
+                "followups_kept": kept,
+                "verified_lab_records": lab_count,
+                "prescribed_visits": rx_visits,
+                "pharmacy_fulfilled_visits": fulfilled_visits,
+            },
+            "issued_at": now.strftime("%Y-%m-%dT%H:%M:%S%z"),
+        }
+
+        canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+        signature = hmac.new(
+            settings.SECRET_KEY.encode(),
+            canonical.encode(),
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            "status": "success",
+            **payload,
+            "signature": signature,
+            "algorithm": "HMAC-SHA256",
+            "pii_included": False,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

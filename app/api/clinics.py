@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import Optional
 from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import uuid
@@ -45,12 +46,22 @@ class ClinicCreate(BaseModel):
 def onboard_clinic(payload: ClinicCreate, db: Session = Depends(get_db)):
     try:
         new_clinic = crud.create_clinic(db=db, doctor_name=payload.doctor_name, clinic_name=payload.clinic_name)
+
+        # UHI 30-second onboarding: provisional identifiers
+        new_clinic.hfr_id = f"IN-HFR-{new_clinic.clinic_id.hex[:5].upper()}"
+        new_clinic.uhi_node_uri = f"uhi://tap2med.com/hspa/{new_clinic.clinic_id}"
+        db.commit()
+        db.refresh(new_clinic)
+
         return {
             "status": "success",
             "clinic_id": new_clinic.clinic_id,
-            "doctor": new_clinic.doctor_name
+            "doctor": new_clinic.doctor_name,
+            "hfr_id": new_clinic.hfr_id,
+            "uhi_node_uri": new_clinic.uhi_node_uri
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/queue/{clinic_id}")
@@ -244,6 +255,52 @@ def get_pharmacy_feed(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+class EpharmacyRoutePayload(BaseModel):
+    clinic_id: uuid.UUID
+    medicine_name: str
+    quantity: int = 1
+    local_token: Optional[str] = None
+    reason: Optional[str] = "Out of stock at local retail pharmacy"
+
+
+@router.post("/pharmacy/route-epharmacy")
+def route_epharmacy(payload: EpharmacyRoutePayload, db: Session = Depends(get_db)):
+    clinic = crud.get_clinic(db, payload.clinic_id)
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+    if payload.quantity < 1:
+        raise HTTPException(status_code=400, detail="quantity must be at least 1")
+
+    name = (payload.medicine_name or "").strip()
+    if not name:
+        raise HTTPException(status_code=400, detail="medicine_name is required")
+
+    try:
+        order = models.EpharmacyOrder(
+            clinic_id=payload.clinic_id,
+            local_token=payload.local_token,
+            medicine_name=name,
+            quantity=payload.quantity,
+            reason=payload.reason,
+            status="routed",
+            uhi_node_uri=clinic.uhi_node_uri,
+        )
+        db.add(order)
+        db.commit()
+        db.refresh(order)
+        return {
+            "status": "success",
+            "order_id": str(order.order_id),
+            "order_status": order.status,
+            "medicine": order.medicine_name,
+            "quantity": order.quantity,
+            "routed_via": "UHI E-Pharmacy",
+            "origin_node": order.uhi_node_uri,
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
 @router.get("/{clinic_id}/directory")
 def get_clinic_directory(clinic_id: uuid.UUID, date_filter: str = None, search: str = None, db: Session = Depends(get_db)):
     try:

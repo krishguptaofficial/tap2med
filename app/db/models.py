@@ -35,7 +35,8 @@ class Clinic(Base):
     extra_notes = Column(Text, nullable=True)
     save_patient_phone = Column(Boolean, nullable=False, default=False)
     print_header = Column(Boolean, nullable=False, default=True)
-    
+    hfr_id = Column(Text, nullable=True)
+    uhi_node_uri = Column(Text, nullable=True)
 class EmailVerification(Base):
     __tablename__ = "email_verifications"
     verification_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -94,6 +95,21 @@ class Prescription(Base):
 
     events = relationship("Event", back_populates="prescriptions")
 
+class EpharmacyOrder(Base):
+    __tablename__ = "epharmacy_orders"
+
+    order_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    local_token = Column(Text, nullable=True)
+    medicine_name = Column(Text, nullable=False)
+    quantity = Column(Integer, nullable=False, default=1)
+    reason = Column(Text, nullable=True)
+    status = Column(String, nullable=False, default="routed")
+    uhi_node_uri = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    clinic = relationship("Clinic")
+    
 class Patient(Base):
     __tablename__ = "patients"
 
