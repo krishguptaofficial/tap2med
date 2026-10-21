@@ -24,6 +24,7 @@ from app.db.database import get_db
 IST = ZoneInfo("Asia/Kolkata")
 router = APIRouter()
 lab_router = APIRouter(prefix="/integrations/labs", tags=["Partner Labs"])
+patient_router = APIRouter(prefix="/patient", tags=["Patient Portal"])
 
 rate_limit_records = defaultdict(list)
 
@@ -156,6 +157,10 @@ class VisitTypePayload(BaseModel):
     clinic_id: uuid.UUID
     local_token: str
     visit_type: str
+
+class PatientPortalLoginRequest(BaseModel):
+    phone: str
+    member_id: int = 0
 
 class LabPatientLookupRequest(BaseModel):
     phone: str
@@ -1137,4 +1142,59 @@ def update_visit_type(payload: VisitTypePayload, db: Session = Depends(get_db)):
         return {"status": "success"}
     except Exception as e:
         db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ---------------------------------------------------------------------------
+# PATIENT PORTAL — Ephemeral Token Resolution
+# ---------------------------------------------------------------------------
+
+@router.post("/patient/resolve-token")
+@patient_router.post("/resolve-token")
+def patient_resolve_token(payload: PatientPortalLoginRequest, db: Session = Depends(get_db)):
+    """
+    Zero-knowledge login: derive a deterministic network_token from phone + member_id.
+    The raw phone number is NEVER persisted to any database table or log.
+    """
+    try:
+        norm_phone = hashing.normalize_phone(payload.phone)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Phone Number")
+
+    try:
+        lookup_hash = hashing.generate_lookup_hash(norm_phone, payload.member_id)
+        patient = crud.get_patient_by_lookup(db, lookup_hash)
+
+        if not patient:
+            user_salt = hashing.generate_user_salt()
+            network_token = hashing.generate_network_token(norm_phone, payload.member_id, user_salt)
+            patient = crud.create_patient(
+                db=db,
+                patient_id=secrets.token_hex(16),
+                lookup_hash=lookup_hash,
+                user_salt=user_salt,
+                network_token=network_token,
+            )
+
+        # Build ABHA display ID
+        abha_id = (
+            patient.abha_token
+            if patient.abha_token
+            else f"91-{patient.network_token[:4].upper()}-{patient.network_token[4:8].upper()}-ABHA"
+        )
+
+        result = {
+            "status": "success",
+            "network_token": patient.network_token,
+            "patient_id": patient.patient_id,
+            "abha_id": abha_id,
+        }
+
+        # Immediately scrub memory before return
+        norm_phone = "DELETED"
+        payload.phone = "DELETED"
+
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

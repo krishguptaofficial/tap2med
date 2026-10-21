@@ -71,6 +71,7 @@ logger = logging.getLogger(__name__)
 
 app.include_router(events.router, prefix="/api/events") 
 app.include_router(events.lab_router, prefix="/api")
+app.include_router(events.patient_router, prefix="/api")
 app.include_router(clinics.router, prefix="/api/clinics")
 app.include_router(auth.router, prefix="/api/auth")
 app.include_router(consent.router, prefix="/api/consent")

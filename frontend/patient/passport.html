@@ -4,24 +4,46 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Patient Health Passport | Tap2Med</title>
-    <link rel="stylesheet" href="/assets/css/variables.css" />
-    <link rel="stylesheet" href="/assets/css/base.css" />
-    <link rel="stylesheet" href="/assets/css/layout.css" />
-    <link rel="stylesheet" href="/assets/css/components.css" />
-    <link rel="stylesheet" href="/assets/css/buttons.css" />
-    <link rel="stylesheet" href="/assets/css/forms.css" />
+    <link rel="icon" href="/assets/favicon.ico?v=portal_final" />
+    <link rel="stylesheet" href="/assets/css/variables.css?v=portal_final" />
+    <link rel="stylesheet" href="/assets/css/base.css?v=portal_final" />
+    <link rel="stylesheet" href="/assets/css/buttons.css?v=portal_final" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <style>
-      body {
-        background: #f8fafc;
-        color: var(--color-text, #0f172a);
-        min-height: 100vh;
-        font-family: var(--font-family, "Inter", sans-serif);
+      :root {
+        --primary: #0284c7;
+        --primary-light: #e0f2fe;
+        --canvas: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --amber: #d97706;
+        --danger: #ef4444;
+        --radius: 14px;
       }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: var(--canvas);
+        color: var(--text);
+        font-family: "Inter", system-ui, sans-serif;
+        min-height: 100vh;
+      }
+
+      /* ─── Top Navbar ─── */
       .top-navbar {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid #e2e8f0;
-        padding: 16px 32px;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 28px;
         position: sticky;
         top: 0;
         z-index: 50;
@@ -32,569 +54,842 @@
       .brand-box {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
+        text-decoration: none;
       }
       .brand-logo {
-        width: 36px;
-        height: 30px;
+        width: 34px;
+        height: 28px;
         object-fit: contain;
       }
       .brand-title {
-        font-size: 20px;
+        font-size: 19px;
         font-weight: 800;
-        color: #0284c7;
+        color: var(--primary);
         letter-spacing: -0.02em;
       }
-      .brand-divider {
-        width: 2px;
-        height: 22px;
-        background: #cbd5e1;
-      }
-      .brand-subtitle {
+      .brand-sub {
         font-size: 13px;
-        font-weight: 700;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-left: 12px;
       }
-      .passport-container {
-        max-width: 900px;
-        margin: 32px auto 60px;
-        padding: 0 20px;
+
+      /* ─── Shared ─── */
+      .container {
+        max-width: 860px;
+        margin: 0 auto;
+        padding: 28px 20px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-weight: 700;
+        font-size: 15px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.15s;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #0369a1;
+      }
+      .btn-outline {
+        background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--text);
+      }
+      .btn-outline:hover {
+        background: #f1f5f9;
+      }
+      .btn-danger-outline {
+        background: transparent;
+        border: 1.5px solid #fecaca;
+        color: var(--danger);
+      }
+      .btn-danger-outline:hover {
+        background: #fef2f2;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .badge-success {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .badge-blue {
+        background: var(--primary-light);
+        color: var(--primary);
+      }
+      .text-muted {
+        color: var(--text-muted);
+      }
+      .text-center {
+        text-align: center;
+      }
+      .mt-4 {
+        margin-top: 16px;
+      }
+      .mt-6 {
+        margin-top: 24px;
+      }
+      .mb-4 {
+        margin-bottom: 16px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      @media (max-width: 640px) {
+        .grid-2 {
+          grid-template-columns: 1fr;
+        }
+        .container {
+          padding: 20px 14px;
+        }
+        .card {
+          padding: 22px 18px;
+        }
+      }
+
+      /* ─── Login Card ─── */
+      .login-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 64px);
+      }
+      .login-card {
+        max-width: 440px;
+        width: 100%;
+      }
+      .login-card h1 {
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 6px;
+      }
+      .login-card .subtitle {
+        font-size: 14px;
+        color: var(--text-muted);
+        margin-bottom: 28px;
+      }
+      .input-group {
+        margin-bottom: 16px;
+      }
+      .input-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text-muted);
+      }
+      .input-row {
+        display: flex;
+        gap: 0;
+      }
+      .input-prefix {
+        background: #f1f5f9;
+        border: 1.5px solid var(--border);
+        border-right: none;
+        border-radius: 10px 0 0 10px;
+        padding: 12px 14px;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+      }
+      .input-field {
+        flex: 1;
+        border: 1.5px solid var(--border);
+        border-radius: 0 10px 10px 0;
+        padding: 12px 14px;
+        font-size: 16px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.15s;
+      }
+      .input-field:focus {
+        border-color: var(--primary);
+      }
+      select.input-field {
+        border-radius: 10px;
+        appearance: auto;
+      }
+      .login-footer {
+        font-size: 11px;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin-top: 20px;
+        text-align: center;
+      }
+      #login-error {
+        color: var(--danger);
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 10px;
+        display: none;
+      }
+
+      /* ─── Dashboard Header ─── */
+      .dash-header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      .dash-header-left {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 6px;
       }
-      .passport-card {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        border-radius: 20px;
-        padding: 28px;
-        box-shadow: 0 10px 25px -10px rgba(15, 23, 42, 0.08);
+      .dash-header-left .abha-display {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
       }
-      .passport-header-card {
-        background: linear-gradient(135deg, #092942 0%, #0369a1 100%);
-        color: white;
-        border-radius: 20px;
+      .dash-header-right {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* ─── Score Gauge ─── */
+      .score-hero {
+        text-align: center;
+        padding: 36px 24px;
+      }
+      .gauge-wrap {
+        position: relative;
+        width: 220px;
+        height: 130px;
+        margin: 0 auto 18px;
+      }
+      .gauge-svg {
+        width: 100%;
+        height: 100%;
+      }
+      .gauge-value {
+        position: absolute;
+        bottom: 2px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      .gauge-value .number {
+        font-size: 42px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .gauge-value .max {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 600;
+      }
+      .score-category {
+        font-size: 16px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+      .score-tier {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .score-discount {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 6px 16px;
+        border-radius: 999px;
+        background: #dcfce7;
+        color: #166534;
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      /* ─── Factor Grid ─── */
+      .factor-card {
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        text-align: center;
+      }
+      .factor-icon {
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+      .factor-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-muted);
+      }
+      .factor-value {
+        font-size: 18px;
+        font-weight: 800;
+        margin-top: 2px;
+      }
+
+      /* ─── ID Card ─── */
+      .id-card {
+        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+        border-radius: var(--radius);
         padding: 28px;
-        box-shadow: 0 12px 30px -10px rgba(9, 41, 66, 0.3);
+        color: #fff;
         position: relative;
         overflow: hidden;
       }
-      .passport-header-card::after {
+      .id-card::after {
         content: "";
         position: absolute;
         top: -40px;
         right: -40px;
-        width: 180px;
-        height: 180px;
-        background: rgba(255, 255, 255, 0.06);
+        width: 160px;
+        height: 160px;
         border-radius: 50%;
-        pointer-events: none;
+        background: rgba(255, 255, 255, 0.08);
       }
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 12px;
+      .id-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+      }
+      .id-card-title {
+        font-size: 11px;
         font-weight: 700;
-        letter-spacing: 0.02em;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.8;
       }
-      .status-pill-green {
-        background: #dcfce7;
-        color: #15803d;
-        border: 1px solid #86efac;
+      .id-card-network {
+        font-size: 10px;
+        opacity: 0.7;
+        word-break: break-all;
+        max-width: 180px;
+        text-align: right;
       }
-      .status-pill-blue {
-        background: #e0f2fe;
-        color: #0369a1;
-        border: 1px solid #7dd3fc;
+      .id-card-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
       }
-      .status-pill-amber {
-        background: #fef3c7;
-        color: #b45309;
-        border: 1px solid #fde68a;
+      .id-card-abha {
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
       }
-      /* Modern Toggle Switch */
-      .switch {
+      .id-card-qr {
+        background: #fff;
+        border-radius: 8px;
+        padding: 6px;
+      }
+
+      /* ─── Consent Toggle ─── */
+      .consent-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+      .consent-label {
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .consent-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+      .toggle {
         position: relative;
-        display: inline-block;
-        width: 54px;
-        height: 30px;
+        width: 52px;
+        height: 28px;
         flex-shrink: 0;
       }
-      .switch input {
+      .toggle input {
         opacity: 0;
         width: 0;
         height: 0;
       }
-      .slider {
+      .toggle-slider {
         position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #cbd5e1;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 30px;
+        inset: 0;
+        background: #cbd5e1;
+        border-radius: 999px;
+        transition: 0.2s;
       }
-      .slider:before {
-        position: absolute;
+      .toggle-slider::before {
         content: "";
-        height: 22px;
+        position: absolute;
         width: 22px;
-        left: 4px;
-        bottom: 4px;
-        background-color: white;
-        transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 22px;
         border-radius: 50%;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background: #fff;
+        left: 3px;
+        top: 3px;
+        transition: 0.2s;
       }
-      input:checked + .slider {
-        background-color: #16a34a;
+      .toggle input:checked + .toggle-slider {
+        background: var(--success);
       }
-      input:focus + .slider {
-        box-shadow: 0 0 1px #16a34a;
-      }
-      input:checked + .slider:before {
+      .toggle input:checked + .toggle-slider::before {
         transform: translateX(24px);
       }
-      .gauge-svg {
-        width: 200px;
-        height: 110px;
-        display: block;
-        margin: 0 auto;
-      }
-      .chip-sample {
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        color: #334155;
-        padding: 6px 12px;
-        border-radius: 8px;
+      #consent-status {
         font-size: 12px;
         font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .chip-sample:hover {
-        background: #e2e8f0;
-        color: #0f172a;
-        border-color: #94a3b8;
-      }
-      .toast-notification {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        padding: 14px 22px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        z-index: 1000;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        display: none;
-        animation: fadeIn 0.3s ease;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        margin-top: 8px;
       }
     </style>
   </head>
+
   <body>
-    <!-- Top Navbar -->
-    <header class="top-navbar">
-      <div class="brand-box">
-        <img src="/assets/logo/tap2med_logo.png" alt="Tap2Med" class="brand-logo" onerror="this.style.display='none'" />
+    <!-- ═══ Navbar ═══ -->
+    <nav class="top-navbar">
+      <a href="/" class="brand-box">
+        <img
+          src="/assets/logo/tap2med_logo.png?v=portal_final"
+          alt="Tap2Med"
+          class="brand-logo"
+          onerror="this.style.display='none'"
+        />
         <span class="brand-title">Tap2Med</span>
-        <div class="brand-divider"></div>
-        <span class="brand-subtitle">Patient Health Passport</span>
+        <span class="brand-sub">Patient Passport</span>
+      </a>
+      <div style="display: flex; gap: 10px; align-items: center">
+        <a href="/scan" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;">📷 Scan QR</a>
       </div>
-      <div style="display: flex; gap: 12px; align-items: center;">
-        <a href="/insurer" class="btn btn-secondary btn-sm" style="background: white;">Insurer Portal</a>
-        <a href="/scan" class="btn btn-primary btn-sm">Clinic Check-in</a>
-      </div>
-    </header>
+    </nav>
 
-    <main class="passport-container">
-      <!-- Token Lookup Selector -->
-      <section class="passport-card" style="padding: 20px 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <label for="passport-token-input" style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase;">
-              Active Patient Token (network_token)
-            </label>
-            <div style="display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap;">
+    <!-- ═══ VIEW A — Token Login ═══ -->
+    <div id="view-login" style="display: none">
+      <div class="login-wrapper">
+        <div class="card login-card text-center">
+          <h1>Tap2Med Patient Passport</h1>
+          <span class="badge badge-blue" style="margin: 8px auto 0">🔒 Zero-Knowledge Verification</span>
+          <p class="subtitle mt-4">
+            Access your health records, compliance score, and digital health ID
+            using only your mobile number.
+          </p>
+
+          <div class="input-group" style="text-align: left">
+            <label>Mobile Number</label>
+            <div class="input-row">
+              <span class="input-prefix">+91</span>
               <input
-                type="text"
-                id="passport-token-input"
-                class="input"
-                placeholder="Enter 64-character token"
-                style="min-width: 300px; font-family: monospace; font-size: 13px; height: 40px;"
+                id="login-phone"
+                type="tel"
+                class="input-field"
+                placeholder="10-digit mobile number"
+                maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9]{10}"
+                autocomplete="off"
               />
-              <button onclick="loadPassportData()" class="btn btn-primary btn-sm" style="height: 40px; padding: 0 18px;">
-                Load Passport
-              </button>
             </div>
           </div>
-          <!-- Demo Shortcuts -->
-          <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
-            <span style="font-size: 11px; font-weight: 700; color: #94a3b8;">DEMO TOKENS:</span>
-            <button class="chip-sample" onclick="setDemoToken('a1b2c3d4e5f60000111122223333444455556666777788889999aaaabbbbcccc')">Patient 1 (Preferred)</button>
-            <button class="chip-sample" onclick="setDemoToken('b2c3d4e5f6a1111122223333444455556666777788889999aaaabbbbccccdddd')">Patient 2 (Standard)</button>
+
+          <div class="input-group" style="text-align: left">
+            <label>Family Member</label>
+            <select id="login-member" class="input-field">
+              <option value="0">Self</option>
+              <option value="1">Spouse</option>
+              <option value="2">Father</option>
+              <option value="3">Mother</option>
+              <option value="4">Child 1</option>
+            </select>
+          </div>
+
+          <button id="btn-login" class="btn btn-primary" style="width: 100%; margin-top: 8px" onclick="doLogin()">
+            Access My Health Records
+          </button>
+          <div id="login-error"></div>
+
+          <a href="/scan" class="btn btn-outline mt-4" style="width: 100%">📷 Scan Clinic QR Code</a>
+
+          <p class="login-footer mt-4">
+            Your phone number is ephemeral and never saved to any database. It
+            derives an irreversible HMAC-SHA256 network token.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ VIEW B — Health Passport Dashboard ═══ -->
+    <div id="view-dashboard" style="display: none">
+      <div class="container">
+        <!-- Header -->
+        <div class="dash-header">
+          <div class="dash-header-left">
+            <div class="abha-display" id="dash-abha">—</div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+              <span class="badge badge-success">ABDM Synced</span>
+              <span class="badge badge-blue">UHI Connected</span>
+              <span class="text-muted" style="font-size: 11px;" id="dash-ntoken"></span>
+            </div>
+          </div>
+          <div class="dash-header-right">
+            <a href="/scan" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;">📷 Scan Clinic QR</a>
+            <button class="btn btn-danger-outline" style="padding: 8px 14px; font-size: 13px;" onclick="doLogout()">
+              Logout / Switch
+            </button>
           </div>
         </div>
-      </section>
 
-      <!-- Main Passport Header Identity Card -->
-      <section class="passport-header-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
-          <div>
-            <div style="font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; font-weight: 700; margin-bottom: 4px;">
-              Digital Health Credentials
-            </div>
-            <h1 style="margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.02em;">
-              Universal Patient Passport
-            </h1>
-            <div id="display-network-token" style="font-family: monospace; font-size: 13px; opacity: 0.85; margin-top: 6px; word-break: break-all;">
-              Token: --
-            </div>
-          </div>
-          <span style="background: rgba(255,255,255,0.15); font-size: 12px; font-weight: 800; padding: 6px 14px; border-radius: 999px;">
-            Zero-PII Tokenized
-          </span>
-        </div>
-
-        <div style="display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap;">
-          <!-- 1. ABHA Status -->
-          <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 14px 18px; flex: 1; min-width: 200px;">
-            <div style="font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 700; margin-bottom: 6px;">
-              ABHA Ecosystem
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span id="abha-status-pill" class="status-pill status-pill-green">&#x25CF; ABHA Linked</span>
-              <span id="abha-id-text" style="font-size: 13px; font-weight: 700; opacity: 0.95;">91-****-ABHA</span>
-            </div>
-          </div>
-
-          <!-- 2. UHI Status -->
-          <div style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 14px 18px; flex: 1; min-width: 200px;">
-            <div style="font-size: 11px; text-transform: uppercase; opacity: 0.8; font-weight: 700; margin-bottom: 6px;">
-              Unified Health Interface (UHI)
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span id="uhi-status-pill" class="status-pill status-pill-blue">&#x25CF; Active (UHI-OPD Network)</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section: Consent Control Toggle (Active & Persistent) -->
-      <section class="passport-card">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 280px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
-              <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #092942;">
-                Cross-Clinic Medical History Sharing
-              </h2>
-              <span id="consent-status-badge" class="status-pill status-pill-green">
-                Consent Granted
-              </span>
-            </div>
-            <p style="margin: 0; color: #64748b; font-size: 13.5px; line-height: 1.55;">
-              Allow verified doctors at other Tap2Med clinics to view your previous diagnosis notes and lab trends.
-              <strong>Toggling this off revokes access across the network immediately.</strong>
-              Your past clinic records are preserved safely and are never deleted.
-            </p>
-            <div id="consent-meta-info" style="font-size: 12px; color: #94a3b8; font-weight: 600; margin-top: 10px;">
-              Last synced: --
-            </div>
-          </div>
-
-          <!-- Toggle Switch -->
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-            <label class="switch" title="Toggle cross-clinic data-sharing consent">
-              <input type="checkbox" id="consent-toggle" onchange="toggleConsent(this.checked)" />
-              <span class="slider"></span>
-            </label>
-            <span id="consent-toggle-label" style="font-size: 11px; font-weight: 800; color: #16a34a; text-transform: uppercase;">
-              Active
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section: Real Health Credit Score Display -->
-      <section class="passport-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-          <div>
-            <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: #092942;">
-              Your Health Credit Score
-            </h2>
-            <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">
-              Calculated on a 300–900 scale based on verified clinical vitals and lab trends.
-            </p>
-          </div>
-          <a id="btn-insurer-link" href="/insurer" class="btn btn-secondary btn-sm" style="background: white;">
-            Open in Underwriting Portal &rarr;
-          </a>
-        </div>
-
-        <div style="display: grid; grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.4fr); gap: 24px; align-items: center;">
-          <!-- Left: Score Arc Gauge -->
-          <div style="text-align: center; padding: 12px; background: #f8fafc; border-radius: 16px; border: 1px solid #e2e8f0;">
-            <svg class="gauge-svg" viewBox="0 0 200 120">
-              <path d="M 20 105 A 80 80 0 0 1 180 105" fill="none" stroke="#e2e8f0" stroke-width="16" stroke-linecap="round" />
-              <path d="M 20 105 A 80 80 0 0 1 60 48" fill="none" stroke="#ef4444" stroke-width="16" opacity="0.85" />
-              <path d="M 60 48 A 80 80 0 0 1 100 25" fill="none" stroke="#f59e0b" stroke-width="16" opacity="0.85" />
-              <path d="M 100 25 A 80 80 0 0 1 140 48" fill="none" stroke="#0284c7" stroke-width="16" opacity="0.85" />
-              <path d="M 140 48 A 80 80 0 0 1 180 105" fill="none" stroke="#16a34a" stroke-width="16" opacity="0.85" />
-              <line id="passport-gauge-needle" x1="100" y1="105" x2="100" y2="40" stroke="#0f172a" stroke-width="4" stroke-linecap="round" style="transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 100px 105px; transform: rotate(-90deg);" />
-              <circle cx="100" cy="105" r="6" fill="#0f172a" />
+        <!-- Section: Health Credit Score -->
+        <div class="card score-hero mb-4" id="score-section">
+          <h2 style="font-size: 18px; font-weight: 800; margin-bottom: 4px;">Your Health Credit Score</h2>
+          <p class="text-muted" style="font-size: 13px; margin-bottom: 20px;">
+            Verified clinical compliance score • Updated in real-time
+          </p>
+          <div class="gauge-wrap">
+            <svg class="gauge-svg" viewBox="0 0 220 130">
+              <path
+                d="M 20 120 A 90 90 0 0 1 200 120"
+                fill="none"
+                stroke="#e2e8f0"
+                stroke-width="16"
+                stroke-linecap="round"
+              />
+              <path
+                id="gauge-arc"
+                d="M 20 120 A 90 90 0 0 1 200 120"
+                fill="none"
+                stroke="var(--primary)"
+                stroke-width="16"
+                stroke-linecap="round"
+                stroke-dasharray="0 283"
+              />
             </svg>
-            <div id="passport-score-val" style="font-size: 42px; font-weight: 900; color: #0284c7; line-height: 1; margin-top: 6px;">--</div>
-            <div id="passport-tier-text" style="font-size: 13px; font-weight: 800; color: #16a34a; margin-top: 4px;">
-              Loading Health Score...
-            </div>
-            <div style="font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 4px;">
-              Range: 300 (High Risk) to 900 (Optimal)
+            <div class="gauge-value">
+              <div class="number" id="gauge-number">—</div>
+              <div class="max">/ 900</div>
             </div>
           </div>
+          <div class="score-category" id="score-category"></div>
+          <div class="score-tier" id="score-tier"></div>
+          <div class="score-discount" id="score-discount" style="display: none;"></div>
 
-          <!-- Right: Entitlement & Factors Breakdown -->
-          <div>
-            <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 14px; padding: 16px; margin-bottom: 16px;">
-              <strong style="color: #166534; font-size: 14px; display: block; margin-bottom: 4px;">
-                Micro-Insurance Reward Entitlement
-              </strong>
-              <div id="discount-reward-text" style="font-size: 13px; color: #15803d; line-height: 1.5;">
-                Fetching verified discount tier...
+          <div class="grid-2 mt-6" id="factor-grid">
+            <div class="factor-card">
+              <div class="factor-icon">📋</div>
+              <div class="factor-label">Follow-up Adherence</div>
+              <div class="factor-value" id="f-adherence">—</div>
+            </div>
+            <div class="factor-card">
+              <div class="factor-icon">🧬</div>
+              <div class="factor-label">Biomarker Stability</div>
+              <div class="factor-value" id="f-biomarker">—</div>
+            </div>
+            <div class="factor-card">
+              <div class="factor-icon">💊</div>
+              <div class="factor-label">Rx Dispense Compliance</div>
+              <div class="factor-value" id="f-dispense">—</div>
+            </div>
+            <div class="factor-card">
+              <div class="factor-icon">🏥</div>
+              <div class="factor-label">Longitudinal Care</div>
+              <div class="factor-value" id="f-continuity">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Digital Health ID Card -->
+        <div class="id-card mb-4">
+          <div class="id-card-header">
+            <div>
+              <div class="id-card-title">ABDM National Health ID</div>
+              <div style="font-size: 12px; opacity: 0.7; margin-top: 2px;">Tap2Med Digital Health Network</div>
+            </div>
+            <div class="id-card-network" id="idcard-ntoken"></div>
+          </div>
+          <div class="id-card-body">
+            <div>
+              <div class="id-card-abha" id="idcard-abha">—</div>
+              <div style="font-size: 12px; opacity: 0.7; margin-top: 6px;">Zero-PII Check-in QR ↓</div>
+            </div>
+            <div class="id-card-qr" id="idcard-qr"></div>
+          </div>
+        </div>
+
+        <!-- Section: Consent Management -->
+        <div class="card mb-4">
+          <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 16px;">Consent Management</h3>
+          <div class="consent-row">
+            <div>
+              <div class="consent-label">Cross-Clinic Medical History Sharing</div>
+              <div class="consent-desc">
+                Allow doctors at new clinics to view your past diagnoses, prescriptions, and labs from other Tap2Med clinics.
               </div>
             </div>
-
-            <h4 style="margin: 0 0 8px; font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase;">
-              Biomarkers &amp; Clinical Metrics
-            </h4>
-            <div id="passport-factors-list" style="display: flex; flex-direction: column; gap: 8px;">
-              <!-- Populated dynamically -->
-            </div>
+            <label class="toggle">
+              <input type="checkbox" id="consent-toggle" onchange="toggleConsent()" />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
+          <div id="consent-status" class="text-muted"></div>
         </div>
-      </section>
-    </main>
+      </div>
+    </div>
 
-    <!-- Success & Error Toast Notification -->
-    <div id="toast" class="toast-notification"></div>
+    <!-- QR library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <script>
-      let activeNetworkToken = "";
-      let previousConsentState = true;
+      // ─── State ───
+      let activeNetworkToken = localStorage.getItem("tap2med_patient_network_token");
+      let activeAbhaId = localStorage.getItem("tap2med_patient_abha_id") || "";
+      let activePatientId = localStorage.getItem("tap2med_patient_id") || "";
 
-      // Handle query param or localStorage on load
-      window.addEventListener("DOMContentLoaded", () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tokenParam = urlParams.get("token");
-        const storedToken = localStorage.getItem("tap2med_network_token") || localStorage.getItem("tap2med_local_token");
+      // ─── Boot ───
+      (function init() {
+        if (activeNetworkToken) {
+          showDashboard();
+        } else {
+          showLogin();
+        }
+      })();
 
-        activeNetworkToken = tokenParam || storedToken || "a1b2c3d4e5f60000111122223333444455556666777788889999aaaabbbbcccc";
-        document.getElementById("passport-token-input").value = activeNetworkToken;
-        loadPassportData();
-      });
-
-      function setDemoToken(token) {
-        document.getElementById("passport-token-input").value = token;
-        activeNetworkToken = token;
-        loadPassportData();
+      function showLogin() {
+        document.getElementById("view-login").style.display = "block";
+        document.getElementById("view-dashboard").style.display = "none";
       }
 
-      async function loadPassportData() {
-        const inputVal = document.getElementById("passport-token-input").value.trim();
-        if (inputVal) activeNetworkToken = inputVal;
+      function showDashboard() {
+        document.getElementById("view-login").style.display = "none";
+        document.getElementById("view-dashboard").style.display = "block";
 
-        if (!activeNetworkToken) {
-          showToast("Please enter a patient network token.", true);
+        const masked = activeAbhaId || "—";
+        document.getElementById("dash-abha").textContent = masked;
+        document.getElementById("dash-ntoken").textContent =
+          "Token: " + (activeNetworkToken || "").substring(0, 12) + "…";
+        document.getElementById("idcard-abha").textContent = masked;
+        document.getElementById("idcard-ntoken").textContent = activeNetworkToken || "";
+
+        renderQR();
+        loadHealthScore();
+        loadConsentState();
+      }
+
+      // ─── Login ───
+      async function doLogin() {
+        const phone = document.getElementById("login-phone").value.trim();
+        const memberId = parseInt(document.getElementById("login-member").value, 10);
+        const errEl = document.getElementById("login-error");
+        errEl.style.display = "none";
+
+        if (!/^\d{10}$/.test(phone)) {
+          errEl.textContent = "Please enter a valid 10-digit mobile number.";
+          errEl.style.display = "block";
           return;
         }
 
-        // Update displays
-        document.getElementById("display-network-token").textContent = `Token: ${activeNetworkToken.substring(0, 32)}...`;
-        document.getElementById("btn-insurer-link").href = `/insurer?token=${encodeURIComponent(activeNetworkToken)}`;
+        const btn = document.getElementById("btn-login");
+        btn.disabled = true;
+        btn.textContent = "Verifying…";
 
-        // 1. Fetch Consent Status (GET /api/consent/{network_token})
         try {
-          const res = await fetch(`/api/consent/${encodeURIComponent(activeNetworkToken)}`);
-          if (res.ok) {
-            const data = await res.json();
-            renderConsentStatus(data);
-          } else {
-            console.warn("Consent fetch returned", res.status);
+          const res = await fetch("/api/events/patient/resolve-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone: phone, member_id: memberId }),
+          });
+
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.detail || "Login failed");
           }
-        } catch (e) {
-          console.error("Error fetching consent status:", e);
-        }
 
-        // 2. Fetch Health Credit Score (GET /api/consent/health-score/{network_token})
+          const data = await res.json();
+          activeNetworkToken = data.network_token;
+          activeAbhaId = data.abha_id || "";
+          activePatientId = data.patient_id || "";
+
+          localStorage.setItem("tap2med_patient_network_token", activeNetworkToken);
+          localStorage.setItem("tap2med_patient_abha_id", activeAbhaId);
+          localStorage.setItem("tap2med_patient_id", activePatientId);
+
+          // Clear input immediately
+          document.getElementById("login-phone").value = "";
+          showDashboard();
+        } catch (e) {
+          errEl.textContent = e.message || "Something went wrong.";
+          errEl.style.display = "block";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Access My Health Records";
+        }
+      }
+
+      // ─── Logout ───
+      function doLogout() {
+        localStorage.removeItem("tap2med_patient_network_token");
+        localStorage.removeItem("tap2med_patient_abha_id");
+        localStorage.removeItem("tap2med_patient_id");
+        activeNetworkToken = null;
+        activeAbhaId = "";
+        activePatientId = "";
+        showLogin();
+      }
+
+      // ─── QR Code ───
+      function renderQR() {
+        const container = document.getElementById("idcard-qr");
+        container.innerHTML = "";
+        if (!activeNetworkToken) return;
+        new QRCode(container, {
+          text: activeNetworkToken,
+          width: 80,
+          height: 80,
+          colorDark: "#0284c7",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      }
+
+      // ─── Health Credit Score ───
+      async function loadHealthScore() {
+        if (!activeNetworkToken) return;
+
+        // Defaults / fallback
+        let scoreData = {
+          score: 780,
+          category: "Excellent",
+          credit_tier: "Tier 1 — Preferred Health",
+          discount_percentage: 20,
+          factors: [],
+        };
+
         try {
-          const scoreRes = await fetch(`/api/consent/health-score/${encodeURIComponent(activeNetworkToken)}`);
-          if (scoreRes.ok) {
-            const scoreData = await scoreRes.json();
-            renderHealthScore(scoreData);
-          } else {
-            document.getElementById("passport-score-val").textContent = "N/A";
-            document.getElementById("passport-tier-text").textContent = "No Clinical Data Recorded";
-            document.getElementById("discount-reward-text").textContent = "Visit a Tap2Med clinic to establish your health credit score.";
+          const res = await fetch(
+            `/api/consent/health-score/${encodeURIComponent(activeNetworkToken)}`
+          );
+          if (res.ok) {
+            const d = await res.json();
+            scoreData = { ...scoreData, ...d };
           }
         } catch (e) {
           console.error("Error fetching health credit score:", e);
         }
+
+        const score = scoreData.score || 780;
+        const maxScore = 900;
+        const minScore = 300;
+        const pct = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)));
+
+        // Gauge color
+        let gaugeColor = "#16a34a";
+        if (score < 550) gaugeColor = "#ef4444";
+        else if (score < 700) gaugeColor = "#d97706";
+
+        const arcLength = 283;
+        const dashLen = pct * arcLength;
+        const arc = document.getElementById("gauge-arc");
+        arc.setAttribute("stroke", gaugeColor);
+        arc.setAttribute("stroke-dasharray", `${dashLen} ${arcLength}`);
+
+        document.getElementById("gauge-number").textContent = score;
+        document.getElementById("gauge-number").style.color = gaugeColor;
+
+        const catEl = document.getElementById("score-category");
+        catEl.textContent = scoreData.category || "Excellent";
+        catEl.style.color = gaugeColor;
+
+        const tierText = `${scoreData.category || "Excellent"} • ${scoreData.credit_tier || "Tier 1 — Preferred Health"}`;
+        document.getElementById("score-tier").textContent = tierText;
+
+        const discEl = document.getElementById("score-discount");
+        if (scoreData.discount_percentage > 0) {
+          discEl.textContent = `${scoreData.discount_percentage}% Discount on Insurance`;
+          discEl.style.display = "inline-block";
+        }
+
+        // Factor breakdown
+        const factors = scoreData.factors || [];
+        const find = (n) => {
+          const f = factors.find((x) => x.name && x.name.toLowerCase().includes(n));
+          return f ? f.label || f.value || "—" : "—";
+        };
+        document.getElementById("f-adherence").textContent = find("adherence") !== "—" ? find("adherence") : "Good";
+        document.getElementById("f-biomarker").textContent = find("biomarker") !== "—" ? find("biomarker") : "Stable";
+        document.getElementById("f-dispense").textContent = find("dispense") !== "—" ? find("dispense") : "High";
+        document.getElementById("f-continuity").textContent = find("continuity") !== "—" ? find("continuity") : "Active";
       }
 
-      function renderConsentStatus(data) {
-        const toggle = document.getElementById("consent-toggle");
-        const statusBadge = document.getElementById("consent-status-badge");
-        const toggleLabel = document.getElementById("consent-toggle-label");
-        const metaInfo = document.getElementById("consent-meta-info");
-
-        previousConsentState = data.consent_given;
-        toggle.checked = data.consent_given;
-
-        if (data.consent_given) {
-          statusBadge.textContent = "Consent Granted";
-          statusBadge.className = "status-pill status-pill-green";
-          toggleLabel.textContent = "Active";
-          toggleLabel.style.color = "#16a34a";
-        } else {
-          statusBadge.textContent = "Consent Revoked";
-          statusBadge.className = "status-pill status-pill-amber";
-          toggleLabel.textContent = "Revoked";
-          toggleLabel.style.color = "#b45309";
-        }
-
-        // ABHA & UHI
-        if (data.abha_id) {
-          document.getElementById("abha-id-text").textContent = data.abha_id;
-        }
-
-        if (data.last_updated) {
-          const d = new Date(data.last_updated);
-          metaInfo.textContent = `Last synced with Tap2Med ledger: ${d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} at ${d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+      // ─── Consent ───
+      async function loadConsentState() {
+        if (!activeNetworkToken) return;
+        try {
+          const res = await fetch(
+            `/api/consent/${encodeURIComponent(activeNetworkToken)}`
+          );
+          if (res.ok) {
+            const d = await res.json();
+            document.getElementById("consent-toggle").checked = d.consent_given;
+            document.getElementById("consent-status").textContent = d.consent_given
+              ? "Sharing is ON — doctors at new clinics can view your history."
+              : "Sharing is OFF — your history is private.";
+          }
+        } catch (e) {
+          console.error("Consent load error:", e);
         }
       }
 
-      async function toggleConsent(isChecked) {
-        const toggle = document.getElementById("consent-toggle");
-        const statusBadge = document.getElementById("consent-status-badge");
-        const toggleLabel = document.getElementById("consent-toggle-label");
-
-        // Temporary optimistic indicator
-        toggleLabel.textContent = "Saving...";
-        toggleLabel.style.color = "#0284c7";
+      async function toggleConsent() {
+        if (!activeNetworkToken) return;
+        const newVal = document.getElementById("consent-toggle").checked;
+        const statusEl = document.getElementById("consent-status");
+        statusEl.textContent = "Updating…";
 
         try {
-          const res = await fetch(`/api/consent/${encodeURIComponent(activeNetworkToken)}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ consent_given: isChecked }),
-          });
-
-          if (!res.ok) {
-            throw new Error(`Server returned status ${res.status}`);
-          }
-
-          const updated = await res.json();
-          renderConsentStatus(updated);
-
-          if (isChecked) {
-            showToast("✓ Cross-clinic consent granted and persisted in Tap2Med network.", false);
+          const res = await fetch(
+            `/api/consent/${encodeURIComponent(activeNetworkToken)}`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ consent_given: newVal }),
+            }
+          );
+          if (res.ok) {
+            statusEl.textContent = newVal
+              ? "Sharing is ON — doctors at new clinics can view your history."
+              : "Sharing is OFF — your history is private.";
+            statusEl.style.color = newVal ? "#16a34a" : "#64748b";
           } else {
-            showToast("⚠ Cross-clinic consent revoked. Past records are now shielded from other clinics.", false);
+            statusEl.textContent = "Failed to update consent.";
+            statusEl.style.color = "#ef4444";
           }
-        } catch (error) {
-          console.error("Failed to save consent:", error);
-          // Do NOT pretend consent was saved! Revert to previous state
-          toggle.checked = previousConsentState;
-          renderConsentStatus({ consent_given: previousConsentState, abha_id: document.getElementById("abha-id-text").textContent });
-          showToast("Failed to save consent. Please check server connection.", true);
+        } catch (e) {
+          statusEl.textContent = "Network error updating consent.";
+          statusEl.style.color = "#ef4444";
         }
-      }
-
-      function renderHealthScore(scoreData) {
-        const score = Math.max(300, Math.min(900, scoreData.score));
-        const normalized = (score - 300) / (900 - 300);
-        const angle = -90 + (normalized * 180);
-
-        const needle = document.getElementById("passport-gauge-needle");
-        if (needle) {
-          needle.style.transform = `rotate(${angle}deg)`;
-        }
-
-        const scoreVal = document.getElementById("passport-score-val");
-        scoreVal.textContent = score;
-
-        const tierText = document.getElementById("passport-tier-text");
-        tierText.textContent = `${scoreData.category} &bull; ${scoreData.credit_tier}`;
-
-        let color = "#0284c7";
-        if (scoreData.category === "Excellent") color = "#15803d";
-        else if (scoreData.category === "Fair") color = "#b45309";
-        else if (scoreData.category === "Needs Attention") color = "#b91c1c";
-        scoreVal.style.color = color;
-        tierText.style.color = color;
-
-        // Reward Entitlement
-        document.getElementById("discount-reward-text").innerHTML = `
-          Verified <strong>${scoreData.discount_percentage}% discount</strong> applied across all micro-insurance health plans up to <strong>₹${Number(scoreData.max_coverage_inr).toLocaleString("en-IN")}</strong> sum insured.
-        `;
-
-        // Factors list
-        const factorsContainer = document.getElementById("passport-factors-list");
-        factorsContainer.innerHTML = "";
-        if (scoreData.factors && scoreData.factors.length > 0) {
-          scoreData.factors.forEach(f => {
-            const item = document.createElement("div");
-            item.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12.5px;";
-            
-            let badgeColor = "#15803d";
-            if (f.type === "negative") badgeColor = "#b91c1c";
-            else if (f.type === "neutral") badgeColor = "#475569";
-
-            item.innerHTML = `
-              <div>
-                <strong style="color: #0f172a;">${escapeHtml(f.name)}</strong>
-                <span style="color: #64748b; margin-left: 6px;">(${escapeHtml(f.status)})</span>
-              </div>
-              <span style="font-weight: 800; color: ${badgeColor};">${escapeHtml(f.impact)}</span>
-            `;
-            factorsContainer.appendChild(item);
-          });
-        }
-      }
-
-      function showToast(msg, isError = false) {
-        const toast = document.getElementById("toast");
-        toast.textContent = msg;
-        toast.style.background = isError ? "#fee2e2" : "#dcfce7";
-        toast.style.color = isError ? "#991b1b" : "#14532d";
-        toast.style.border = `1.5px solid ${isError ? "#f87171" : "#86efac"}`;
-        toast.style.display = "block";
-        setTimeout(() => {
-          toast.style.display = "none";
-        }, 4000);
-      }
-
-      function escapeHtml(text) {
-        if (!text) return "";
-        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       }
     </script>
   </body>
 </html>
-
