@@ -36,8 +36,25 @@ def startup_check():
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
+            try:
+                if conn.dialect.name == "postgresql":
+                    conn.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS hfr_id TEXT;"))
+                    conn.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS uhi_node_uri TEXT;"))
+                    conn.commit()
+                else:
+                    from sqlalchemy import inspect
+                    inspector = inspect(conn)
+                    if "clinics" in inspector.get_table_names():
+                        cols = {c["name"] for c in inspector.get_columns("clinics")}
+                        if "hfr_id" not in cols:
+                            conn.execute(text("ALTER TABLE clinics ADD COLUMN hfr_id TEXT;"))
+                        if "uhi_node_uri" not in cols:
+                            conn.execute(text("ALTER TABLE clinics ADD COLUMN uhi_node_uri TEXT;"))
+                        conn.commit()
+            except Exception as mig_err:
+                logger.warning(f"Startup schema check note: {mig_err}")
 
-        logger.info("Database connection successful.")
+        logger.info("Database connection and schema checks successful.")
 
     except Exception as e:
         logger.error(f"Database connection failed: {e}")

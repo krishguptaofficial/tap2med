@@ -24,6 +24,8 @@ def fix_db(db: Session = Depends(get_db)):
         "ALTER TABLE clinics ADD COLUMN extra_notes TEXT;",
         "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS save_patient_phone BOOLEAN NOT NULL DEFAULT FALSE;",
         "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS print_header BOOLEAN NOT NULL DEFAULT TRUE;",
+        "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS hfr_id TEXT;",
+        "ALTER TABLE clinics ADD COLUMN IF NOT EXISTS uhi_node_uri TEXT;",
         "ALTER TABLE clinic_patient_records ADD COLUMN IF NOT EXISTS phone_number TEXT;",
         "ALTER TABLE events ADD COLUMN advice TEXT;",
         "ALTER TABLE events ADD COLUMN follow_up_days INTEGER DEFAULT 3;"

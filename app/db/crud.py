@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from app.core import hashing
 from app.db import models
 import uuid
@@ -21,9 +22,37 @@ def create_clinic(db : Session, doctor_name : str, clinic_name : str ):
     db.refresh(db_clinic)
     return db_clinic
 
+
+def ensure_clinic_columns(db: Session):
+    try:
+        bind = db.get_bind()
+        if bind and bind.dialect.name == "postgresql":
+            db.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS hfr_id TEXT;"))
+            db.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS uhi_node_uri TEXT;"))
+            db.commit()
+        else:
+            from sqlalchemy import inspect
+            inspector = inspect(bind)
+            if "clinics" in inspector.get_table_names():
+                cols = {c["name"] for c in inspector.get_columns("clinics")}
+                if "hfr_id" not in cols:
+                    db.execute(text("ALTER TABLE clinics ADD COLUMN hfr_id TEXT;"))
+                if "uhi_node_uri" not in cols:
+                    db.execute(text("ALTER TABLE clinics ADD COLUMN uhi_node_uri TEXT;"))
+                db.commit()
+    except Exception:
+        db.rollback()
+
 def get_clinic(db: Session, clinic_id: uuid.UUID):
-  
-    return db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    try:
+        return db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    except Exception as e:
+        db.rollback()
+        err_msg = str(e).lower()
+        if "hfr_id" in err_msg or "uhi_node_uri" in err_msg or "undefinedcolumn" in err_msg:
+            ensure_clinic_columns(db)
+            return db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+        raise
 
 
 def create_patient_event(db: Session, clinic_id: uuid.UUID, local_token: str, network_token: str, daily_token_number: int, member_id: int = 0):
@@ -139,7 +168,15 @@ def set_clinic_password(db: Session, clinic_id: uuid.UUID, password_hash: str):
 
 
 def get_clinic_by_email(db: Session, email: str):
-    return db.query(models.Clinic).filter(models.Clinic.doctor_email == email).first()
+    try:
+        return db.query(models.Clinic).filter(models.Clinic.doctor_email == email).first()
+    except Exception as e:
+        db.rollback()
+        err_msg = str(e).lower()
+        if "hfr_id" in err_msg or "uhi_node_uri" in err_msg or "undefinedcolumn" in err_msg:
+            ensure_clinic_columns(db)
+            return db.query(models.Clinic).filter(models.Clinic.doctor_email == email).first()
+        raise
 
 
 def authenticate_clinic(db: Session, email: str, verify_password_fn):

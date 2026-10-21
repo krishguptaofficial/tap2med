@@ -93,7 +93,16 @@ def set_password(payload: SetPasswordPayload, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(payload: LoginPayload, db: Session = Depends(get_db)):
-    clinic = crud.get_clinic_by_email(db, str(payload.email))
+    try:
+        clinic = crud.get_clinic_by_email(db, str(payload.email))
+    except Exception as e:
+        db.rollback()
+        err_msg = str(e).lower()
+        if "hfr_id" in err_msg or "uhi_node_uri" in err_msg or "undefinedcolumn" in err_msg:
+            crud.ensure_clinic_columns(db)
+            clinic = crud.get_clinic_by_email(db, str(payload.email))
+        else:
+            raise
     if not clinic or not clinic.password_hash:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
