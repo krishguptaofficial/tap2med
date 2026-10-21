@@ -1,6 +1,6 @@
 // load_layouts.js
 (async function loadSharedLayouts() {
-  const version = "20261018_2";
+  const version = "final_fix";
   const layouts = [
     `/assets/layouts/billing.html?v=${version}`,
     `/assets/layouts/labs.html?v=${version}`,

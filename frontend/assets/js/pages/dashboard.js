@@ -783,8 +783,8 @@ async function loadQueue() {
               <span style="color: var(--success-color); font-size: 12px;">Completed</span>
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-              <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">Edit</button>
-              <button onclick="rePrintRx('${patient.local_token}', '${patient.patient_name || "Patient"}', '${patient.display_id || "--"}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">Print</button>
+              <button onclick="editRx('${patient.local_token}', ${patient.daily_token_number}, '${(patient.patient_name || "Patient").replace(/'/g, "\\'")}', '${(patient.display_id || "--").replace(/'/g, "\\'")}')" class="btn btn-ghost" style="padding: 4px 8px; font-size: 11px; color: #ef4444; border: 1px dashed #fca5a5;">Edit</button>
+              <button onclick="rePrintRx('${patient.local_token}', '${(patient.patient_name || "Patient").replace(/'/g, "\\'")}', '${(patient.display_id || "--").replace(/'/g, "\\'")}')" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px; background: white;">Print</button>
             </div>
           `;
           completedList.appendChild(card);
@@ -1095,8 +1095,8 @@ window.rePrintRx = async function (localToken, patientName, displayId) {
 
     // Package the data for the new Print Engine
     const printData = {
-      clinicName: clinicName.textContent || "Clinic",
-      doctorName: doctorName.textContent || "Doctor",
+      clinicName: (clinicName && clinicName.textContent) || document.getElementById("clinic-name")?.textContent || "Clinic",
+      doctorName: (doctorName && doctorName.textContent) || document.getElementById("doc-name")?.textContent || "Doctor",
       patientName: patientName || "Patient",
       displayId: displayId || "--",
       date: today,
@@ -1284,8 +1284,8 @@ async function completeVisit() {
 
     if (localStorage.getItem("tap2med_auto_print") === "true") {
       const printData = {
-        clinicName: clinicName.textContent || "Clinic",
-        doctorName: doctorName.textContent || "Doctor",
+        clinicName: (clinicName && clinicName.textContent) || document.getElementById("clinic-name")?.textContent || "Clinic",
+        doctorName: (doctorName && doctorName.textContent) || document.getElementById("doc-name")?.textContent || "Doctor",
         patientName: window.currentPatientName || "Patient",
         displayId: window.currentDisplayId || "--",
         date: today,
