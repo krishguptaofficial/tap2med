@@ -1,4 +1,4 @@
-from sqlalchemy import DateTime, ForeignKey, Column, String, Text, Integer, Boolean, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Column, String, Text, Integer, Boolean, UniqueConstraint, Float
 from sqlalchemy.orm import DeclarativeMeta, relationship
 from app.db.database import Base
 from sqlalchemy.sql import func
@@ -212,4 +212,18 @@ class PrescriptionSubstitution(Base):
 
     original_medicine = Column(Text, nullable=False)
     substitute_medicine = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class ConnectedPharmacy(Base):
+    __tablename__ = "connected_pharmacies"
+
+    pharmacy_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    name = Column(Text, nullable=False)
+    address = Column(Text, nullable=True)
+    phone = Column(Text, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

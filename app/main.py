@@ -37,6 +37,10 @@ def startup_check():
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
             try:
+                models.Base.metadata.create_all(bind=conn)
+            except Exception as table_err:
+                logger.warning(f"Metadata create_all check note: {table_err}")
+            try:
                 if conn.dialect.name == "postgresql":
                     conn.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS hfr_id TEXT;"))
                     conn.execute(text("ALTER TABLE clinics ADD COLUMN IF NOT EXISTS uhi_node_uri TEXT;"))

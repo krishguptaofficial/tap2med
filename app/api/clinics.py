@@ -4,6 +4,7 @@ from typing import Optional
 from sqlalchemy.orm.attributes import flag_modified
 from pydantic import BaseModel
 import uuid
+import math
 import json
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -623,3 +624,120 @@ def record_substitution(clinic_id: uuid.UUID, payload: SubstitutionPayload, db: 
     )
     db.commit()
     return {"status": "success"}
+
+
+
+class ConnectedPharmacyRegister(BaseModel):
+    name: str
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    latitude: float
+    longitude: float
+
+
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371000.0  # Earth radius in meters
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = (
+        math.sin(delta_phi / 2.0) ** 2
+        + math.cos(phi1) * math.cos(phi2) * (math.sin(delta_lambda / 2.0) ** 2)
+    )
+    c = 2.0 * math.atan2(math.sqrt(a), math.sqrt(1.0 - a))
+    return R * c
+
+
+@router.post("/{clinic_id}/pharmacies/register")
+def register_connected_pharmacy(
+    clinic_id: uuid.UUID,
+    payload: ConnectedPharmacyRegister,
+    db: Session = Depends(get_db),
+):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+
+    try:
+        models.ConnectedPharmacy.__table__.create(db.get_bind(), checkfirst=True)
+    except Exception:
+        pass
+
+    pharmacy = models.ConnectedPharmacy(
+        clinic_id=clinic_id,
+        name=payload.name.strip(),
+        address=payload.address.strip() if payload.address else None,
+        phone=payload.phone.strip() if payload.phone else None,
+        latitude=payload.latitude,
+        longitude=payload.longitude,
+        is_active=True,
+    )
+    db.add(pharmacy)
+    db.commit()
+    db.refresh(pharmacy)
+
+    return {
+        "status": "success",
+        "pharmacy_id": str(pharmacy.pharmacy_id),
+        "clinic_id": str(pharmacy.clinic_id),
+        "pharmacy": {
+            "pharmacy_id": str(pharmacy.pharmacy_id),
+            "clinic_id": str(pharmacy.clinic_id),
+            "name": pharmacy.name,
+            "address": pharmacy.address,
+            "phone": pharmacy.phone,
+            "latitude": pharmacy.latitude,
+            "longitude": pharmacy.longitude,
+            "is_active": pharmacy.is_active,
+            "created_at": pharmacy.created_at.isoformat() if pharmacy.created_at else None,
+        },
+    }
+
+
+@router.get("/{clinic_id}/pharmacies/nearby")
+def get_nearby_connected_pharmacies(
+    clinic_id: uuid.UUID,
+    lat: float,
+    lng: float,
+    radius_meters: float = 1000.0,
+    db: Session = Depends(get_db),
+):
+    try:
+        models.ConnectedPharmacy.__table__.create(db.get_bind(), checkfirst=True)
+    except Exception:
+        pass
+
+    pharmacies = (
+        db.query(models.ConnectedPharmacy)
+        .filter(
+            models.ConnectedPharmacy.clinic_id == clinic_id,
+            models.ConnectedPharmacy.is_active == True,
+        )
+        .all()
+    )
+
+    results = []
+    for p in pharmacies:
+        dist = haversine_distance(lat, lng, p.latitude, p.longitude)
+        if dist <= radius_meters:
+            results.append({
+                "pharmacy_id": str(p.pharmacy_id),
+                "clinic_id": str(p.clinic_id),
+                "name": p.name,
+                "address": p.address,
+                "phone": p.phone,
+                "latitude": p.latitude,
+                "longitude": p.longitude,
+                "distance": round(dist),
+                "distance_meters": round(dist),
+                "is_active": p.is_active,
+            })
+
+    results.sort(key=lambda item: item["distance"])
+
+    return {
+        "status": "success",
+        "pharmacies": results,
+    }

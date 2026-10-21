@@ -392,78 +392,127 @@ function calculateDistanceMeters(lat1, lon1, lat2, lon2) {
   return Math.round(R * c);
 }
 
-function initNearbyPharmacies(medicines = []) {
+async function initNearbyPharmacies(medicines = []) {
   const container = document.getElementById("nearby-meds-container");
   if (!container) return;
 
   container.innerHTML = `
     <div style="text-align: center; padding: 24px 16px; color: #64748b;">
       <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
-      <p style="font-size: 14px; font-weight: 600; margin: 0;">Detecting GPS & scanning connected pharmacies within 500m...</p>
+      <p style="font-size: 14px; font-weight: 600; margin: 0;">Detecting GPS & scanning connected pharmacies within 1000m...</p>
     </div>
   `;
+
+  // Read clinicId from localStorage ("tap2med_patient_clinic_id") or URL param ("clinic")
+  const urlParamClinic = new URLSearchParams(window.location.search).get("clinic");
+  const storedClinic = localStorage.getItem("tap2med_patient_clinic_id");
+  const activeClinicId = extractCleanUUID(urlParamClinic) || extractCleanUUID(storedClinic);
 
   const defaultLat = 28.5672;
   const defaultLng = 77.2100;
 
+  const fetchAndRender = async (lat, lng) => {
+    userCoords = { lat, lng };
+
+    if (!activeClinicId) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 24px 16px; color: #64748b;">
+          <div style="font-size: 28px; margin-bottom: 8px;">🏥</div>
+          <p style="font-size: 14px; font-weight: 600; margin: 0; color: #0f172a;">Clinic Not Identified</p>
+          <p style="font-size: 12px; margin-top: 4px;">Please scan the clinic QR code to discover connected pharmacies.</p>
+        </div>
+      `;
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `/api/clinics/${activeClinicId}/pharmacies/nearby?lat=${lat}&lng=${lng}&radius_meters=1000`
+      );
+      if (!res.ok) {
+        throw new Error(`Server returned ${res.status}`);
+      }
+      const data = await res.json();
+      const pharmacies = (data && data.pharmacies) || [];
+      renderNearbyPharmaciesUI(lat, lng, medicines, pharmacies);
+    } catch (err) {
+      console.error("Failed to load nearby connected pharmacies:", err);
+      container.innerHTML = `
+        <div style="text-align: center; padding: 24px 16px; color: #64748b;">
+          <div style="font-size: 28px; margin-bottom: 8px;">⚠️</div>
+          <p style="font-size: 14px; font-weight: 600; margin: 0; color: #e11d48;">Unable to Load Pharmacies</p>
+          <p style="font-size: 12px; margin-top: 4px;">Failed to fetch connected pharmacies. Please try again.</p>
+        </div>
+      `;
+    }
+  };
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        renderNearbyPharmaciesUI(pos.coords.latitude, pos.coords.longitude, medicines);
+        fetchAndRender(pos.coords.latitude, pos.coords.longitude);
       },
       () => {
-        renderNearbyPharmaciesUI(defaultLat, defaultLng, medicines);
+        fetchAndRender(defaultLat, defaultLng);
       },
       { timeout: 5000 },
     );
   } else {
-    renderNearbyPharmaciesUI(defaultLat, defaultLng, medicines);
+    fetchAndRender(defaultLat, defaultLng);
   }
 }
 
-function renderNearbyPharmaciesUI(lat, lng, medicines) {
+function renderNearbyPharmaciesUI(lat, lng, medicines, pharmacies = []) {
   userCoords = { lat, lng };
 
-  // 3 connected pharmacies strictly within 500m walking radius
-  currentPharmacies = [
-    {
-      id: "p1",
-      name: "Apollo Pharmacy (Main Gate)",
-      address: "Shop 4, Ground Floor, Opp. Gate 2",
-      phone: "+91 98765 43210",
-      hours: "Open • Closes 11:00 PM",
-      lat: lat + 0.0012, // ~130m
-      lng: lng + 0.0008,
-    },
-    {
-      id: "p2",
-      name: "MedPlus Chemist & Druggist",
-      address: "Crossroad Junction, Metro Pillar 42",
-      phone: "+91 98765 11223",
-      hours: "Open 24 Hours",
-      lat: lat - 0.0019, // ~220m
-      lng: lng + 0.0014,
-    },
-    {
-      id: "p3",
-      name: "Sanjeevani Day & Night Meds",
-      address: "Plot 12, Market Complex",
-      phone: "+91 98765 99887",
-      hours: "Open • Closes 10:30 PM",
-      lat: lat + 0.0028, // ~330m
-      lng: lng - 0.0022,
-    },
-  ];
+  currentPharmacies = (pharmacies || []).map((p, idx) => {
+    const pLat = Number(p.latitude);
+    const pLng = Number(p.longitude);
+    const dist =
+      p.distance !== undefined
+        ? Number(p.distance)
+        : p.distance_meters !== undefined
+          ? Number(p.distance_meters)
+          : calculateDistanceMeters(lat, lng, pLat, pLng);
 
-  currentPharmacies.forEach((p) => {
-    p.distance = calculateDistanceMeters(lat, lng, p.lat, p.lng);
-    p.walkTime = Math.max(1, Math.round(p.distance / 75));
+    return {
+      id: String(p.pharmacy_id || p.id || `pharm-${idx}`),
+      pharmacy_id: String(p.pharmacy_id || p.id || `pharm-${idx}`),
+      name: p.name || "Clinic-Connected Pharmacy",
+      address: p.address || "Near Clinic Premises",
+      phone: p.phone || "",
+      hours: p.hours || "Open Now",
+      latitude: pLat,
+      longitude: pLng,
+      lat: pLat,
+      lng: pLng,
+      distance: dist,
+      walkTime: Math.max(1, Math.round(dist / 75)),
+    };
   });
 
   currentPharmacies.sort((a, b) => a.distance - b.distance);
 
   const container = document.getElementById("nearby-meds-container");
   if (!container) return;
+
+  if (!currentPharmacies.length) {
+    container.innerHTML = `
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
+          <strong style="font-size: 16px; color: #0f172a;">Connected Pharmacies</strong>
+          <span style="background: #f1f5f9; color: #64748b; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px;">1000m Walking Radius</span>
+        </div>
+        <p style="font-size: 12.5px; color: #64748b; margin: 0;">Pharmacies connected to this clinic with verified stock for all your prescribed medicines.</p>
+      </div>
+      <div style="text-align: center; padding: 32px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; margin-top: 12px;">
+        <div style="font-size: 32px; margin-bottom: 8px;">🏥</div>
+        <strong style="font-size: 14px; color: #334155; display: block; margin-bottom: 4px;">No Connected Pharmacies Within 1km</strong>
+        <p style="font-size: 12px; color: #64748b; margin: 0;">No active pharmacies connected to this clinic were found within 1000m walking distance.</p>
+      </div>
+    `;
+    return;
+  }
 
   const medCount = medicines && medicines.length ? medicines.length : "All";
   const medTags = medicines && medicines.length
@@ -474,7 +523,7 @@ function renderNearbyPharmaciesUI(lat, lng, medicines) {
     <div style="margin-bottom: 14px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 6px;">
         <strong style="font-size: 16px; color: #0f172a;">Connected Pharmacies</strong>
-        <span style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px;">🟢 500m Walking Radius</span>
+        <span style="background: #dcfce7; color: #15803d; font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px;">🟢 1000m Walking Radius</span>
       </div>
       <p style="font-size: 12.5px; color: #64748b; margin: 0;">Pharmacies connected to this clinic with verified stock for all your prescribed medicines.</p>
     </div>
@@ -492,7 +541,7 @@ function renderNearbyPharmaciesUI(lat, lng, medicines) {
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
           <div>
             <strong style="font-size: 15px; color: #0f172a; display: block;">${escapeHtml(p.name)}</strong>
-            <span style="font-size: 12px; color: #64748b;">${escapeHtml(p.address)} • ${escapeHtml(p.hours)}</span>
+            <span style="font-size: 12px; color: #64748b;">${escapeHtml(p.address)}${p.phone ? ` • ${escapeHtml(p.phone)}` : ""}</span>
           </div>
           <span style="background: #e0f2fe; color: #0369a1; font-size: 12px; font-weight: 800; padding: 4px 8px; border-radius: 8px; white-space: nowrap; margin-left: 8px;">
             ${p.distance}m • ~${p.walkTime} min
@@ -549,12 +598,12 @@ function selectNearbyPharmacy(pharmId) {
   const dirBtn = document.getElementById("btn-launch-directions");
   if (dirBtn) {
     dirBtn.onclick = () => {
-      const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${pharm.lat},${pharm.lng}&travelmode=walking`;
+      const gmapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${userCoords.lat},${userCoords.lng}&destination=${pharm.latitude},${pharm.longitude}&travelmode=walking`;
       window.open(gmapsUrl, "_blank");
     };
   }
 
-  renderLeafletRoute(userCoords.lat, userCoords.lng, pharm.lat, pharm.lng, pharm.name);
+  renderLeafletRoute(userCoords.lat, userCoords.lng, pharm.latitude, pharm.longitude, pharm.name);
 
   mapContainer.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -591,7 +640,7 @@ function renderLeafletRoute(userLat, userLng, destLat, destLng, destName) {
   }).addTo(nearbyMapInstance);
 
   L.circle([userLat, userLng], {
-    radius: 500,
+    radius: 1000,
     color: "#0284c7",
     fillColor: "#0284c7",
     fillOpacity: 0.05,
