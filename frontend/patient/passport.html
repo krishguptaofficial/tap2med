@@ -466,7 +466,275 @@
         font-weight: 600;
         margin-top: 8px;
       }
+
+      /* ═══ Paytm-Style Live QR Scanner ═══ */
+      #qr-scanner-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #000000;
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      #qr-scanner-modal.open {
+        display: flex;
+        animation: scannerFadeIn 0.22s ease-out;
+      }
+      @keyframes scannerFadeIn {
+        from { opacity: 0; transform: scale(0.97); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      .scanner-topbar {
+        width: 100%;
+        max-width: 600px;
+        padding: 16px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+        z-index: 20;
+      }
+      .scanner-topbar-title {
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        text-align: center;
+        flex: 1;
+      }
+      .scanner-topbar-sub {
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+        display: block;
+        margin-top: 2px;
+      }
+      .scanner-btn-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: all 0.2s;
+      }
+      .scanner-btn-icon:hover {
+        background: rgba(255, 255, 255, 0.25);
+        transform: scale(1.05);
+      }
+      .scanner-btn-icon.active {
+        background: #0284c7;
+        border-color: #38bdf8;
+        color: #ffffff;
+      }
+
+      .scanner-viewport-wrap {
+        position: relative;
+        width: 100%;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+      #qr-reader {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 100% !important;
+        height: 100% !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      #qr-reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+      }
+      #qr-reader__scan_region {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border: none !important;
+        background: transparent !important;
+      }
+      #qr-reader__scan_region img {
+        display: none !important;
+      }
+      #qr-reader__dashboard {
+        display: none !important;
+      }
+
+      /* Central Cutout Frame */
+      .scanner-cutout-box {
+        position: relative;
+        width: min(280px, 72vw);
+        height: min(280px, 72vw);
+        border-radius: 22px;
+        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.65);
+        z-index: 10;
+        pointer-events: none;
+        overflow: hidden;
+        transition: box-shadow 0.3s, border-color 0.3s;
+      }
+      .scanner-cutout-box.scan-success {
+        box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.8), 0 0 35px #10b981;
+      }
+
+      /* 4 Paytm Target Corners */
+      .scanner-corner {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        border-color: #38bdf8;
+        border-style: solid;
+        pointer-events: none;
+        z-index: 12;
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.85));
+        transition: border-color 0.2s, filter 0.2s;
+      }
+      .scanner-cutout-box.scan-success .scanner-corner {
+        border-color: #10b981;
+        filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.95));
+      }
+      .scanner-corner.tl {
+        top: 0;
+        left: 0;
+        border-width: 4px 0 0 4px;
+        border-top-left-radius: 20px;
+      }
+      .scanner-corner.tr {
+        top: 0;
+        right: 0;
+        border-width: 4px 4px 0 0;
+        border-top-right-radius: 20px;
+      }
+      .scanner-corner.bl {
+        bottom: 0;
+        left: 0;
+        border-width: 0 0 4px 4px;
+        border-bottom-left-radius: 20px;
+      }
+      .scanner-corner.br {
+        bottom: 0;
+        right: 0;
+        border-width: 0 4px 4px 0;
+        border-bottom-right-radius: 20px;
+      }
+
+      /* Moving Laser Beam */
+      .scanner-laser-beam {
+        position: absolute;
+        left: 4%;
+        right: 4%;
+        height: 3px;
+        background: linear-gradient(90deg, transparent, #38bdf8, #ffffff, #38bdf8, transparent);
+        box-shadow: 0 0 18px 3px rgba(56, 189, 248, 0.95);
+        z-index: 11;
+        animation: scannerLaserScan 2s ease-in-out infinite alternate;
+      }
+      @keyframes scannerLaserScan {
+        0% { top: 6%; opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { top: 94%; opacity: 0.6; }
+      }
+
+      /* Success Checkmark & Text */
+      .scanner-success-badge {
+        position: absolute;
+        inset: 0;
+        background: rgba(16, 185, 129, 0.3);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+        z-index: 15;
+        backdrop-filter: blur(2px);
+      }
+      .scanner-success-badge svg {
+        width: 68px;
+        height: 68px;
+        color: #10b981;
+        filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.9));
+        animation: successPop 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes successPop {
+        0% { transform: scale(0.3); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+
+      /* Bottom Bar */
+      .scanner-bottom-bar {
+        width: 100%;
+        max-width: 600px;
+        padding: 16px 24px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        z-index: 20;
+      }
+      .scanner-instruction {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+      }
+      .scanner-notice {
+        color: #fca5a5;
+        font-size: 13px;
+        font-weight: 600;
+        background: rgba(239, 68, 68, 0.2);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        padding: 8px 16px;
+        border-radius: 20px;
+        display: none;
+        text-align: center;
+        max-width: 90%;
+      }
+      .scanner-actions-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+      }
+      .scanner-btn-secondary {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        backdrop-filter: blur(8px);
+      }
+      .scanner-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
     </style>
+      <script src="/assets/js/vendor/html5-qrcode.min.js?v=scanner_final"></script>
   </head>
 
   <body>
@@ -483,7 +751,7 @@
         <span class="brand-sub">Patient Passport</span>
       </a>
       <div style="display: flex; gap: 10px; align-items: center">
-        <a href="/scan" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;">📷 Scan QR</a>
+        <button type="button" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px; cursor: pointer;" onclick="openQRScanner()">📷 Scan QR</button>
       </div>
     </nav>
 
@@ -531,7 +799,7 @@
           </button>
           <div id="login-error"></div>
 
-          <a href="/scan" class="btn btn-outline mt-4" style="width: 100%">📷 Scan Clinic QR Code</a>
+          <button type="button" class="btn btn-outline mt-4" style="width: 100%; cursor: pointer;" onclick="openQRScanner()">📷 Scan Clinic QR Code</button>
 
           <p class="login-footer mt-4">
             Your phone number is ephemeral and never saved to any database. It
@@ -555,7 +823,7 @@
             </div>
           </div>
           <div class="dash-header-right">
-            <a href="/scan" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;">📷 Scan Clinic QR</a>
+            <button type="button" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px; cursor: pointer;" onclick="openQRScanner()">📷 Scan Clinic QR</button>
             <button class="btn btn-danger-outline" style="padding: 8px 14px; font-size: 13px;" onclick="doLogout()">
               Logout / Switch
             </button>
@@ -654,6 +922,73 @@
             </label>
           </div>
           <div id="consent-status" class="text-muted"></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ═══ PAYTM-STYLE LIVE CAMERA QR SCANNER MODAL ═══ -->
+    <div id="qr-scanner-modal" class="scanner-modal" aria-hidden="true">
+      <div class="scanner-topbar">
+        <button type="button" class="scanner-btn-icon" onclick="closeQRScanner()" title="Close Scanner">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <div class="scanner-topbar-title">
+          Scan Clinic QR
+          <span class="scanner-topbar-sub">Instant check-in</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" id="scanner-torch-btn" class="scanner-btn-icon" onclick="toggleScannerTorch()" title="Toggle Flashlight">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+            </svg>
+          </button>
+          <button type="button" id="scanner-flip-btn" class="scanner-btn-icon" onclick="switchScannerCamera()" title="Switch Camera">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0-4.418-3.582-8-8-8s-8 3.582-8 8c0 2.21.896 4.21 2.343 5.657L4 18h6v-6l-2.343 2.343A5.978 5.978 0 0 1 6 10c0-3.314 2.686-6 6-6s6 2.686 6 6-2.686 6-6 6c-.83 0-1.618-.17-2.336-.473l-1.465 1.465A7.962 7.962 0 0 0 12 18c4.418 0 8-3.582 8-8z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="scanner-viewport-wrap">
+        <div id="qr-reader"></div>
+
+        <div id="scanner-target-box" class="scanner-cutout-box">
+          <div class="scanner-corner tl"></div>
+          <div class="scanner-corner tr"></div>
+          <div class="scanner-corner bl"></div>
+          <div class="scanner-corner br"></div>
+
+          <div id="scanner-laser" class="scanner-laser-beam"></div>
+
+          <div id="scanner-success-badge" class="scanner-success-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span style="font-weight: 700; margin-top: 8px; font-size: 15px;">Clinic QR Detected!</span>
+            <span style="font-size: 12px; opacity: 0.9;">Redirecting to check-in...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="scanner-bottom-bar">
+        <div id="scanner-notice" class="scanner-notice"></div>
+        <p class="scanner-instruction">Point camera at clinic standee QR code</p>
+        
+        <div class="scanner-actions-row">
+          <button type="button" class="scanner-btn-secondary" onclick="document.getElementById('qr-file-input').click()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+            Upload QR Image
+          </button>
+          <input type="file" id="qr-file-input" accept="image/*" style="display: none;" onchange="handleQRFileUpload(event)">
         </div>
       </div>
     </div>
@@ -890,6 +1225,279 @@
           statusEl.style.color = "#ef4444";
         }
       }
+
+      // ═══ PAYTM-STYLE LIVE CAMERA QR SCANNER CONTROLLER ═══
+      let html5QrScannerInstance = null;
+      let isQrScanning = false;
+      let isQrRedirecting = false;
+      let currentFacingMode = "environment";
+      let isTorchOn = false;
+
+      function extractClinicIdFromText(raw) {
+        if (!raw) return null;
+        const str = String(raw).trim();
+        const uuidRegex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+        const match = str.match(uuidRegex);
+        return match ? match[0] : null;
+      }
+
+      function resolveClinicTarget(raw) {
+        if (!raw) return null;
+        const str = String(raw).trim();
+        const clinicId = extractClinicIdFromText(str);
+        if (clinicId) {
+          localStorage.setItem("tap2med_patient_clinic_id", clinicId);
+          return `/scan?clinic=${clinicId}`;
+        }
+        if (str.includes("/scan?clinic=")) {
+          try {
+            const parsed = new URL(str, window.location.origin);
+            const cId = parsed.searchParams.get("clinic");
+            if (cId) {
+              localStorage.setItem("tap2med_patient_clinic_id", cId);
+              return `/scan?clinic=${encodeURIComponent(cId)}`;
+            }
+          } catch (e) {}
+        }
+        if (str.includes("/scan")) {
+          return str;
+        }
+        return null;
+      }
+
+      function playScanChirp() {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          osc.stop(audioCtx.currentTime + 0.12);
+        } catch (e) {}
+      }
+
+      function showScannerNotice(msg) {
+        const el = document.getElementById("scanner-notice");
+        if (!el) return;
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+
+      function hideScannerNotice() {
+        const el = document.getElementById("scanner-notice");
+        if (el) el.style.display = "none";
+      }
+
+      async function openQRScanner() {
+        const modal = document.getElementById("qr-scanner-modal");
+        if (!modal) return;
+
+        modal.classList.add("open");
+        document.body.style.overflow = "hidden";
+        isQrRedirecting = false;
+        hideScannerNotice();
+
+        const targetBox = document.getElementById("scanner-target-box");
+        const laser = document.getElementById("scanner-laser");
+        const badge = document.getElementById("scanner-success-badge");
+        if (targetBox) targetBox.classList.remove("scan-success");
+        if (laser) laser.style.display = "block";
+        if (badge) badge.style.display = "none";
+
+        await startLiveCamera();
+      }
+
+      async function closeQRScanner() {
+        const modal = document.getElementById("qr-scanner-modal");
+        if (modal) modal.classList.remove("open");
+        document.body.style.overflow = "";
+        hideScannerNotice();
+
+        if (html5QrScannerInstance && isQrScanning) {
+          try {
+            await html5QrScannerInstance.stop();
+          } catch (e) {
+            console.warn("Error stopping scanner:", e);
+          }
+        }
+        isQrScanning = false;
+        isTorchOn = false;
+        const torchBtn = document.getElementById("scanner-torch-btn");
+        if (torchBtn) torchBtn.classList.remove("active");
+      }
+
+      async function startLiveCamera() {
+        if (typeof Html5Qrcode === "undefined") {
+          showScannerNotice("Loading camera engine... please retry.");
+          return;
+        }
+
+        if (!html5QrScannerInstance) {
+          html5QrScannerInstance = new Html5Qrcode("qr-reader");
+        } else if (isQrScanning) {
+          try {
+            await html5QrScannerInstance.stop();
+          } catch (e) {}
+          isQrScanning = false;
+        }
+
+        const qrConfig = {
+          fps: 20,
+          qrbox: (viewWidth, viewHeight) => {
+            const minEdge = Math.min(viewWidth, viewHeight);
+            const edge = Math.max(180, Math.floor(minEdge * 0.72));
+            return { width: edge, height: edge };
+          },
+          aspectRatio: 1.0,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true,
+          },
+        };
+
+        try {
+          await html5QrScannerInstance.start(
+            { facingMode: currentFacingMode },
+            qrConfig,
+            onScanSuccess,
+            () => {}
+          );
+          isQrScanning = true;
+        } catch (err1) {
+          console.warn(`Camera mode (${currentFacingMode}) failed:`, err1);
+          try {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            await html5QrScannerInstance.start(
+              { facingMode: currentFacingMode },
+              qrConfig,
+              onScanSuccess,
+              () => {}
+            );
+            isQrScanning = true;
+          } catch (err2) {
+            console.warn("Fallback camera failed, finding all cameras:", err2);
+            try {
+              const cameras = await Html5Qrcode.getCameras();
+              if (cameras && cameras.length > 0) {
+                await html5QrScannerInstance.start(
+                  cameras[0].id,
+                  qrConfig,
+                  onScanSuccess,
+                  () => {}
+                );
+                isQrScanning = true;
+              } else {
+                showScannerNotice("No camera found. You can upload a QR photo below.");
+              }
+            } catch (err3) {
+              console.error("Camera access failed:", err3);
+              showScannerNotice("Camera access blocked. Please allow permissions or upload a QR photo below.");
+            }
+          }
+        }
+      }
+
+      function onScanSuccess(decodedText) {
+        if (isQrRedirecting) return;
+
+        const targetUrl = resolveClinicTarget(decodedText);
+        if (!targetUrl) {
+          showScannerNotice("Unrecognized QR code. Please scan an official clinic QR.");
+          return;
+        }
+
+        isQrRedirecting = true;
+
+        // Paytm-style audio chirp & haptic buzz
+        playScanChirp();
+        try {
+          if (navigator.vibrate) {
+            navigator.vibrate([70, 40, 70]);
+          }
+        } catch (e) {}
+
+        // Visual flash
+        const targetBox = document.getElementById("scanner-target-box");
+        const laser = document.getElementById("scanner-laser");
+        const badge = document.getElementById("scanner-success-badge");
+        if (laser) laser.style.display = "none";
+        if (targetBox) targetBox.classList.add("scan-success");
+        if (badge) badge.style.display = "flex";
+
+        // Stop scanning
+        if (html5QrScannerInstance && isQrScanning) {
+          try {
+            html5QrScannerInstance.stop().catch(() => {});
+          } catch (e) {}
+          isQrScanning = false;
+        }
+
+        // Instant redirect without any extra link clicks!
+        setTimeout(() => {
+          window.location.href = targetUrl;
+        }, 130);
+      }
+
+      async function toggleScannerTorch() {
+        if (!html5QrScannerInstance || !isQrScanning) return;
+        try {
+          isTorchOn = !isTorchOn;
+          await html5QrScannerInstance.applyVideoConstraints({
+            advanced: [{ torch: isTorchOn }],
+          });
+          const torchBtn = document.getElementById("scanner-torch-btn");
+          if (torchBtn) torchBtn.classList.toggle("active", isTorchOn);
+        } catch (e) {
+          console.warn("Torch error:", e);
+          showScannerNotice("Flashlight not supported on this device/camera.");
+          setTimeout(hideScannerNotice, 2500);
+        }
+      }
+
+      async function switchScannerCamera() {
+        if (!html5QrScannerInstance) return;
+        currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+        await startLiveCamera();
+      }
+
+      async function handleQRFileUpload(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        if (!html5QrScannerInstance) {
+          html5QrScannerInstance = new Html5Qrcode("qr-reader");
+        }
+
+        showScannerNotice("Scanning QR from uploaded photo...");
+        try {
+          const decodedText = await html5QrScannerInstance.scanFile(file, true);
+          onScanSuccess(decodedText);
+        } catch (err) {
+          console.warn("File scan error:", err);
+          showScannerNotice("No valid clinic QR found in this photo. Please try another.");
+        } finally {
+          event.target.value = "";
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeQRScanner();
+        }
+      });
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const p = new URLSearchParams(window.location.search);
+        if (p.get("scan") === "1" || window.location.hash === "#scan") {
+          setTimeout(openQRScanner, 300);
+        }
+      });
+
     </script>
   </body>
 </html>

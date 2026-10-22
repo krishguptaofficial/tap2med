@@ -126,6 +126,10 @@ function toggleSidebar() {
   const isClosed = sidebar.classList.contains("sidebar-closed");
   if (menuToggleBtn) menuToggleBtn.setAttribute("aria-expanded", !isClosed);
   localStorage.setItem("tap2med_sidebar_state", isClosed ? "closed" : "open");
+  if (sidebar) sidebar.classList.toggle("open", !isClosed);
+  window.toggleSidebar = toggleSidebar;
+  sidebarBackdrop?.addEventListener("click", toggleSidebar);
+  menuToggleBtn?.addEventListener("click", toggleSidebar);
 }
 
 window.removePrescriptionRow = function (btn) {
