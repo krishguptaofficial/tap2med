@@ -48,61 +48,117 @@
           <span class="site-brand-name">Tap2Med</span>
         </a>
 
-        <nav class="site-nav" aria-label="Main navigation">
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="/about.html">About</a>
-          <a href="/faq.html">FAQ</a>
-        </nav>
+        <div class="header-nav-wrap" id="header-nav-wrap">
+          <nav class="site-nav" aria-label="Main navigation">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How it works</a>
+            <a href="/demo.html">Book a Demo</a>
+          </nav>
 
-        <div
-          class="header-actions"
-          style="display: flex; align-items: center; gap: 15px"
-        >
-          <a
-            href="/login"
-            style="
-              color: var(--text-secondary);
-              text-decoration: none;
-              font-weight: 600;
-              font-size: 15px;
-            "
-            >Doctor Login</a
-          >
-          <a
-            href="/staff-login"
-            style="
-              color: var(--text-secondary);
-              text-decoration: none;
-              font-weight: 500;
-              font-size: 15px;
-            "
-            >Staff Login</a
-          >
-          <a
-            href="/lab"
-            style="
-              color: #0284c7;
-              text-decoration: none;
-              font-weight: 600;
-              font-size: 15px;
-            "
-            >Partner Lab</a
-          >
-          <a
-            href="/insurer"
-            style="
-              color: #0284c7;
-              text-decoration: none;
-              font-weight: 600;
-              font-size: 15px;
-            "
-            >Insurer Portal</a
-          >
-          <a href="/demo.html" class="btn btn-secondary">Book a Demo</a>
-          <a href="/pharmacy-portal" class="btn btn-secondary" style="border-radius: 999px; font-weight: 700;">Pharmacy Portal</a>
-          <a href="/passport" class="btn btn-primary" style="padding: 8px 18px; border-radius: 999px; font-weight: 700; text-decoration: none;">Patient Portal</a>
-          <a href="/register" class="btn btn-primary">Claim Clinic QR</a>
+          <div class="header-actions">
+            <!-- 1. Doctor Quick Login -->
+            <a href="/login" class="nav-text-link">Doctor Login</a>
+
+            <!-- 2. Portals Dropdown -->
+            <div class="portals-dropdown" id="portals-dropdown">
+              <button
+                type="button"
+                class="portals-trigger-btn"
+                id="portals-trigger"
+                aria-expanded="false"
+                aria-controls="portals-menu"
+                aria-label="Toggle Portals Menu"
+              >
+                <span>Portals</span>
+                <svg
+                  class="chevron-svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              <div class="portals-menu" id="portals-menu" >
+                <div class="portals-menu-group">
+                  <span class="portals-group-label">Partner Network</span>
+                  <a href="/pharmacy-portal" class="portal-item" >
+                    <div class="portal-item-icon pharmacy-icon">💊</div>
+                    <div class="portal-item-info">
+                      <span class="portal-item-title">Pharmacy Portal</span>
+                      <span class="portal-item-desc">Chemist dispensing & clinic link</span>
+                    </div>
+                  </a>
+                  <a href="/lab" class="portal-item" >
+                    <div class="portal-item-icon lab-icon">🧪</div>
+                    <div class="portal-item-info">
+                      <span class="portal-item-title">Diagnostic Lab</span>
+                      <span class="portal-item-desc">Pathology reports & patient tests</span>
+                    </div>
+                  </a>
+                  <a href="/insurer" class="portal-item" >
+                    <div class="portal-item-icon insurer-icon">🛡️</div>
+                    <div class="portal-item-info">
+                      <span class="portal-item-title">Insurer Gateway</span>
+                      <span class="portal-item-desc">Health credit score & underwriting</span>
+                    </div>
+                  </a>
+                </div>
+
+                <div class="portals-menu-divider"></div>
+
+                <div class="portals-menu-group">
+                  <span class="portals-group-label">Clinic Operations</span>
+                  <a href="/staff-login" class="portal-item" >
+                    <div class="portal-item-icon staff-icon">📋</div>
+                    <div class="portal-item-info">
+                      <span class="portal-item-title">Staff Login</span>
+                      <span class="portal-item-desc">Front-desk queue & check-in</span>
+                    </div>
+                  </a>
+                  <a href="/login" class="portal-item" >
+                    <div class="portal-item-icon doctor-icon">🩺</div>
+                    <div class="portal-item-info">
+                      <span class="portal-item-title">Doctor OPD Login</span>
+                      <span class="portal-item-desc">OPD consultations & WhatsApp Rx</span>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Patient Passport Pill Button -->
+            <a
+              href="/passport"
+              class="btn-patient-passport"
+              title="Zero-Knowledge Patient Health Passport"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+              <span>Patient Portal</span>
+            </a>
+
+            <!-- 4. Primary CTA Button -->
+            <a href="/register" class="btn btn-primary btn-sm btn-claim-qr"
+              >Claim Clinic QR</a
+            >
+          </div>
         </div>
 
         <button
@@ -470,12 +526,13 @@
         </div>
 
         <div class="footer-column">
-          <h3>Product</h3>
-          <a href="#features">Features</a>
-          <a href="#how-it-works">How it works</a>
-          <a href="/lab">Partner Lab Portal</a>
-          <a href="/insurer">Insurer Underwriting Portal</a>
-          <a href="/register">Claim Clinic QR</a>
+          <h3>Ecosystem Portals</h3>
+          <a href="/login">Doctor OPD Login</a>
+          <a href="/staff-login">Clinic Staff Login</a>
+          <a href="/passport">Patient Health Passport</a>
+          <a href="/pharmacy-portal">Pharmacy Network</a>
+          <a href="/lab">Diagnostic Lab Portal</a>
+          <a href="/insurer">Insurer Risk Gateway</a>
         </div>
 
         <div class="footer-column">

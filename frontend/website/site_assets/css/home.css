@@ -13,7 +13,15 @@
   min-height: 72px;
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
+}
+
+.header-nav-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 24px;
 }
 
 .site-brand {
@@ -41,8 +49,7 @@
 .site-nav {
   display: flex;
   align-items: center;
-  gap: 28px;
-  margin-left: auto;
+  gap: 24px;
 }
 
 .site-nav a {
@@ -59,7 +66,214 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  margin-left: auto;
+}
+
+/* Quick text link: Doctor Login */
+.nav-text-link {
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 14.5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.nav-text-link:hover {
+  color: var(--color-primary);
+  background-color: rgba(9, 41, 66, 0.04);
+}
+
+/* Portals Dropdown Trigger */
+.portals-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.portals-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  background: transparent;
+  border: 1px solid rgba(9, 41, 66, 0.15);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+}
+
+.portals-trigger-btn:hover,
+.portals-dropdown.open .portals-trigger-btn {
+  background: var(--color-surface);
+  border-color: rgba(9, 41, 66, 0.3);
+  box-shadow: 0 2px 8px rgba(9, 41, 66, 0.06);
+}
+
+.portals-trigger-btn .chevron-svg {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.portals-dropdown.open .portals-trigger-btn .chevron-svg,
+.portals-dropdown:hover .portals-trigger-btn .chevron-svg {
+  transform: rotate(180deg);
+}
+
+/* Portals Popover Menu */
+.portals-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 310px;
+  background: #ffffff;
+  border: 1px solid rgba(9, 41, 66, 0.1);
+  border-radius: 18px;
+  box-shadow: 0 20px 48px rgba(9, 41, 66, 0.12), 0 4px 12px rgba(9, 41, 66, 0.04);
+  padding: 10px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.portals-dropdown:hover .portals-menu,
+.portals-dropdown:focus-within .portals-menu,
+.portals-dropdown.open .portals-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.portals-menu-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portals-group-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8a969d;
+  padding: 6px 12px 4px;
+}
+
+.portals-menu-divider {
+  height: 1px;
+  background: rgba(9, 41, 66, 0.06);
+  margin: 6px 6px;
+}
+
+.portal-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.portal-item:hover {
+  background: #f8fafc;
+  transform: translateX(2px);
+}
+
+.portal-item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.pharmacy-icon { background: #fef3c7; }
+.lab-icon { background: #e0f2fe; }
+.insurer-icon { background: #f0fdf4; }
+.staff-icon { background: #f3e8ff; }
+.doctor-icon { background: #ecfeff; }
+
+.portal-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.portal-item-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.portal-item-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.portal-item:hover .portal-item-title {
+  color: var(--color-primary);
+}
+
+/* Patient Passport Pill Button */
+.btn-patient-passport {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  background: rgba(2, 132, 199, 0.08);
+  border: 1px solid rgba(2, 132, 199, 0.28);
+  border-radius: 999px;
+  color: #0284c7;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.btn-patient-passport:hover {
+  background: rgba(2, 132, 199, 0.16);
+  border-color: rgba(2, 132, 199, 0.45);
+  color: #0369a1;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(2, 132, 199, 0.18);
+}
+
+.btn-patient-passport svg {
+  flex-shrink: 0;
+}
+
+/* Claim Clinic QR Primary Button */
+.btn-claim-qr {
+  height: 38px;
+  padding: 0 18px;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  white-space: nowrap;
+  text-decoration: none;
 }
 
 .mobile-menu-button {
@@ -917,8 +1131,8 @@
   }
 }
 
-@media (max-width: 760px) {
-  .header-actions {
+@media (max-width: 880px) {
+  .header-nav-wrap {
     display: none;
   }
   .mobile-menu-button {
@@ -929,41 +1143,88 @@
     min-height: 64px;
   }
 
-  .site-nav.mobile-open {
+  .header-nav-wrap.mobile-open {
     position: absolute;
-    top: 64px;
-    left: 0;
-    right: 0;
+    top: 66px;
+    left: 12px;
+    right: 12px;
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    padding: 8px 20px 16px;
+    padding: 20px;
     background: var(--color-surface);
-    border-bottom: 1px solid rgba(9, 41, 66, 0.08);
-    border-radius: 0 0 24px 24px;
-    box-shadow: var(--shadow-md);
-  }
-  .site-nav.mobile-open a {
-    padding: 14px 0;
-    border-bottom: 1px solid var(--color-border);
-    text-align: center;
-    font-weight: 600;
-  }
-  .site-nav.mobile-open a:last-child {
-    border-bottom: 0;
+    border: 1px solid rgba(9, 41, 66, 0.08);
+    border-radius: 20px;
+    box-shadow: 0 20px 48px rgba(9, 41, 66, 0.16);
+    max-height: calc(100vh - 84px);
+    overflow-y: auto;
+    z-index: 1000;
   }
 
-  .header-actions.mobile-open {
-    position: absolute;
-    top: 270px;
-    left: 20px;
-    right: 20px;
+  .header-nav-wrap.mobile-open .site-nav {
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    background: var(--color-surface);
-    border-radius: 16px;
-    box-shadow: var(--shadow-md);
+    align-items: stretch;
+    gap: 4px;
+    margin-left: 0;
+    width: 100%;
+    border-bottom: 1px solid rgba(9, 41, 66, 0.08);
+    padding-bottom: 12px;
+  }
+
+  .header-nav-wrap.mobile-open .site-nav a {
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+
+  .header-nav-wrap.mobile-open .header-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-left: 0;
+    padding-top: 14px;
+    width: 100%;
+  }
+
+  .header-nav-wrap.mobile-open .nav-text-link {
+    text-align: center;
+    padding: 10px;
+    background: #f8fafc;
+    border-radius: 10px;
+    color: var(--color-primary);
+  }
+
+  .header-nav-wrap.mobile-open .portals-dropdown {
+    width: 100%;
+  }
+
+  .header-nav-wrap.mobile-open .portals-trigger-btn {
+    width: 100%;
+    justify-content: space-between;
+    height: 42px;
+  }
+
+  .header-nav-wrap.mobile-open .portals-menu {
+    position: static;
+    width: 100%;
+    transform: none;
+    box-shadow: none;
+    border: 1px solid rgba(9, 41, 66, 0.08);
+    margin-top: 8px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .header-nav-wrap.mobile-open .btn-patient-passport,
+  .header-nav-wrap.mobile-open .btn-claim-qr {
+    width: 100%;
+    justify-content: center;
+    height: 44px;
   }
 
   .hero {

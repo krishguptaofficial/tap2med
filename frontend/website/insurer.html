@@ -111,6 +111,31 @@
         line-height: 1;
         letter-spacing: -0.03em;
         margin-top: 4px;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.4s ease;
+      }
+      @keyframes numberScorePop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+      }
+      .score-number.score-pop {
+        animation: numberScorePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      }
+      @keyframes badgePop {
+        0% { transform: scale(0.8); opacity: 0; }
+        60% { transform: scale(1.08); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      .animate-badge-pop {
+        animation: badgePop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .factor-row {
+        animation: factorFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes factorFadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
       }
       .tier-badge {
         display: inline-flex;
@@ -307,7 +332,7 @@
                   <!-- Excellent: Green -->
                   <path d="M 140 48 A 80 80 0 0 1 180 105" fill="none" stroke="#16a34a" stroke-width="18" opacity="0.85" />
                   <!-- Pointer Needle -->
-                  <line id="gauge-needle" x1="100" y1="105" x2="100" y2="35" stroke="#0f172a" stroke-width="4" stroke-linecap="round" style="transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 100px 105px; transform: rotate(-90deg);" />
+                  <line id="gauge-needle" x1="100" y1="105" x2="100" y2="35" stroke="#0f172a" stroke-width="4" stroke-linecap="round" style="transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 100px 105px; transform: rotate(-90deg);" />
                   <circle cx="100" cy="105" r="7" fill="#0f172a" />
                 </svg>
               </div>
@@ -501,8 +526,8 @@
 
           const data = await res.json();
           currentScoreData = data;
-          renderEvaluationResults(data);
           resultsSection.style.display = "block";
+          renderEvaluationResults(data);
           resultsSection.scrollIntoView({ behavior: "smooth" });
         } catch (error) {
           console.error("Underwriting lookup failed:", error);
@@ -520,21 +545,45 @@
         errAlert.style.display = "block";
       }
 
+      function animateScoreCounter(el, start, end, duration = 1400) {
+        let startTime = null;
+        const step = (timestamp) => {
+          if (!startTime) startTime = timestamp;
+          const progress = Math.min((timestamp - startTime) / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          const val = Math.round(start + (end - start) * ease);
+          el.textContent = val;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            el.textContent = end;
+            el.classList.add("score-pop");
+            setTimeout(() => el.classList.remove("score-pop"), 400);
+          }
+        };
+        requestAnimationFrame(step);
+      }
+
       function renderEvaluationResults(data) {
-        // 1. Render Gauge Needle rotation
-        // Gauge spans 180 degrees: 300 score is -90deg, 900 score is +90deg
         const score = Math.max(300, Math.min(900, data.score));
-        const normalized = (score - 300) / (900 - 300); // 0.0 to 1.0
-        const angle = -90 + (normalized * 180); // -90deg to +90deg
+        const normalized = (score - 300) / (900 - 300);
+        const angle = -90 + (normalized * 180);
         
+        // 1. Smooth Needle sweep with spring
         const needle = document.getElementById("gauge-needle");
         if (needle) {
-          needle.style.transform = `rotate(${angle}deg)`;
+          needle.style.transform = "rotate(-90deg)";
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              needle.style.transform = `rotate(${angle}deg)`;
+            }, 60);
+          });
         }
 
-        // 2. Render Score and Category Badge
+        // 2. Animate Score Counter from 300 up to score
         const scoreDisplay = document.getElementById("score-display");
-        scoreDisplay.textContent = score;
+        scoreDisplay.textContent = "300";
+        animateScoreCounter(scoreDisplay, 300, score, 1400);
 
         const tierBadge = document.getElementById("tier-badge");
         tierBadge.textContent = `${data.category} (${data.credit_tier})`;
@@ -556,6 +605,9 @@
           tierBadge.classList.add("tier-needs-attention");
         }
         scoreDisplay.style.color = color;
+        tierBadge.classList.remove("animate-badge-pop");
+        void tierBadge.offsetWidth;
+        tierBadge.classList.add("animate-badge-pop");
 
         // 3. Render Factors Breakdown
         const factorsContainer = document.getElementById("factors-list");

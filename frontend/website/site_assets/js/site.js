@@ -1,38 +1,78 @@
 const mobileMenuButton = document.getElementById("mobile-menu-button");
+const headerNavWrap = document.getElementById("header-nav-wrap");
 const siteNav = document.querySelector(".site-nav");
 const headerActions = document.querySelector(".header-actions");
 
 function closeMenu() {
   mobileMenuButton?.setAttribute("aria-expanded", "false");
+  headerNavWrap?.classList.remove("mobile-open");
   siteNav?.classList.remove("mobile-open");
   headerActions?.classList.remove("mobile-open");
   mobileMenuButton?.classList.remove("is-open");
 }
 
-if (mobileMenuButton && siteNav) {
+if (mobileMenuButton) {
   mobileMenuButton.addEventListener("click", () => {
     const isOpen = mobileMenuButton.getAttribute("aria-expanded") === "true";
-
     mobileMenuButton.setAttribute("aria-expanded", String(!isOpen));
-    siteNav.classList.toggle("mobile-open", !isOpen);
-    headerActions?.classList.toggle("mobile-open", !isOpen);
+    if (headerNavWrap) {
+      headerNavWrap.classList.toggle("mobile-open", !isOpen);
+    } else {
+      siteNav?.classList.toggle("mobile-open", !isOpen);
+      headerActions?.classList.toggle("mobile-open", !isOpen);
+    }
     mobileMenuButton.classList.toggle("is-open", !isOpen);
   });
 }
 
+// Close menu when clicking nav or action links
 document.querySelectorAll(".site-nav a, .header-actions a").forEach((link) => {
-  link.addEventListener("click", closeMenu);
+  link.addEventListener("click", () => {
+    closeMenu();
+  });
 });
 
+// Close mobile menu on clicking outside
 document.addEventListener("click", (event) => {
   if (
     mobileMenuButton &&
     !mobileMenuButton.contains(event.target) &&
-    !siteNav?.contains(event.target)
+    headerNavWrap &&
+    !headerNavWrap.contains(event.target)
   ) {
     closeMenu();
   }
 });
+
+// ─── Portals Dropdown Toggle & Accessibility ───
+const portalsDropdown = document.getElementById("portals-dropdown");
+const portalsTrigger = document.getElementById("portals-trigger");
+
+if (portalsTrigger && portalsDropdown) {
+  portalsTrigger.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = portalsDropdown.classList.contains("open");
+    portalsDropdown.classList.toggle("open", !isOpen);
+    portalsTrigger.setAttribute("aria-expanded", String(!isOpen));
+  });
+
+  // Close dropdown on click outside
+  document.addEventListener("click", (e) => {
+    if (!portalsDropdown.contains(e.target)) {
+      portalsDropdown.classList.remove("open");
+      portalsTrigger.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  // Close dropdown on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && portalsDropdown.classList.contains("open")) {
+      portalsDropdown.classList.remove("open");
+      portalsTrigger.setAttribute("aria-expanded", "false");
+      portalsTrigger.focus();
+    }
+  });
+}
 
 const progressBar = document.createElement("div");
 

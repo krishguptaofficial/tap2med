@@ -278,7 +278,7 @@
         flex-wrap: wrap;
       }
 
-      /* ─── Score Gauge ─── */
+      /* ─── Score Gauge & Animations ─── */
       .score-hero {
         text-align: center;
         padding: 36px 24px;
@@ -292,6 +292,10 @@
       .gauge-svg {
         width: 100%;
         height: 100%;
+        overflow: visible;
+      }
+      #gauge-arc {
+        transition: stroke-dasharray 1.6s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.6s ease;
       }
       .gauge-value {
         position: absolute;
@@ -304,6 +308,8 @@
         font-size: 42px;
         font-weight: 800;
         line-height: 1;
+        font-variant-numeric: tabular-nums;
+        transition: color 0.5s ease;
       }
       .gauge-value .max {
         font-size: 14px;
@@ -314,6 +320,7 @@
         font-size: 16px;
         font-weight: 700;
         margin-top: 4px;
+        transition: color 0.5s ease;
       }
       .score-tier {
         font-size: 13px;
@@ -329,6 +336,28 @@
         color: #166534;
         font-size: 13px;
         font-weight: 700;
+        box-shadow: 0 2px 10px rgba(22, 163, 74, 0.18);
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        animation: discountPulse 2.4s ease-in-out infinite alternate;
+      }
+      @keyframes discountPulse {
+        0% { transform: scale(1); box-shadow: 0 2px 8px rgba(22, 163, 74, 0.15); }
+        100% { transform: scale(1.035); box-shadow: 0 4px 16px rgba(22, 163, 74, 0.32); }
+      }
+      .animate-fade-in {
+        animation: scoreFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes scoreFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      @keyframes scorePopAnim {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+      }
+      .score-pop {
+        animation: scorePopAnim 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
       /* ─── Factor Grid ─── */
@@ -1148,6 +1177,25 @@
         });
       }
 
+      function animateScoreCounter(el, start, end, duration = 1400) {
+        let startTime = null;
+        const step = (timestamp) => {
+          if (!startTime) startTime = timestamp;
+          const progress = Math.min((timestamp - startTime) / duration, 1);
+          const ease = 1 - Math.pow(1 - progress, 3);
+          const val = Math.round(start + (end - start) * ease);
+          el.textContent = val;
+          if (progress < 1) {
+            requestAnimationFrame(step);
+          } else {
+            el.textContent = end;
+            el.classList.add("score-pop");
+            setTimeout(() => el.classList.remove("score-pop"), 400);
+          }
+        };
+        requestAnimationFrame(step);
+      }
+
       // ─── Health Credit Score ───
       async function loadHealthScore() {
         if (!activeNetworkToken) return;
@@ -1186,23 +1234,45 @@
         const arcLength = 283;
         const dashLen = pct * arcLength;
         const arc = document.getElementById("gauge-arc");
-        arc.setAttribute("stroke", gaugeColor);
-        arc.setAttribute("stroke-dasharray", `${dashLen} ${arcLength}`);
+        const numEl = document.getElementById("gauge-number");
 
-        document.getElementById("gauge-number").textContent = score;
-        document.getElementById("gauge-number").style.color = gaugeColor;
+        // Reset to 0 for sweep animation
+        arc.setAttribute("stroke-dasharray", `0 ${arcLength}`);
+        numEl.textContent = "300";
+
+        // Trigger smooth sweep animation
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            arc.setAttribute("stroke", gaugeColor);
+            arc.setAttribute("stroke-dasharray", `${dashLen} ${arcLength}`);
+          }, 60);
+        });
+
+        // Rolling number counter animation from 300 up to score
+        numEl.style.color = gaugeColor;
+        animateScoreCounter(numEl, 300, score, 1500);
 
         const catEl = document.getElementById("score-category");
         catEl.textContent = scoreData.category || "Excellent";
         catEl.style.color = gaugeColor;
+        catEl.classList.remove("animate-fade-in");
+        void catEl.offsetWidth;
+        catEl.classList.add("animate-fade-in");
 
         const tierText = `${scoreData.category || "Excellent"} • ${scoreData.credit_tier || "Tier 1 — Preferred Health"}`;
-        document.getElementById("score-tier").textContent = tierText;
+        const tierEl = document.getElementById("score-tier");
+        tierEl.textContent = tierText;
+        tierEl.classList.remove("animate-fade-in");
+        void tierEl.offsetWidth;
+        tierEl.classList.add("animate-fade-in");
 
         const discEl = document.getElementById("score-discount");
         if (scoreData.discount_percentage > 0) {
           discEl.textContent = `${scoreData.discount_percentage}% Discount on Insurance`;
           discEl.style.display = "inline-block";
+          discEl.classList.remove("animate-fade-in");
+          void discEl.offsetWidth;
+          discEl.classList.add("animate-fade-in");
         }
 
         // Factor breakdown
