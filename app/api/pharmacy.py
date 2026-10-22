@@ -280,68 +280,79 @@ def get_connected_clinics(pharmacy_id: uuid.UUID, db: Session = Depends(get_db))
 @router.get("/{pharmacy_id}/prescriptions")
 def get_incoming_prescriptions(
     pharmacy_id: uuid.UUID,
-    limit: int = 30,
+    limit: int = 50,
     db: Session = Depends(get_db)
 ):
-    pharmacy = db.query(models.Pharmacy).filter(models.Pharmacy.pharmacy_id == pharmacy_id).first()
-    if not pharmacy:
-        raise HTTPException(status_code=404, detail="Pharmacy not found.")
+    try:
+        pharmacy = db.query(models.Pharmacy).filter(models.Pharmacy.pharmacy_id == pharmacy_id).first()
+        if not pharmacy:
+            raise HTTPException(status_code=404, detail="Pharmacy not found.")
 
-    # Get all clinics connected to this pharmacy
-    links = (
-        db.query(models.ClinicPharmacyLink)
-        .filter(
-            models.ClinicPharmacyLink.pharmacy_id == pharmacy_id,
-            models.ClinicPharmacyLink.status == "connected"
+        # Get all clinics connected to this pharmacy
+        links = (
+            db.query(models.ClinicPharmacyLink)
+            .filter(
+                models.ClinicPharmacyLink.pharmacy_id == pharmacy_id,
+                models.ClinicPharmacyLink.status == "connected"
+            )
+            .all()
         )
-        .all()
-    )
-    clinic_ids = [l.clinic_id for l in links]
+        clinic_ids = [l.clinic_id for l in links]
 
-    if not clinic_ids:
-        return {"status": "success", "prescriptions": []}
+        if not clinic_ids:
+            return {"status": "success", "prescriptions": []}
 
-    # Fetch completed/active visit events from these clinics
-    events = (
-        db.query(models.Event)
-        .filter(
-            models.Event.clinic_id.in_(clinic_ids),
-            models.Event.status.in_(["completed", "active"])
+        # Fetch completed/active visit events from these clinics
+        events = (
+            db.query(models.Event)
+            .filter(
+                models.Event.clinic_id.in_(clinic_ids),
+                models.Event.status.in_(["completed", "active", "dispensed"])
+            )
+            .order_by(models.Event.timestamp.desc())
+            .limit(limit)
+            .all()
         )
-        .order_by(models.Event.timestamp.desc())
-        .limit(limit)
-        .all()
-    )
 
-    results = []
-    for ev in events:
-        clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == ev.clinic_id).first()
-        # Fetch prescriptions for this event
-        rxs = db.query(models.Prescription).filter(models.Prescription.event_id == ev.event_id).all()
-        med_list = []
-        for r in rxs:
-            med_list.append({
-                "medicine_name": r.medicine_name,
-                "dosage": r.dosage or "",
-                "duration": r.duration or "",
-                "instructions": r.instructions or "",
-                "inferred_symptom": r.inferred_symptom or ""
+        results = []
+        for ev in events:
+            clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == ev.clinic_id).first()
+            # Fetch prescriptions for this event
+            rxs = db.query(models.Prescription).filter(models.Prescription.event_id == ev.event_id).all()
+            med_list = []
+            for r in rxs:
+                med_list.append({
+                    "medicine_name": r.medicine_name,
+                    "dosage": r.dosage or "",
+                    "duration": r.duration or "",
+                    "instructions": r.instructions or "",
+                    "inferred_symptom": r.inferred_symptom or ""
+                })
+
+            token_val = getattr(ev, "daily_token_number", None)
+            if token_val is None:
+                token_val = getattr(ev, "token_number", None)
+
+            results.append({
+                "event_id": str(ev.event_id),
+                "clinic_id": str(ev.clinic_id),
+                "clinic_name": clinic.clinic_name if clinic else "Clinic",
+                "doctor_name": clinic.doctor_name if clinic else "Doctor",
+                "local_token": ev.local_token,
+                "token_number": token_val,
+                "daily_token_number": token_val,
+                "timestamp": ev.timestamp.isoformat() if ev.timestamp else None,
+                "status": ev.status,
+                "advice": ev.advice or "",
+                "medicines": med_list
             })
 
-        results.append({
-            "event_id": str(ev.event_id),
-            "clinic_id": str(ev.clinic_id),
-            "clinic_name": clinic.clinic_name if clinic else "Clinic",
-            "doctor_name": clinic.doctor_name if clinic else "Doctor",
-            "local_token": ev.local_token,
-            "token_number": ev.token_number,
-            "timestamp": ev.timestamp.isoformat() if ev.timestamp else None,
-            "status": ev.status,
-            "advice": ev.advice or "",
-            "medicines": med_list
-        })
-
-    return {
-        "status": "success",
-        "prescriptions": results
-    }
+        return {
+            "status": "success",
+            "prescriptions": results
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching prescriptions for pharmacy {pharmacy_id}: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Failed to fetch prescriptions: {str(e)}")

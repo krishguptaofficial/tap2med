@@ -516,7 +516,7 @@
       <div id="panel-prescriptions" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
           <h3 style="font-size: 16px; font-weight: 800;">Real-Time Patient Prescriptions</h3>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncomingPrescriptions()">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncomingPrescriptions(true)">
             🔄 Refresh Feed
           </button>
         </div>
@@ -889,15 +889,25 @@
       }
 
       // ─── Incoming Prescriptions ───
-      async function loadIncomingPrescriptions() {
+      async function loadIncomingPrescriptions(isManual = false) {
         const container = document.getElementById("prescriptions-feed-list");
         if (!activePharmacyId) return;
 
         try {
           const res = await fetch(`/api/pharmacy/${activePharmacyId}/prescriptions`);
-          if (!res.ok) return;
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            console.error("Prescriptions fetch error:", res.status, err);
+            if (isManual) showToast("dash-toast", err.detail || "Could not fetch incoming prescriptions", true);
+            return;
+          }
           const data = await res.json();
           const list = data.prescriptions || [];
+
+          if (isManual) {
+            showToast("dash-toast", `Feed refreshed: ${list.length} prescription(s) available.`);
+            setTimeout(() => hideToast("dash-toast"), 2500);
+          }
 
           if (!list.length) {
             container.innerHTML = `
@@ -916,11 +926,13 @@
               ? rx.medicines.map(m => `<span class="med-pill">💊 <strong>${m.medicine_name}</strong> ${m.dosage ? `(${m.dosage})` : ""}</span>`).join("")
               : '<span class="med-pill">Consultation advice given</span>';
 
+            const tokenDisplay = rx.token_number || rx.daily_token_number || "—";
+
             return `
               <div class="rx-card">
                 <div class="rx-header">
                   <div style="display: flex; gap: 10px; align-items: center;">
-                    <span class="rx-token">#${rx.token_number || "—"}</span>
+                    <span class="rx-token">#${tokenDisplay}</span>
                     <div>
                       <strong style="font-size: 14.5px; display: block;">${rx.clinic_name}</strong>
                       <span style="font-size: 12px; color: var(--text-muted);">Dr. ${rx.doctor_name} • ${timeStr}</span>
