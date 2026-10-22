@@ -434,7 +434,7 @@ async function initNearbyPharmacies(medicines = []) {
   container.innerHTML = `
     <div style="text-align: center; padding: 24px 16px; color: #64748b;">
       <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
-      <p style="font-size: 14px; font-weight: 600; margin: 0;">Detecting GPS & scanning connected pharmacies within 1000m...</p>
+      <p style="font-size: 14px; font-weight: 600; margin: 0;">Detecting GPS & scanning verified partner pharmacies within 1000m...</p>
     </div>
   `;
 
@@ -448,47 +448,11 @@ async function initNearbyPharmacies(medicines = []) {
   const defaultLat = 28.5672;
   const defaultLng = 77.2100;
 
-  const fallbackPharmacies = (lat, lng) => [
-    {
-      pharmacy_id: "p1",
-      name: "Apollo Pharmacy (Main Gate)",
-      address: "Shop 4, Ground Floor, Opp. Gate 2",
-      phone: "+91 98765 43210",
-      hours: "Open • Closes 11:00 PM",
-      latitude: lat + 0.0012,
-      longitude: lng + 0.0008,
-      distance: 140,
-      distance_meters: 140,
-    },
-    {
-      pharmacy_id: "p2",
-      name: "MedPlus Chemist & Druggist",
-      address: "Crossroad Junction, Metro Pillar 42",
-      phone: "+91 98765 11223",
-      hours: "Open 24 Hours",
-      latitude: lat - 0.0019,
-      longitude: lng + 0.0014,
-      distance: 230,
-      distance_meters: 230,
-    },
-    {
-      pharmacy_id: "p3",
-      name: "Sanjeevani Day & Night Meds",
-      address: "Plot 12, Market Complex",
-      phone: "+91 98765 99887",
-      hours: "Open • Closes 10:30 PM",
-      latitude: lat + 0.0028,
-      longitude: lng - 0.0022,
-      distance: 360,
-      distance_meters: 360,
-    },
-  ];
-
   const fetchAndRender = async (lat, lng) => {
     userCoords = { lat, lng };
 
     if (!activeClinicId) {
-      renderNearbyPharmaciesUI(lat, lng, medicines, fallbackPharmacies(lat, lng));
+      renderNearbyPharmaciesUI(lat, lng, medicines, []);
       return;
     }
 
@@ -500,14 +464,11 @@ async function initNearbyPharmacies(medicines = []) {
         throw new Error(`Server returned ${res.status}`);
       }
       const data = await res.json();
-      let pharmacies = (data && data.pharmacies) || [];
-      if (!pharmacies.length) {
-        pharmacies = fallbackPharmacies(lat, lng);
-      }
+      const pharmacies = (data && data.pharmacies) || [];
       renderNearbyPharmaciesUI(lat, lng, medicines, pharmacies);
     } catch (err) {
-      console.warn("Using fallback clinic partner pharmacies:", err);
-      renderNearbyPharmaciesUI(lat, lng, medicines, fallbackPharmacies(lat, lng));
+      console.warn("Error fetching connected pharmacies:", err);
+      renderNearbyPharmaciesUI(lat, lng, medicines, []);
     }
   };
 
@@ -571,7 +532,7 @@ function renderNearbyPharmaciesUI(lat, lng, medicines, pharmacies = []) {
       </div>
       <div style="text-align: center; padding: 32px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; margin-top: 12px;">
         <div style="font-size: 32px; margin-bottom: 8px;">🏥</div>
-        <strong style="font-size: 14px; color: #334155; display: block; margin-bottom: 4px;">No Connected Pharmacies Within 1km</strong>
+        <strong style="font-size: 14px; color: #334155; display: block; margin-bottom: 4px;">No verified partner pharmacies within 1km of this clinic.</strong>
         <p style="font-size: 12px; color: #64748b; margin: 0;">No active pharmacies connected to this clinic were found within 1000m walking distance.</p>
       </div>
     `;

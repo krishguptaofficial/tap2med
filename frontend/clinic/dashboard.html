@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="/assets/css/forms.css" />
     <link
       rel="stylesheet"
-      href="/assets/css/pages/dashboard.css?v=final_fix"
+      href="/assets/css/pages/dashboard.css?v=pharm_v2"
     />
     <link rel="stylesheet" href="/assets/css/print.css" />
   </head>
@@ -39,6 +39,9 @@
         >
         <a href="/settings" class="nav-item"
           ><span style="font-size: 18px"></span> Clinic Settings</a
+        >
+        <a href="#" class="nav-item" onclick="openPartnerPharmaciesModal(); return false;" id="nav-partner-pharmacies"
+          ><span style="font-size: 18px">🏪</span> Partner Pharmacies</a
         >
       </nav>
       <div class="sidebar-footer">
@@ -529,6 +532,41 @@
       </div>
     </div>
 
+    <!-- ═══ Partner Pharmacies Modal ═══ -->
+    <div id="partnerPharmaciesModal" class="backdrop" style="display: none;">
+      <div class="card" style="max-width: 650px; width: 92%; max-height: 85vh; display: flex; flex-direction: column; padding: 28px; border-radius: 18px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 16px; margin-bottom: 20px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 26px;">🏪</span>
+            <div>
+              <h2 style="font-size: 19px; font-weight: 800; color: var(--text-color); margin: 0;">Partner Pharmacies</h2>
+              <span style="font-size: 13px; color: var(--text-muted);">Neighborhood chemist network for patient medicine pickup</span>
+            </div>
+          </div>
+          <button type="button" onclick="closePartnerPharmaciesModal()" class="btn btn-ghost" style="font-size: 20px; padding: 6px 10px; line-height: 1;">✕</button>
+        </div>
+
+        <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
+          <!-- Clinic Partner Code Box -->
+          <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #bae6fd; border-radius: 14px; padding: 18px 20px; margin-bottom: 22px;">
+            <div style="font-size: 12px; font-weight: 800; color: #0369a1; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Your Clinic Partner Code</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+              <span id="partner-code-display" style="font-size: 24px; font-weight: 800; color: #0284c7; letter-spacing: 0.06em; font-family: monospace;">CLINIC-XXXX</span>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="copyPartnerCode()" style="font-size: 13px; font-weight: 700;">📋 Copy Code</button>
+            </div>
+            <p style="font-size: 12.5px; color: #0369a1; margin-top: 8px; margin-bottom: 0;">
+              Share this code with your local chemist. They enter it in their <strong>Pharmacy Portal</strong> to automatically connect to your clinic.
+            </p>
+          </div>
+
+          <h3 style="font-size: 15px; font-weight: 800; color: var(--text-color); margin-bottom: 12px;">Connected Chemist Shops</h3>
+          <div id="partner-pharmacies-list">
+            <div style="text-align: center; padding: 30px 10px; color: var(--text-muted);">Loading connected pharmacies...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- QR Code Standee Modal -->
     <div id="qrModal" class="backdrop">
       <div
@@ -635,11 +673,11 @@
         Powered by Tap2Med
       </p>
     </div>
-    <script src="/assets/js/print_engine.js?v=final_fix"></script>
+    <script src="/assets/js/print_engine.js?v=pharm_v2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="/assets/js/pages/dashboard.js?v=final_fix"></script>
-    <script src="/assets/js/labs.js?v=final_fix"></script>
-    <script src="/assets/js/load_layouts.js?v=final_fix"></script>
+    <script src="/assets/js/pages/dashboard.js?v=pharm_v2"></script>
+    <script src="/assets/js/labs.js?v=pharm_v2"></script>
+    <script src="/assets/js/load_layouts.js?v=pharm_v2"></script>
   </body>
 </html>

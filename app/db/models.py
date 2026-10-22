@@ -227,3 +227,29 @@ class ConnectedPharmacy(Base):
     longitude = Column(Float, nullable=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Pharmacy(Base):
+    __tablename__ = "pharmacies"
+    pharmacy_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(Text, nullable=False)
+    email = Column(Text, unique=True, index=True, nullable=False)
+    password_hash = Column(Text, nullable=False)
+    phone = Column(Text, nullable=True)
+    license_no = Column(Text, nullable=True)
+    address = Column(Text, nullable=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class ClinicPharmacyLink(Base):
+    __tablename__ = "clinic_pharmacy_links"
+    link_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    clinic_id = Column(UUID(as_uuid=True), ForeignKey("clinics.clinic_id"), nullable=False, index=True)
+    pharmacy_id = Column(UUID(as_uuid=True), ForeignKey("pharmacies.pharmacy_id"), nullable=False, index=True)
+    status = Column(String, default="connected")  # "pending", "connected", "rejected"
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    clinic = relationship("Clinic")
+    pharmacy = relationship("Pharmacy")

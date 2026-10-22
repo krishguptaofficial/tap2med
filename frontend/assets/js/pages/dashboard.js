@@ -2054,3 +2054,110 @@ setInterval(loadQueue, 5000);
     });
   }, POLL_MS);
 })();
+
+// ═══ PARTNER PHARMACIES MANAGEMENT ═══
+window.openPartnerPharmaciesModal = async function () {
+  const modal = document.getElementById("partnerPharmaciesModal");
+  if (!modal) return;
+  modal.style.display = "flex";
+
+  if (!clinicId) return;
+
+  try {
+    const codeRes = await fetch(`/api/clinics/${clinicId}/partner-code`);
+    if (codeRes.ok) {
+      const codeData = await codeRes.json();
+      const codeEl = document.getElementById("partner-code-display");
+      if (codeEl) codeEl.textContent = codeData.partner_code || `CLINIC-${clinicId.substring(0, 4).toUpperCase()}`;
+    }
+  } catch (e) {
+    console.error("Partner code error:", e);
+  }
+
+  loadPartnerPharmaciesList();
+};
+
+window.closePartnerPharmaciesModal = function () {
+  const modal = document.getElementById("partnerPharmaciesModal");
+  if (modal) modal.style.display = "none";
+};
+
+window.copyPartnerCode = function () {
+  const codeEl = document.getElementById("partner-code-display");
+  if (!codeEl) return;
+  const val = codeEl.textContent.trim();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(val).then(() => {
+      alert("Partner Code copied: " + val);
+    }).catch(() => {
+      prompt("Copy Partner Code:", val);
+    });
+  } else {
+    prompt("Copy Partner Code:", val);
+  }
+};
+
+async function loadPartnerPharmaciesList() {
+  const container = document.getElementById("partner-pharmacies-list");
+  if (!container || !clinicId) return;
+
+  try {
+    const res = await fetch(`/api/clinics/${clinicId}/partner-pharmacies`);
+    if (!res.ok) {
+      container.innerHTML = `<div style="text-align: center; padding: 20px; color: #64748b;">No partner pharmacies connected yet.</div>`;
+      return;
+    }
+    const data = await res.json();
+    const list = data.pharmacies || [];
+
+    if (!list.length) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 30px 16px; background: #f8fafc; border: 1.5px dashed #cbd5e1; border-radius: 12px; color: #64748b;">
+          <div style="font-size: 28px; margin-bottom: 6px;">🏪</div>
+          <strong style="color: #0f172a; display: block; font-size: 14.5px; margin-bottom: 4px;">No Pharmacies Connected Yet</strong>
+          <span style="font-size: 13px;">Tell your local chemist to register on the <strong>Pharmacy Portal</strong> using your Partner Code above.</span>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = list.map((p) => {
+      const isConnected = p.status === "connected";
+      return `
+        <div style="background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div>
+            <strong style="font-size: 15px; color: #0f172a; display: block;">${p.name}</strong>
+            <span style="font-size: 12.5px; color: #64748b;">${p.address || "Local Chemist"}${p.phone ? ` • ${p.phone}` : ""}</span>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span style="font-size: 11.5px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: ${isConnected ? '#dcfce7' : '#fee2e2'}; color: ${isConnected ? '#15803d' : '#991b1b'};">
+              ${isConnected ? '● Connected' : 'Disconnected'}
+            </span>
+            <button class="btn btn-ghost btn-sm" onclick="togglePartnerPharmacyStatus('${p.pharmacy_id}', '${isConnected ? 'disconnected' : 'connected'}')" style="font-size: 12px; padding: 4px 8px;">
+              ${isConnected ? 'Disconnect' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Partner pharmacies load error:", err);
+    container.innerHTML = `<div style="text-align: center; padding: 20px; color: #ef4444;">Failed to load pharmacies.</div>`;
+  }
+}
+
+window.togglePartnerPharmacyStatus = async function (pharmacyId, newStatus) {
+  if (!clinicId) return;
+  try {
+    const res = await fetch(`/api/clinics/${clinicId}/partner-pharmacies/${pharmacyId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus })
+    });
+    if (res.ok) {
+      loadPartnerPharmaciesList();
+    }
+  } catch (e) {
+    console.error("Status toggle error:", e);
+  }
+};

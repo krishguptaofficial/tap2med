@@ -1,0 +1,962 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pharmacy Portal | Tap2Med</title>
+    <link rel="icon" href="/assets/favicon.ico?v=pharm_v2" />
+    <link rel="stylesheet" href="/assets/css/variables.css?v=pharm_v2" />
+    <link rel="stylesheet" href="/assets/css/base.css?v=pharm_v2" />
+    <link rel="stylesheet" href="/assets/css/buttons.css?v=pharm_v2" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #0284c7;
+        --primary-dark: #0369a1;
+        --canvas: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --success: #16a34a;
+        --danger: #ef4444;
+        --radius: 14px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "Inter", system-ui, sans-serif;
+        background: var(--canvas);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      /* Navbar */
+      .top-navbar {
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 28px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .brand-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+      }
+      .brand-logo {
+        width: 34px;
+        height: 28px;
+        object-fit: contain;
+      }
+      .brand-title {
+        font-size: 19px;
+        font-weight: 800;
+        color: var(--primary);
+        letter-spacing: -0.02em;
+      }
+      .brand-badge {
+        font-size: 12px;
+        font-weight: 700;
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 3px 8px;
+        border-radius: 6px;
+      }
+
+      /* Container */
+      .container {
+        max-width: 1050px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+      }
+
+      /* Card */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+
+      /* Auth View */
+      .auth-wrapper {
+        min-height: calc(100vh - 70px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+      }
+      .auth-card {
+        max-width: 480px;
+        width: 100%;
+      }
+      .auth-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        background: #f1f5f9;
+        padding: 4px;
+        border-radius: 10px;
+      }
+      .auth-tab-btn {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .auth-tab-btn.active {
+        background: #ffffff;
+        color: var(--text);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+      }
+
+      .input-group {
+        margin-bottom: 16px;
+        text-align: left;
+      }
+      .input-group label {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .input-field {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: inherit;
+        background: #ffffff;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .input-field:focus {
+        border-color: var(--primary);
+      }
+      .gps-detect-btn {
+        background: #f0fdf4;
+        border: 1.5px dashed #86efac;
+        color: #166534;
+        font-weight: 700;
+        font-size: 13.5px;
+        padding: 12px 16px;
+        border-radius: 10px;
+        width: 100%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+      .gps-detect-btn:hover {
+        background: #dcfce7;
+      }
+      .gps-status-pill {
+        font-size: 12px;
+        font-weight: 600;
+        color: #15803d;
+        margin-top: 6px;
+        display: none;
+      }
+
+      /* Dashboard View */
+      .dash-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+      .store-name {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text);
+        letter-spacing: -0.02em;
+      }
+      .dash-badges {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      .badge-success {
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .badge-blue {
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+
+      /* Main Tabs */
+      .main-tabs {
+        display: flex;
+        gap: 8px;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 24px;
+      }
+      .main-tab-btn {
+        padding: 12px 20px;
+        font-size: 14.5px;
+        font-weight: 700;
+        color: var(--text-muted);
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-bottom: 2.5px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .main-tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+      }
+
+      /* Grid & List Styles */
+      .clinic-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        transition: all 0.2s;
+      }
+      .clinic-card:hover {
+        border-color: #cbd5e1;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      }
+
+      .rx-card {
+        background: white;
+        border: 1px solid var(--border);
+        border-left: 5px solid var(--primary);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+      }
+      .rx-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        border-bottom: 1px dashed var(--border);
+        padding-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .rx-token {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--primary);
+        background: #f0f9ff;
+        padding: 4px 10px;
+        border-radius: 8px;
+        border: 1px solid #bae6fd;
+      }
+      .med-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+      }
+
+      /* Alert / Toast */
+      .toast {
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        display: none;
+      }
+      .toast.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+      }
+      .toast.success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+      }
+
+      /* Table */
+      .inventory-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+      }
+      .inventory-table th {
+        text-align: left;
+        padding: 12px 14px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--border);
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+      .inventory-table td {
+        padding: 14px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ═══ Navbar ═══ -->
+    <nav class="top-navbar">
+      <a href="/" class="brand-box">
+        <img
+          src="/assets/logo/tap2med_logo.png?v=pharm_v2"
+          alt="Tap2Med"
+          class="brand-logo"
+          onerror="this.style.display='none'"
+        />
+        <span class="brand-title">Tap2Med</span>
+        <span class="brand-badge">Pharmacy Portal</span>
+      </a>
+      <div style="display: flex; gap: 10px; align-items: center">
+        <a href="/" class="btn btn-outline" style="padding: 8px 14px; font-size: 13px;">Home</a>
+      </div>
+    </nav>
+
+    <!-- ═══ VIEW 1 — Unauthenticated (Login & Register) ═══ -->
+    <div id="view-auth" class="auth-wrapper" style="display: none;">
+      <div class="card auth-card text-center">
+        <div style="font-size: 36px; margin-bottom: 10px;">🏪</div>
+        <h1 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">Chemist & Pharmacy Network</h1>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          Connect directly with neighborhood clinics to receive verified prescription orders.
+        </p>
+
+        <div class="auth-tabs">
+          <button type="button" id="tab-btn-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">
+            Sign In
+          </button>
+          <button type="button" id="tab-btn-register" class="auth-tab-btn" onclick="switchAuthTab('register')">
+            Register Pharmacy
+          </button>
+        </div>
+
+        <div id="auth-toast" class="toast"></div>
+
+        <!-- Form: Login -->
+        <form id="form-login" onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label>Chemist Email ID</label>
+            <input type="email" id="login-email" class="input-field" placeholder="chemist@pharmacy.com" required autocomplete="email" />
+          </div>
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" id="login-password" class="input-field" placeholder="••••••••" required autocomplete="current-password" />
+          </div>
+          <button type="submit" id="btn-login" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Sign In to Pharmacy Portal
+          </button>
+        </form>
+
+        <!-- Form: Register -->
+        <form id="form-register" style="display: none;" onsubmit="handleRegister(event)">
+          <div class="input-group">
+            <label>Pharmacy / Store Name *</label>
+            <input type="text" id="reg-name" class="input-field" placeholder="e.g. Apollo Pharmacy (Gate 2)" required />
+          </div>
+          <div class="input-group">
+            <label>Official Email ID *</label>
+            <input type="email" id="reg-email" class="input-field" placeholder="contact@pharmacy.com" required autocomplete="email" />
+          </div>
+          <div class="input-group">
+            <label>Create Password *</label>
+            <input type="password" id="reg-password" class="input-field" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password" />
+          </div>
+          <div class="input-group">
+            <label>Contact Phone</label>
+            <input type="tel" id="reg-phone" class="input-field" placeholder="10-digit mobile or landline" />
+          </div>
+          <div class="input-group">
+            <label>Drug License Number</label>
+            <input type="text" id="reg-license" class="input-field" placeholder="e.g. DL-20B/4819" />
+          </div>
+          <div class="input-group">
+            <label>Store Physical Address</label>
+            <input type="text" id="reg-address" class="input-field" placeholder="Shop #, Street, Landmark" />
+          </div>
+
+          <!-- GPS Detection -->
+          <div class="input-group">
+            <label>Store GPS Coordinates * (For 1000m Clinic Discovery)</label>
+            <button type="button" class="gps-detect-btn" onclick="detectStoreGPS()">
+              <span>📍 Detect Current Store GPS</span>
+            </button>
+            <div id="reg-gps-status" class="gps-status-pill"></div>
+            <input type="hidden" id="reg-lat" value="28.5672" />
+            <input type="hidden" id="reg-lng" value="77.2100" />
+          </div>
+
+          <button type="submit" id="btn-register" class="btn btn-primary" style="width: 100%; margin-top: 8px;">
+            Register & Open Portal
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ VIEW 2 — Authenticated Pharmacist Dashboard ═══ -->
+    <div id="view-dashboard" class="container" style="display: none;">
+      <!-- Dashboard Header -->
+      <div class="card mb-4" style="padding: 24px 28px; margin-bottom: 24px;">
+        <div class="dash-header">
+          <div>
+            <div class="store-name" id="dash-store-name">Apollo Pharmacy</div>
+            <div class="dash-badges">
+              <span class="badge-success" id="dash-license-badge">DL-Verified</span>
+              <span class="badge-blue" id="dash-gps-badge">🟢 GPS Active (28.5672, 77.2100)</span>
+              <span style="font-size: 13px; color: var(--text-muted);" id="dash-address">—</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="reDetectGPS()" style="font-size: 12.5px; padding: 7px 12px;">
+              📍 Update GPS
+            </button>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="handleLogout()" style="font-size: 12.5px; padding: 7px 12px;">
+              Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <div class="main-tabs">
+        <button type="button" id="tab-btn-clinics" class="main-tab-btn active" onclick="switchMainTab('clinics')">
+          🏥 Connected Clinics
+        </button>
+        <button type="button" id="tab-btn-prescriptions" class="main-tab-btn" onclick="switchMainTab('prescriptions')">
+          📋 Incoming Prescriptions
+        </button>
+        <button type="button" id="tab-btn-stock" class="main-tab-btn" onclick="switchMainTab('stock')">
+          💊 Stock Manager
+        </button>
+      </div>
+
+      <div id="dash-toast" class="toast"></div>
+
+      <!-- ─── TAB A: Connected Clinics ─── -->
+      <div id="panel-clinics">
+        <div class="card mb-4" style="margin-bottom: 20px;">
+          <h2 style="font-size: 16px; font-weight: 800; margin-bottom: 4px;">Connect to a New Clinic</h2>
+          <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+            Enter the 6-character Clinic Partner Code given by the doctor (e.g. CLINIC-4A1B) or doctor email.
+          </p>
+          <form onsubmit="handleConnectClinic(event)" style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <input
+              type="text"
+              id="input-clinic-code"
+              class="input-field"
+              placeholder="e.g. CLINIC-4A1B"
+              style="flex: 1; min-width: 200px;"
+              required
+            />
+            <button type="submit" id="btn-link-clinic" class="btn btn-primary" style="white-space: nowrap;">
+              🔗 Link Clinic
+            </button>
+          </form>
+        </div>
+
+        <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 14px;">Active Clinic Partnerships</h3>
+        <div id="connected-clinics-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- ─── TAB B: Incoming Prescriptions ─── -->
+      <div id="panel-prescriptions" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 16px; font-weight: 800;">Real-Time Patient Prescriptions</h3>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncomingPrescriptions()">
+            🔄 Refresh Feed
+          </button>
+        </div>
+        <div id="prescriptions-feed-list">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- ─── TAB C: Stock Manager ─── -->
+      <div id="panel-stock" style="display: none;">
+        <div class="card mb-4" style="margin-bottom: 20px;">
+          <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 14px;">Essential Medicine Inventory</h3>
+          <div style="overflow-x: auto;">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th>Medicine Name</th>
+                  <th>Category</th>
+                  <th>Stock Units</th>
+                  <th>Status</th>
+                  <th>Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody id="stock-table-body">
+                <tr>
+                  <td><strong>Paracetamol 650mg</strong></td>
+                  <td>Analgesic</td>
+                  <td id="stock-qty-1">120</td>
+                  <td><span class="badge-success">In Stock</span></td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm" onclick="adjustStock(1, 20)">+20</button>
+                    <button class="btn btn-danger-outline btn-sm" onclick="adjustStock(1, -20)">-20</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Amoxicillin 500mg</strong></td>
+                  <td>Antibiotic</td>
+                  <td id="stock-qty-2">45</td>
+                  <td><span class="badge-success">In Stock</span></td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm" onclick="adjustStock(2, 20)">+20</button>
+                    <button class="btn btn-danger-outline btn-sm" onclick="adjustStock(2, -20)">-20</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Pantoprazole 40mg</strong></td>
+                  <td>Antacid</td>
+                  <td id="stock-qty-3">80</td>
+                  <td><span class="badge-success">In Stock</span></td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm" onclick="adjustStock(3, 20)">+20</button>
+                    <button class="btn btn-danger-outline btn-sm" onclick="adjustStock(3, -20)">-20</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Cetirizine 10mg</strong></td>
+                  <td>Antihistamine</td>
+                  <td id="stock-qty-4">95</td>
+                  <td><span class="badge-success">In Stock</span></td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm" onclick="adjustStock(4, 20)">+20</button>
+                    <button class="btn btn-danger-outline btn-sm" onclick="adjustStock(4, -20)">-20</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Scripts ═══ -->
+    <script>
+      let activePharmacyId = localStorage.getItem("tap2med_pharmacy_id");
+      let activePharmacyData = null;
+      let rxPollingTimer = null;
+
+      (function init() {
+        if (activePharmacyId) {
+          loadPharmacyProfile();
+        } else {
+          showAuthView();
+        }
+      })();
+
+      function showAuthView() {
+        document.getElementById("view-auth").style.display = "flex";
+        document.getElementById("view-dashboard").style.display = "none";
+      }
+
+      function showDashboardView() {
+        document.getElementById("view-auth").style.display = "none";
+        document.getElementById("view-dashboard").style.display = "block";
+        loadConnectedClinics();
+        loadIncomingPrescriptions();
+        startRxPolling();
+      }
+
+      function switchAuthTab(tab) {
+        const btnLogin = document.getElementById("tab-btn-login");
+        const btnReg = document.getElementById("tab-btn-register");
+        const formLogin = document.getElementById("form-login");
+        const formReg = document.getElementById("form-register");
+        hideToast("auth-toast");
+
+        if (tab === "register") {
+          btnLogin.classList.remove("active");
+          btnReg.classList.add("active");
+          formLogin.style.display = "none";
+          formReg.style.display = "block";
+        } else {
+          btnReg.classList.remove("active");
+          btnLogin.classList.add("active");
+          formReg.style.display = "none";
+          formLogin.style.display = "block";
+        }
+      }
+
+      function switchMainTab(tab) {
+        ["clinics", "prescriptions", "stock"].forEach((t) => {
+          document.getElementById(`tab-btn-${t}`).classList.remove("active");
+          document.getElementById(`panel-${t}`).style.display = "none";
+        });
+        document.getElementById(`tab-btn-${tab}`).classList.add("active");
+        document.getElementById(`panel-${tab}`).style.display = "block";
+
+        if (tab === "prescriptions") loadIncomingPrescriptions();
+        if (tab === "clinics") loadConnectedClinics();
+      }
+
+      function showToast(id, msg, isError = false) {
+        const t = document.getElementById(id);
+        if (!t) return;
+        t.textContent = msg;
+        t.className = isError ? "toast error" : "toast success";
+        t.style.display = "block";
+      }
+
+      function hideToast(id) {
+        const t = document.getElementById(id);
+        if (t) t.style.display = "none";
+      }
+
+      // ─── GPS Detection ───
+      function detectStoreGPS() {
+        const statusEl = document.getElementById("reg-gps-status");
+        statusEl.style.display = "block";
+        statusEl.textContent = "Detecting store coordinates via GPS...";
+
+        if (!navigator.geolocation) {
+          statusEl.textContent = "Geolocation not supported. Used default coordinates.";
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            document.getElementById("reg-lat").value = lat;
+            document.getElementById("reg-lng").value = lng;
+            statusEl.textContent = `📍 GPS Captured: ${lat.toFixed(4)}, ${lng.toFixed(4)} (Accuracy ~${Math.round(pos.coords.accuracy)}m)`;
+            statusEl.style.color = "#15803d";
+          },
+          (err) => {
+            console.warn("GPS error:", err);
+            statusEl.textContent = "Could not fetch GPS. Default clinic vicinity coordinates used.";
+          },
+          { timeout: 7000 }
+        );
+      }
+
+      function reDetectGPS() {
+        if (!navigator.geolocation || !activePharmacyId) return;
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          try {
+            const res = await fetch(`/api/pharmacy/${activePharmacyId}/location`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ latitude: lat, longitude: lng })
+            });
+            if (res.ok) {
+              document.getElementById("dash-gps-badge").textContent = `🟢 GPS Active (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+              showToast("dash-toast", "Store GPS location successfully updated!");
+              setTimeout(() => hideToast("dash-toast"), 3000);
+            }
+          } catch (e) {
+            console.error("Location update failed:", e);
+          }
+        });
+      }
+
+      // ─── Auth Handlers ───
+      async function handleLogin(e) {
+        e.preventDefault();
+        hideToast("auth-toast");
+        const btn = document.getElementById("btn-login");
+        btn.disabled = true;
+        btn.textContent = "Signing In...";
+
+        try {
+          const res = await fetch("/api/pharmacy/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: document.getElementById("login-email").value.trim(),
+              password: document.getElementById("login-password").value
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "Login failed");
+
+          activePharmacyId = data.pharmacy_id;
+          activePharmacyData = data;
+          localStorage.setItem("tap2med_pharmacy_id", data.pharmacy_id);
+          localStorage.setItem("tap2med_pharmacy_name", data.name);
+
+          updateHeaderUI(data);
+          showDashboardView();
+        } catch (err) {
+          showToast("auth-toast", err.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sign In to Pharmacy Portal";
+        }
+      }
+
+      async function handleRegister(e) {
+        e.preventDefault();
+        hideToast("auth-toast");
+        const btn = document.getElementById("btn-register");
+        btn.disabled = true;
+        btn.textContent = "Registering...";
+
+        const payload = {
+          name: document.getElementById("reg-name").value.trim(),
+          email: document.getElementById("reg-email").value.trim(),
+          password: document.getElementById("reg-password").value,
+          phone: document.getElementById("reg-phone").value.trim() || null,
+          license_no: document.getElementById("reg-license").value.trim() || null,
+          address: document.getElementById("reg-address").value.trim() || null,
+          latitude: parseFloat(document.getElementById("reg-lat").value) || 28.5672,
+          longitude: parseFloat(document.getElementById("reg-lng").value) || 77.2100
+        };
+
+        try {
+          const res = await fetch("/api/pharmacy/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "Registration failed");
+
+          activePharmacyId = data.pharmacy_id;
+          localStorage.setItem("tap2med_pharmacy_id", data.pharmacy_id);
+          localStorage.setItem("tap2med_pharmacy_name", data.name);
+
+          await loadPharmacyProfile();
+        } catch (err) {
+          showToast("auth-toast", err.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Register & Open Portal";
+        }
+      }
+
+      function handleLogout() {
+        localStorage.removeItem("tap2med_pharmacy_id");
+        localStorage.removeItem("tap2med_pharmacy_name");
+        activePharmacyId = null;
+        if (rxPollingTimer) clearInterval(rxPollingTimer);
+        showAuthView();
+      }
+
+      async function loadPharmacyProfile() {
+        try {
+          const res = await fetch(`/api/pharmacy/${activePharmacyId}/profile`);
+          if (!res.ok) throw new Error("Could not load profile");
+          const data = await res.json();
+          activePharmacyData = data.pharmacy;
+          updateHeaderUI(activePharmacyData);
+          showDashboardView();
+        } catch (e) {
+          console.warn("Profile load error:", e);
+          handleLogout();
+        }
+      }
+
+      function updateHeaderUI(p) {
+        document.getElementById("dash-store-name").textContent = p.name || "My Pharmacy";
+        document.getElementById("dash-license-badge").textContent = p.license_no ? `License: ${p.license_no}` : "DL-Verified";
+        const lat = Number(p.latitude || 28.5672).toFixed(4);
+        const lng = Number(p.longitude || 77.2100).toFixed(4);
+        document.getElementById("dash-gps-badge").textContent = `🟢 Store GPS Active (${lat}, ${lng})`;
+        document.getElementById("dash-address").textContent = p.address || "Local Pharmacy";
+      }
+
+      // ─── Connected Clinics ───
+      async function loadConnectedClinics() {
+        const container = document.getElementById("connected-clinics-list");
+        if (!activePharmacyId) return;
+
+        try {
+          const res = await fetch(`/api/pharmacy/${activePharmacyId}/connected-clinics`);
+          if (!res.ok) return;
+          const data = await res.json();
+          const list = data.clinics || [];
+
+          if (!list.length) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 32px 16px; background: white; border: 1.5px dashed var(--border); border-radius: 12px; color: var(--text-muted);">
+                <div style="font-size: 32px; margin-bottom: 8px;">🏥</div>
+                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 4px;">No Connected Clinics Yet</strong>
+                <p style="font-size: 13px;">Ask your neighborhood doctor for their Clinic Partner Code to connect and start receiving prescriptions.</p>
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = list.map((c) => `
+            <div class="clinic-card">
+              <div>
+                <strong style="font-size: 16px; color: var(--text); display: block;">${c.clinic_name}</strong>
+                <span style="font-size: 13px; color: var(--text-muted);">Dr. ${c.doctor_name || "Doctor"} • Code: <code style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${c.partner_code}</code></span>
+              </div>
+              <span class="badge-success">● Connected</span>
+            </div>
+          `).join("");
+        } catch (e) {
+          console.error("Clinics load error:", e);
+        }
+      }
+
+      async function handleConnectClinic(e) {
+        e.preventDefault();
+        hideToast("dash-toast");
+        const codeInput = document.getElementById("input-clinic-code");
+        const code = codeInput.value.trim();
+        const btn = document.getElementById("btn-link-clinic");
+        btn.disabled = true;
+        btn.textContent = "Linking...";
+
+        try {
+          const res = await fetch("/api/pharmacy/connect-clinic", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              pharmacy_id: activePharmacyId,
+              clinic_code_or_id: code
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "Could not connect to clinic");
+
+          showToast("dash-toast", `Successfully linked with ${data.clinic_name}!`);
+          codeInput.value = "";
+          loadConnectedClinics();
+          loadIncomingPrescriptions();
+        } catch (err) {
+          showToast("dash-toast", err.message, true);
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "🔗 Link Clinic";
+        }
+      }
+
+      // ─── Incoming Prescriptions ───
+      async function loadIncomingPrescriptions() {
+        const container = document.getElementById("prescriptions-feed-list");
+        if (!activePharmacyId) return;
+
+        try {
+          const res = await fetch(`/api/pharmacy/${activePharmacyId}/prescriptions`);
+          if (!res.ok) return;
+          const data = await res.json();
+          const list = data.prescriptions || [];
+
+          if (!list.length) {
+            container.innerHTML = `
+              <div style="text-align: center; padding: 36px 16px; background: white; border: 1.5px dashed var(--border); border-radius: 12px; color: var(--text-muted);">
+                <div style="font-size: 32px; margin-bottom: 8px;">💊</div>
+                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 4px;">No Incoming Prescriptions</strong>
+                <p style="font-size: 13px;">When patients finish consultation at your connected clinics, their digital prescriptions appear here in real-time.</p>
+              </div>
+            `;
+            return;
+          }
+
+          container.innerHTML = list.map((rx) => {
+            const timeStr = rx.timestamp ? new Date(rx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now";
+            const medsHtml = rx.medicines && rx.medicines.length
+              ? rx.medicines.map(m => `<span class="med-pill">💊 <strong>${m.medicine_name}</strong> ${m.dosage ? `(${m.dosage})` : ""}</span>`).join("")
+              : '<span class="med-pill">Consultation advice given</span>';
+
+            return `
+              <div class="rx-card">
+                <div class="rx-header">
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="rx-token">#${rx.token_number || "—"}</span>
+                    <div>
+                      <strong style="font-size: 14.5px; display: block;">${rx.clinic_name}</strong>
+                      <span style="font-size: 12px; color: var(--text-muted);">Dr. ${rx.doctor_name} • ${timeStr}</span>
+                    </div>
+                  </div>
+                  <span class="badge-success">Ready for Dispense</span>
+                </div>
+                <div style="margin-top: 10px;">
+                  <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">PRESCRIBED MEDICINES:</span>
+                  <div>${medsHtml}</div>
+                </div>
+              </div>
+            `;
+          }).join("");
+        } catch (e) {
+          console.error("Prescriptions load error:", e);
+        }
+      }
+
+      function startRxPolling() {
+        if (rxPollingTimer) clearInterval(rxPollingTimer);
+        rxPollingTimer = setInterval(() => {
+          const panel = document.getElementById("panel-prescriptions");
+          if (panel && panel.style.display !== "none") {
+            loadIncomingPrescriptions();
+          }
+        }, 8000);
+      }
+
+      function adjustStock(id, delta) {
+        const el = document.getElementById(`stock-qty-${id}`);
+        if (!el) return;
+        let curr = parseInt(el.textContent, 10) || 0;
+        curr = Math.max(0, curr + delta);
+        el.textContent = curr;
+      }
+    </script>
+  </body>
+</html>

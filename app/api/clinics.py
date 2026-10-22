@@ -41,7 +41,30 @@ def fix_db(db: Session = Depends(get_db)):
             is_active BOOLEAN DEFAULT TRUE,
             created_at TIMESTAMPTZ DEFAULT NOW()
         );""",
-        "CREATE INDEX IF NOT EXISTS ix_connected_pharmacies_clinic_id ON connected_pharmacies(clinic_id);"
+        "CREATE INDEX IF NOT EXISTS ix_connected_pharmacies_clinic_id ON connected_pharmacies(clinic_id);",
+        """CREATE TABLE IF NOT EXISTS pharmacies (
+            pharmacy_id UUID PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            phone TEXT,
+            license_no TEXT,
+            address TEXT,
+            latitude DOUBLE PRECISION NOT NULL,
+            longitude DOUBLE PRECISION NOT NULL,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );""",
+        "CREATE INDEX IF NOT EXISTS ix_pharmacies_email ON pharmacies(email);",
+        """CREATE TABLE IF NOT EXISTS clinic_pharmacy_links (
+            link_id UUID PRIMARY KEY,
+            clinic_id UUID NOT NULL REFERENCES clinics(clinic_id),
+            pharmacy_id UUID NOT NULL REFERENCES pharmacies(pharmacy_id),
+            status TEXT DEFAULT 'connected',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );""",
+        "CREATE INDEX IF NOT EXISTS ix_clinic_pharmacy_links_clinic_id ON clinic_pharmacy_links(clinic_id);",
+        "CREATE INDEX IF NOT EXISTS ix_clinic_pharmacy_links_pharmacy_id ON clinic_pharmacy_links(pharmacy_id);"
     ]
     for q in queries:
         try:
@@ -708,6 +731,134 @@ def register_connected_pharmacy(
     }
 
 
+class PartnerPharmacyStatusUpdate(BaseModel):
+    status: str
+
+
+@router.get("/{clinic_id}/partner-code")
+def get_clinic_partner_code(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+    partner_code = f"CLINIC-{clinic_id.hex[:4].upper()}"
+    return {
+        "status": "success",
+        "partner_code": partner_code,
+        "clinic_id": str(clinic_id),
+        "clinic_name": clinic.clinic_name,
+        "doctor_name": clinic.doctor_name
+    }
+
+
+@router.get("/{clinic_id}/partner-pharmacies")
+def get_clinic_partner_pharmacies(clinic_id: uuid.UUID, db: Session = Depends(get_db)):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+
+    pharmacy_map = {}
+
+    try:
+        links = db.query(models.ClinicPharmacyLink).filter(models.ClinicPharmacyLink.clinic_id == clinic_id).all()
+        for l in links:
+            pharm = db.query(models.Pharmacy).filter(models.Pharmacy.pharmacy_id == l.pharmacy_id).first()
+            if pharm:
+                pharmacy_map[str(pharm.pharmacy_id)] = {
+                    "pharmacy_id": str(pharm.pharmacy_id),
+                    "name": pharm.name,
+                    "email": pharm.email,
+                    "phone": pharm.phone or "",
+                    "license_no": pharm.license_no or "",
+                    "address": pharm.address or "",
+                    "latitude": pharm.latitude,
+                    "longitude": pharm.longitude,
+                    "status": l.status or "connected",
+                    "connected_at": l.created_at.isoformat() if l.created_at else None,
+                }
+    except Exception as e:
+        logger.warning(f"Error querying ClinicPharmacyLink in partner-pharmacies: {e}")
+        db.rollback()
+
+    try:
+        legacy = db.query(models.ConnectedPharmacy).filter(models.ConnectedPharmacy.clinic_id == clinic_id).all()
+        for lp in legacy:
+            p_id = str(lp.pharmacy_id)
+            if p_id not in pharmacy_map:
+                pharmacy_map[p_id] = {
+                    "pharmacy_id": p_id,
+                    "name": lp.name,
+                    "email": "",
+                    "phone": lp.phone or "",
+                    "license_no": "",
+                    "address": lp.address or "",
+                    "latitude": lp.latitude,
+                    "longitude": lp.longitude,
+                    "status": "connected" if lp.is_active else "disconnected",
+                    "connected_at": lp.created_at.isoformat() if lp.created_at else None,
+                }
+    except Exception as e:
+        logger.warning(f"Error querying legacy ConnectedPharmacy: {e}")
+        db.rollback()
+
+    return {
+        "status": "success",
+        "partner_code": f"CLINIC-{clinic_id.hex[:4].upper()}",
+        "pharmacies": list(pharmacy_map.values())
+    }
+
+
+@router.put("/{clinic_id}/partner-pharmacies/{pharmacy_id}")
+def update_partner_pharmacy_status(
+    clinic_id: uuid.UUID,
+    pharmacy_id: uuid.UUID,
+    payload: PartnerPharmacyStatusUpdate,
+    db: Session = Depends(get_db)
+):
+    clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
+    if not clinic:
+        raise HTTPException(status_code=404, detail="Clinic not found")
+
+    new_status = payload.status.lower().strip()
+    if new_status not in ["connected", "rejected", "disconnected", "pending"]:
+        raise HTTPException(status_code=400, detail="Invalid status value")
+
+    link = db.query(models.ClinicPharmacyLink).filter(
+        models.ClinicPharmacyLink.clinic_id == clinic_id,
+        models.ClinicPharmacyLink.pharmacy_id == pharmacy_id
+    ).first()
+
+    if link:
+        link.status = new_status
+        db.commit()
+    else:
+        lp = db.query(models.ConnectedPharmacy).filter(
+            models.ConnectedPharmacy.clinic_id == clinic_id,
+            models.ConnectedPharmacy.pharmacy_id == pharmacy_id
+        ).first()
+        if lp:
+            lp.is_active = (new_status == "connected")
+            db.commit()
+        else:
+            pharm = db.query(models.Pharmacy).filter(models.Pharmacy.pharmacy_id == pharmacy_id).first()
+            if pharm:
+                new_l = models.ClinicPharmacyLink(
+                    link_id=uuid.uuid4(),
+                    clinic_id=clinic_id,
+                    pharmacy_id=pharmacy_id,
+                    status=new_status
+                )
+                db.add(new_l)
+                db.commit()
+            else:
+                raise HTTPException(status_code=404, detail="Pharmacy link not found")
+
+    return {
+        "status": "success",
+        "pharmacy_id": str(pharmacy_id),
+        "new_status": new_status
+    }
+
+
 @router.get("/{clinic_id}/pharmacies/nearby")
 def get_nearby_connected_pharmacies(
     clinic_id: uuid.UUID,
@@ -716,106 +867,87 @@ def get_nearby_connected_pharmacies(
     radius_meters: float = 1000.0,
     db: Session = Depends(get_db),
 ):
-    try:
-        models.ConnectedPharmacy.__table__.create(db.get_bind(), checkfirst=True)
-    except Exception:
-        pass
-
-    try:
-        pharmacies = (
-            db.query(models.ConnectedPharmacy)
-            .filter(
-                models.ConnectedPharmacy.clinic_id == clinic_id,
-                models.ConnectedPharmacy.is_active == True,
-            )
-            .all()
-        )
-    except Exception:
-        db.rollback()
-        try:
-            models.ConnectedPharmacy.__table__.create(db.get_bind(), checkfirst=True)
-            db.commit()
-            pharmacies = (
-                db.query(models.ConnectedPharmacy)
-                .filter(
-                    models.ConnectedPharmacy.clinic_id == clinic_id,
-                    models.ConnectedPharmacy.is_active == True,
-                )
-                .all()
-            )
-        except Exception:
-            db.rollback()
-            pharmacies = []
-
     clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == clinic_id).first()
     if not clinic:
         return {"status": "success", "pharmacies": []}
 
-    # If clinic has no registered pharmacies in DB yet, auto-seed default partner pharmacies near the clinic GPS
-    if not pharmacies:
-        try:
-            default_partners = [
-                {
-                    "name": "Apollo Pharmacy (Main Gate)",
-                    "address": "Shop 4, Ground Floor, Opp. Gate 2",
-                    "phone": "+91 98765 43210",
-                    "lat": lat + 0.0012,
-                    "lng": lng + 0.0008,
-                },
-                {
-                    "name": "MedPlus Chemist & Druggist",
-                    "address": "Crossroad Junction, Metro Pillar 42",
-                    "phone": "+91 98765 11223",
-                    "lat": lat - 0.0019,
-                    "lng": lng + 0.0014,
-                },
-                {
-                    "name": "Sanjeevani Day & Night Meds",
-                    "address": "Plot 12, Market Complex",
-                    "phone": "+91 98765 99887",
-                    "lat": lat + 0.0028,
-                    "lng": lng - 0.0022,
-                },
-            ]
-            for p in default_partners:
-                row = models.ConnectedPharmacy(
-                    clinic_id=clinic_id,
-                    name=p["name"],
-                    address=p["address"],
-                    phone=p["phone"],
-                    latitude=p["lat"],
-                    longitude=p["lng"],
-                    is_active=True,
-                )
-                db.add(row)
-            db.commit()
+    results = []
+    seen_ids = set()
+
+    # 1. Query verified connected pharmacies via ClinicPharmacyLink
+    try:
+        links = (
+            db.query(models.ClinicPharmacyLink)
+            .filter(
+                models.ClinicPharmacyLink.clinic_id == clinic_id,
+                models.ClinicPharmacyLink.status == "connected"
+            )
+            .all()
+        )
+        pharmacy_ids = [l.pharmacy_id for l in links]
+        if pharmacy_ids:
             pharmacies = (
-                db.query(models.ConnectedPharmacy)
+                db.query(models.Pharmacy)
                 .filter(
-                    models.ConnectedPharmacy.clinic_id == clinic_id,
-                    models.ConnectedPharmacy.is_active == True,
+                    models.Pharmacy.pharmacy_id.in_(pharmacy_ids),
+                    models.Pharmacy.is_active == True
                 )
                 .all()
             )
-        except Exception:
-            db.rollback()
+            for p in pharmacies:
+                p_id = str(p.pharmacy_id)
+                seen_ids.add(p_id)
+                dist = haversine_distance(lat, lng, p.latitude, p.longitude)
+                if dist <= radius_meters:
+                    results.append({
+                        "pharmacy_id": p_id,
+                        "clinic_id": str(clinic_id),
+                        "name": p.name,
+                        "address": p.address or "Near Clinic",
+                        "phone": p.phone or "",
+                        "license_no": p.license_no or "",
+                        "latitude": p.latitude,
+                        "longitude": p.longitude,
+                        "distance": round(dist),
+                        "distance_meters": round(dist),
+                        "is_active": p.is_active,
+                    })
+    except Exception as e:
+        logger.warning(f"Error querying ClinicPharmacyLink: {e}")
+        db.rollback()
 
-    results = []
-    for p in pharmacies:
-        dist = haversine_distance(lat, lng, p.latitude, p.longitude)
-        if dist <= radius_meters:
-            results.append({
-                "pharmacy_id": str(p.pharmacy_id),
-                "clinic_id": str(p.clinic_id),
-                "name": p.name,
-                "address": p.address,
-                "phone": p.phone,
-                "latitude": p.latitude,
-                "longitude": p.longitude,
-                "distance": round(dist),
-                "distance_meters": round(dist),
-                "is_active": p.is_active,
-            })
+    # 2. Fallback check on legacy ConnectedPharmacy table
+    try:
+        legacy_pharmacies = (
+            db.query(models.ConnectedPharmacy)
+            .filter(
+                models.ConnectedPharmacy.clinic_id == clinic_id,
+                models.ConnectedPharmacy.is_active == True
+            )
+            .all()
+        )
+        for lp in legacy_pharmacies:
+            p_id = str(lp.pharmacy_id)
+            if p_id not in seen_ids:
+                seen_ids.add(p_id)
+                dist = haversine_distance(lat, lng, lp.latitude, lp.longitude)
+                if dist <= radius_meters:
+                    results.append({
+                        "pharmacy_id": p_id,
+                        "clinic_id": str(clinic_id),
+                        "name": lp.name,
+                        "address": lp.address or "Near Clinic",
+                        "phone": lp.phone or "",
+                        "license_no": "",
+                        "latitude": lp.latitude,
+                        "longitude": lp.longitude,
+                        "distance": round(dist),
+                        "distance_meters": round(dist),
+                        "is_active": lp.is_active,
+                    })
+    except Exception as e:
+        logger.warning(f"Error querying legacy ConnectedPharmacy: {e}")
+        db.rollback()
 
     results.sort(key=lambda item: item["distance"])
 

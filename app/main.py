@@ -5,7 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from sqlalchemy import text
-from app.api import events, clinics, auth, consent
+from app.api import events, clinics, auth, consent, pharmacy
 from app.db.database import engine
 from app.db import models
 
@@ -80,6 +80,7 @@ app.include_router(clinics.router, prefix="/api/clinics")
 app.include_router(auth.router, prefix="/api/auth")
 app.include_router(consent.router, prefix="/api/consent")
 app.include_router(consent.health_router, prefix="/api")
+app.include_router(pharmacy.router, prefix="/api/pharmacy")
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -149,6 +150,16 @@ def serve_register():
 def serve_insurer_portal():
     logger.info("Insurer Underwriting Portal Opened")
     return FileResponse("frontend/website/insurer.html")
+
+@app.get("/pharmacy-portal")
+def serve_pharmacy_portal():
+    logger.info("Pharmacy Portal Opened")
+    return FileResponse("frontend/clinic/pharmacy_portal.html")
+
+@app.get("/pharmacy-login")
+def serve_pharmacy_login():
+    logger.info("Pharmacy Login Opened")
+    return FileResponse("frontend/clinic/pharmacy_portal.html")
 
 @app.get("/passport")
 def serve_patient_passport():
