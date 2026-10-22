@@ -1226,10 +1226,11 @@
         const minScore = 300;
         const pct = Math.max(0, Math.min(1, (score - minScore) / (maxScore - minScore)));
 
-        // Gauge color
-        let gaugeColor = "#16a34a";
+        // Gauge color in proper 4-tier chromatic flow
+        let gaugeColor = "#059669";
         if (score < 550) gaugeColor = "#ef4444";
-        else if (score < 700) gaugeColor = "#d97706";
+        else if (score < 650) gaugeColor = "#d97706";
+        else if (score < 750) gaugeColor = "#16a34a";
 
         const arcLength = 283;
         const dashLen = pct * arcLength;

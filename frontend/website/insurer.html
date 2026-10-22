@@ -148,14 +148,14 @@
         margin-top: 8px;
       }
       .tier-excellent {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+      }
+      .tier-good {
         background: #dcfce7;
         color: #15803d;
         border: 1px solid #86efac;
-      }
-      .tier-good {
-        background: #e0f2fe;
-        color: #0369a1;
-        border: 1px solid #7dd3fc;
       }
       .tier-fair {
         background: #fef3c7;
@@ -320,25 +320,60 @@
             <!-- SVG Gauge -->
             <div style="text-align: center; padding: 10px 0 20px;">
               <div class="gauge-container">
-                <svg viewBox="0 0 200 120" style="width: 100%; height: 100%;">
-                  <!-- Background Track Arc (300 to 900) -->
-                  <path d="M 20 105 A 80 80 0 0 1 180 105" fill="none" stroke="#e2e8f0" stroke-width="18" stroke-linecap="round" />
-                  <!-- Colored Gauge Range (Needs Attention: Red) -->
-                  <path d="M 20 105 A 80 80 0 0 1 60 48" fill="none" stroke="#ef4444" stroke-width="18" opacity="0.85" />
-                  <!-- Fair: Amber -->
-                  <path d="M 60 48 A 80 80 0 0 1 100 25" fill="none" stroke="#f59e0b" stroke-width="18" opacity="0.85" />
-                  <!-- Good: Blue -->
-                  <path d="M 100 25 A 80 80 0 0 1 140 48" fill="none" stroke="#0284c7" stroke-width="18" opacity="0.85" />
-                  <!-- Excellent: Green -->
-                  <path d="M 140 48 A 80 80 0 0 1 180 105" fill="none" stroke="#16a34a" stroke-width="18" opacity="0.85" />
-                  <!-- Pointer Needle -->
-                  <line id="gauge-needle" x1="100" y1="105" x2="100" y2="35" stroke="#0f172a" stroke-width="4" stroke-linecap="round" style="transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 100px 105px; transform: rotate(-90deg);" />
-                  <circle cx="100" cy="105" r="7" fill="#0f172a" />
+                <svg viewBox="0 0 200 120" style="width: 100%; height: 100%; overflow: visible;">
+                  <defs>
+                    <!-- Seamless Chromatic Flow Gradient (Red -> Warm Orange -> Amber -> Vibrant Green -> Emerald) -->
+                    <linearGradient id="score-flow-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#ef4444" />
+                      <stop offset="26%" stop-color="#f97316" />
+                      <stop offset="48%" stop-color="#f59e0b" />
+                      <stop offset="70%" stop-color="#22c55e" />
+                      <stop offset="100%" stop-color="#059669" />
+                    </linearGradient>
+                    <filter id="needle-shadow" x="-30%" y="-30%" width="160%" height="160%">
+                      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.3" />
+                    </filter>
+                  </defs>
+
+                  <!-- 1. Background Track Arc -->
+                  <path
+                    d="M 22 105 A 78 78 0 0 1 178 105"
+                    fill="none"
+                    stroke="#f1f5f9"
+                    stroke-width="18"
+                    stroke-linecap="round"
+                  />
+
+                  <!-- 2. Smooth Continuous Chromatic Flow Arc -->
+                  <path
+                    d="M 22 105 A 78 78 0 0 1 178 105"
+                    fill="none"
+                    stroke="url(#score-flow-gradient)"
+                    stroke-width="18"
+                    stroke-linecap="round"
+                  />
+
+                  <!-- 3. Precision Pointer Needle & Pivot Center Hub -->
+                  <g filter="url(#needle-shadow)">
+                    <line
+                      id="gauge-needle"
+                      x1="100"
+                      y1="105"
+                      x2="100"
+                      y2="34"
+                      stroke="#0f172a"
+                      stroke-width="3.5"
+                      stroke-linecap="round"
+                      style="transition: transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 100px 105px; transform: rotate(-90deg);"
+                    />
+                    <circle cx="100" cy="105" r="7.5" fill="#0f172a" />
+                    <circle cx="100" cy="105" r="3" fill="#ffffff" />
+                  </g>
                 </svg>
               </div>
 
               <!-- Numeric Score & Tier Badge -->
-              <div id="score-display" class="score-number" style="color: #0284c7;">--</div>
+              <div id="score-display" class="score-number" style="color: #16a34a;">--</div>
               <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-top: 2px;">
                 Score Range: 300 &ndash; 900
               </div>
@@ -347,12 +382,12 @@
               </div>
             </div>
 
-            <!-- Score Breakdown Legend -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; padding: 12px 8px; background: #f8fafc; border-radius: 12px; margin-bottom: 20px; font-size: 11px; font-weight: 600;">
-              <div><span style="color:#ef4444;">●</span> 300-549<br/><span style="color:#64748b;">High Risk</span></div>
-              <div><span style="color:#f59e0b;">●</span> 550-649<br/><span style="color:#64748b;">Fair</span></div>
-              <div><span style="color:#0284c7;">●</span> 650-749<br/><span style="color:#64748b;">Good</span></div>
-              <div><span style="color:#16a34a;">●</span> 750-900<br/><span style="color:#64748b;">Preferred</span></div>
+            <!-- Score Breakdown Legend in Proper Flow -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; padding: 12px 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 20px; font-size: 11px; font-weight: 600;">
+              <div><span style="color:#ef4444; font-size: 13px;">●</span> 300–549<br/><span style="color:#64748b;">High Risk</span></div>
+              <div><span style="color:#f59e0b; font-size: 13px;">●</span> 550–649<br/><span style="color:#64748b;">Fair</span></div>
+              <div><span style="color:#22c55e; font-size: 13px;">●</span> 650–749<br/><span style="color:#64748b;">Good</span></div>
+              <div><span style="color:#059669; font-size: 13px;">●</span> 750–900<br/><span style="color:#64748b;">Preferred</span></div>
             </div>
 
             <!-- Clinical Factors Breakdown -->
@@ -588,20 +623,20 @@
         const tierBadge = document.getElementById("tier-badge");
         tierBadge.textContent = `${data.category} (${data.credit_tier})`;
 
-        // Color coding based on category
-        let color = "#0284c7";
+        // Color coding based on category & score in proper flow
+        let color = "#16a34a";
         tierBadge.className = "tier-badge";
-        if (data.category === "Excellent") {
-          color = "#15803d";
+        if (score >= 750 || data.category === "Excellent") {
+          color = "#059669";
           tierBadge.classList.add("tier-excellent");
-        } else if (data.category === "Good") {
-          color = "#0369a1";
+        } else if (score >= 650 || data.category === "Good") {
+          color = "#16a34a";
           tierBadge.classList.add("tier-good");
-        } else if (data.category === "Fair") {
-          color = "#b45309";
+        } else if (score >= 550 || data.category === "Fair") {
+          color = "#d97706";
           tierBadge.classList.add("tier-fair");
         } else {
-          color = "#b91c1c";
+          color = "#dc2626";
           tierBadge.classList.add("tier-needs-attention");
         }
         scoreDisplay.style.color = color;

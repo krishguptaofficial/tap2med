@@ -37,6 +37,8 @@ class Clinic(Base):
     print_header = Column(Boolean, nullable=False, default=True)
     hfr_id = Column(Text, nullable=True)
     uhi_node_uri = Column(Text, nullable=True)
+
+    
 class EmailVerification(Base):
     __tablename__ = "email_verifications"
     verification_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
