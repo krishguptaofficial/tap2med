@@ -1,6 +1,7 @@
 import logging
 import uuid
 from typing import Optional, List
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
@@ -277,9 +278,71 @@ def get_connected_clinics(pharmacy_id: uuid.UUID, db: Session = Depends(get_db))
     }
 
 
+class DispenseActionPayload(BaseModel):
+    local_token: Optional[str] = None
+    status: str = "dispensed"
+
+
+@router.post("/{pharmacy_id}/dispense/{event_id}")
+def mark_prescription_dispensed(
+    pharmacy_id: uuid.UUID,
+    event_id: uuid.UUID,
+    payload: Optional[DispenseActionPayload] = None,
+    db: Session = Depends(get_db)
+):
+    pharmacy = db.query(models.Pharmacy).filter(models.Pharmacy.pharmacy_id == pharmacy_id).first()
+    if not pharmacy:
+        raise HTTPException(status_code=404, detail="Pharmacy not found.")
+
+    event = db.query(models.Event).filter(models.Event.event_id == event_id).first()
+    if not event:
+        raise HTTPException(status_code=404, detail="Prescription event not found.")
+
+    # Check connection
+    link = db.query(models.ClinicPharmacyLink).filter(
+        models.ClinicPharmacyLink.pharmacy_id == pharmacy_id,
+        models.ClinicPharmacyLink.clinic_id == event.clinic_id,
+        models.ClinicPharmacyLink.status == "connected"
+    ).first()
+    if not link:
+        raise HTTPException(status_code=403, detail="Clinic is not connected to this pharmacy.")
+
+    target_status = payload.status if payload and payload.status else "dispensed"
+
+    record = (
+        db.query(models.PharmacyDispense)
+        .filter(models.PharmacyDispense.event_id == event.event_id)
+        .first()
+    )
+    if record:
+        record.status = target_status
+    else:
+        record = models.PharmacyDispense(
+            dispense_id=uuid.uuid4(),
+            clinic_id=event.clinic_id,
+            event_id=event.event_id,
+            local_token=event.local_token,
+            status=target_status
+        )
+        db.add(record)
+
+    event.status = target_status
+    db.commit()
+
+    logger.info(f"Pharmacy {pharmacy.name} set event {event_id} dispense status to '{target_status}'.")
+
+    return {
+        "status": "success",
+        "message": f"Prescription marked as {target_status}.",
+        "event_id": str(event.event_id),
+        "dispense_status": target_status
+    }
+
+
 @router.get("/{pharmacy_id}/prescriptions")
 def get_incoming_prescriptions(
     pharmacy_id: uuid.UUID,
+    hours: int = 12,
     limit: int = 50,
     db: Session = Depends(get_db)
 ):
@@ -300,13 +363,23 @@ def get_incoming_prescriptions(
         clinic_ids = [l.clinic_id for l in links]
 
         if not clinic_ids:
-            return {"status": "success", "prescriptions": []}
+            return {
+                "status": "success",
+                "prescriptions": [],
+                "pending_count": 0,
+                "dispensed_count": 0,
+                "routing_window_hours": hours
+            }
 
-        # Fetch completed/active visit events from these clinics
+        # 12-hour active routing cutoff (only show that day's routing, prunes older visits)
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+
+        # Fetch visit events from connected clinics within the 12-hour window
         events = (
             db.query(models.Event)
             .filter(
                 models.Event.clinic_id.in_(clinic_ids),
+                models.Event.timestamp >= cutoff,
                 models.Event.status.in_(["completed", "active", "dispensed"])
             )
             .order_by(models.Event.timestamp.desc())
@@ -314,9 +387,27 @@ def get_incoming_prescriptions(
             .all()
         )
 
+        event_ids = [ev.event_id for ev in events]
+        dispenses = {}
+        if event_ids:
+            d_records = (
+                db.query(models.PharmacyDispense)
+                .filter(models.PharmacyDispense.event_id.in_(event_ids))
+                .all()
+            )
+            for d in d_records:
+                dispenses[d.event_id] = d
+
+        clinic_cache = {}
         results = []
+        pending_count = 0
+        dispensed_count = 0
+
         for ev in events:
-            clinic = db.query(models.Clinic).filter(models.Clinic.clinic_id == ev.clinic_id).first()
+            if ev.clinic_id not in clinic_cache:
+                clinic_cache[ev.clinic_id] = db.query(models.Clinic).filter(models.Clinic.clinic_id == ev.clinic_id).first()
+            clinic = clinic_cache[ev.clinic_id]
+
             # Fetch prescriptions for this event
             rxs = db.query(models.Prescription).filter(models.Prescription.event_id == ev.event_id).all()
             med_list = []
@@ -328,6 +419,14 @@ def get_incoming_prescriptions(
                     "instructions": r.instructions or "",
                     "inferred_symptom": r.inferred_symptom or ""
                 })
+
+            d_rec = dispenses.get(ev.event_id)
+            is_dispensed = (d_rec is not None and d_rec.status == "dispensed") or (ev.status == "dispensed")
+
+            if is_dispensed:
+                dispensed_count += 1
+            else:
+                pending_count += 1
 
             token_val = getattr(ev, "daily_token_number", None)
             if token_val is None:
@@ -343,13 +442,22 @@ def get_incoming_prescriptions(
                 "daily_token_number": token_val,
                 "timestamp": ev.timestamp.isoformat() if ev.timestamp else None,
                 "status": ev.status,
+                "is_dispensed": is_dispensed,
+                "dispense_status": "dispensed" if is_dispensed else "pending",
+                "dispensed_at": d_rec.created_at.isoformat() if (d_rec and d_rec.created_at) else None,
                 "advice": ev.advice or "",
                 "medicines": med_list
             })
 
+        # Pending items (0) come first, followed by Dispensed items (1)
+        results.sort(key=lambda x: (1 if x["is_dispensed"] else 0, x["timestamp"] or ""))
+
         return {
             "status": "success",
-            "prescriptions": results
+            "prescriptions": results,
+            "pending_count": pending_count,
+            "dispensed_count": dispensed_count,
+            "routing_window_hours": hours
         }
     except HTTPException:
         raise

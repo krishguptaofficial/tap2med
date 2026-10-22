@@ -307,6 +307,103 @@
         margin-bottom: 8px;
       }
 
+      /* Rx Card Variations & Dispense Styling */
+      .rx-card.rx-next {
+        border-left: 5px solid #0284c7;
+        border-color: #93c5fd;
+        background: #ffffff;
+        box-shadow: 0 4px 18px rgba(2, 132, 199, 0.12);
+      }
+      .rx-card.rx-dispensed {
+        border-left: 5px solid #10b981;
+        background: #f8fafc;
+        border-color: #e2e8f0;
+        opacity: 0.88;
+      }
+      .badge-next-patient {
+        background: linear-gradient(135deg, #0284c7, #0ea5e9);
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 6px;
+        letter-spacing: 0.02em;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        animation: pulse-subtle 2s infinite;
+      }
+      @keyframes pulse-subtle {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.4); }
+        50% { box-shadow: 0 0 0 4px rgba(2, 132, 199, 0); }
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      .badge-dispensed-tag {
+        background: #dcfce7;
+        color: #15803d;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid #bbf7d0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .btn-dispense {
+        background: #16a34a;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25);
+        transition: all 0.2s ease;
+      }
+      .btn-dispense:hover {
+        background: #15803d;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(22, 163, 74, 0.35);
+      }
+      .btn-dispense:active {
+        transform: translateY(0);
+      }
+      .btn-dispense:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+      .feed-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 22px 0 12px;
+        padding-bottom: 6px;
+        border-bottom: 1.5px solid var(--border);
+      }
+      .pill-count-pending {
+        background: #fef3c7;
+        color: #b45309;
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 2px 9px;
+        border-radius: 999px;
+        border: 1px solid #fde68a;
+      }
+
       /* Alert / Toast */
       .toast {
         padding: 10px 16px;
@@ -514,11 +611,21 @@
 
       <!-- ─── TAB B: Incoming Prescriptions ─── -->
       <div id="panel-prescriptions" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h3 style="font-size: 16px; font-weight: 800;">Real-Time Patient Prescriptions</h3>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncomingPrescriptions(true)">
-            🔄 Refresh Feed
-          </button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <h3 style="font-size: 17px; font-weight: 800; color: var(--text);">Live Clinic Prescription Routing</h3>
+              <span id="feed-pending-pill" class="pill-count-pending" style="display: none;">0 Pending</span>
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-top: 3px;">
+              🕒 Showing today's 12-hour active medicine routing window. Dispensing moves completed orders down and advances the next patient.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="loadIncomingPrescriptions(true)" style="display: flex; align-items: center; gap: 6px;">
+              🔄 Refresh Feed
+            </button>
+          </div>
         </div>
         <div id="prescriptions-feed-list">
           <!-- Dynamically populated -->
@@ -888,13 +995,25 @@
         }
       }
 
-      // ─── Incoming Prescriptions ───
+      // ─── Escape Helper ───
+      function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      // ─── Incoming Prescriptions (12-Hour Active Routing Feed) ───
       async function loadIncomingPrescriptions(isManual = false) {
         const container = document.getElementById("prescriptions-feed-list");
-        if (!activePharmacyId) return;
+        const pendingPill = document.getElementById("feed-pending-pill");
+        if (!activePharmacyId || !container) return;
 
         try {
-          const res = await fetch(`/api/pharmacy/${activePharmacyId}/prescriptions`);
+          const res = await fetch(`/api/pharmacy/${activePharmacyId}/prescriptions?hours=12`);
           if (!res.ok) {
             const err = await res.json().catch(() => ({}));
             console.error("Prescriptions fetch error:", res.status, err);
@@ -902,53 +1021,202 @@
             return;
           }
           const data = await res.json();
-          const list = data.prescriptions || [];
+          const allRx = data.prescriptions || [];
+          const pendingCount = data.pending_count !== undefined ? data.pending_count : allRx.filter(x => !x.is_dispensed).length;
+          const dispensedCount = data.dispensed_count !== undefined ? data.dispensed_count : allRx.filter(x => x.is_dispensed).length;
 
-          if (isManual) {
-            showToast("dash-toast", `Feed refreshed: ${list.length} prescription(s) available.`);
-            setTimeout(() => hideToast("dash-toast"), 2500);
+          if (pendingPill) {
+            pendingPill.style.display = "inline-flex";
+            pendingPill.textContent = `${pendingCount} Pending`;
           }
 
-          if (!list.length) {
+          if (isManual) {
+            showToast("dash-toast", `Feed updated: ${pendingCount} pending, ${dispensedCount} dispensed today (12h window).`);
+            setTimeout(() => hideToast("dash-toast"), 3000);
+          }
+
+          if (!allRx.length) {
             container.innerHTML = `
-              <div style="text-align: center; padding: 36px 16px; background: white; border: 1.5px dashed var(--border); border-radius: 12px; color: var(--text-muted);">
-                <div style="font-size: 32px; margin-bottom: 8px;">💊</div>
-                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 4px;">No Incoming Prescriptions</strong>
-                <p style="font-size: 13px;">When patients finish consultation at your connected clinics, their digital prescriptions appear here in real-time.</p>
+              <div style="text-align: center; padding: 42px 18px; background: white; border: 1.5px dashed var(--border); border-radius: 12px; color: var(--text-muted);">
+                <div style="font-size: 34px; margin-bottom: 10px;">💊</div>
+                <strong style="font-size: 15px; color: var(--text); display: block; margin-bottom: 4px;">No Active Prescriptions in Last 12 Hours</strong>
+                <p style="font-size: 13px; max-width: 440px; margin: 0 auto;">
+                  Prescriptions written by your connected clinics within the last 12 hours will appear here in real-time.
+                </p>
               </div>
             `;
             return;
           }
 
-          container.innerHTML = list.map((rx) => {
-            const timeStr = rx.timestamp ? new Date(rx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now";
-            const medsHtml = rx.medicines && rx.medicines.length
-              ? rx.medicines.map(m => `<span class="med-pill">💊 <strong>${m.medicine_name}</strong> ${m.dosage ? `(${m.dosage})` : ""}</span>`).join("")
-              : '<span class="med-pill">Consultation advice given</span>';
+          const pendingList = allRx.filter(x => !x.is_dispensed);
+          const dispensedList = allRx.filter(x => x.is_dispensed);
 
-            const tokenDisplay = rx.token_number || rx.daily_token_number || "—";
+          let html = "";
 
-            return `
-              <div class="rx-card">
-                <div class="rx-header">
-                  <div style="display: flex; gap: 10px; align-items: center;">
-                    <span class="rx-token">#${tokenDisplay}</span>
-                    <div>
-                      <strong style="font-size: 14.5px; display: block;">${rx.clinic_name}</strong>
-                      <span style="font-size: 12px; color: var(--text-muted);">Dr. ${rx.doctor_name} • ${timeStr}</span>
-                    </div>
-                  </div>
-                  <span class="badge-success">Ready for Dispense</span>
-                </div>
-                <div style="margin-top: 10px;">
-                  <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">PRESCRIBED MEDICINES:</span>
-                  <div>${medsHtml}</div>
-                </div>
+          // 1. Pending Dispense Queue
+          if (pendingList.length > 0) {
+            html += `
+              <div class="feed-section-header">
+                <span>⏱️ Pending Dispense Queue (${pendingList.length})</span>
+                <span style="font-size: 11.5px; font-weight: 600; text-transform: none; color: #0284c7;">Click "Dispense Medicine" to advance queue</span>
               </div>
             `;
-          }).join("");
+
+            pendingList.forEach((rx, idx) => {
+              const isNext = idx === 0;
+              const timeStr = rx.timestamp ? new Date(rx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now";
+              const tokenDisplay = rx.token_number || rx.daily_token_number || "—";
+              const safeEventId = escapeHtml(rx.event_id);
+              const safeToken = escapeHtml(rx.local_token || '');
+
+              const medsHtml = rx.medicines && rx.medicines.length
+                ? rx.medicines.map(m => {
+                    const dur = m.duration ? ` • ${escapeHtml(m.duration)}` : "";
+                    const inst = m.instructions ? `<div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(m.instructions)}</div>` : "";
+                    return `
+                      <span class="med-pill">
+                        💊 <strong>${escapeHtml(m.medicine_name)}</strong> ${m.dosage ? `(${escapeHtml(m.dosage)})` : ""}${dur}
+                        ${inst}
+                      </span>
+                    `;
+                  }).join("")
+                : '<span class="med-pill">Consultation advice given</span>';
+
+              const adviceHtml = rx.advice
+                ? `<div style="margin-top: 10px; font-size: 12.5px; background: #f8fafc; border-left: 3px solid #cbd5e1; padding: 6px 12px; border-radius: 4px; color: var(--text-muted);">
+                     <strong>Doctor Advice:</strong> ${escapeHtml(rx.advice)}
+                   </div>`
+                : "";
+
+              html += `
+                <div class="rx-card ${isNext ? 'rx-next' : ''}" id="rx-card-${safeEventId}">
+                  <div class="rx-header">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                      <span class="rx-token">#${escapeHtml(tokenDisplay)}</span>
+                      <div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                          <strong style="font-size: 15px; color: var(--text);">${escapeHtml(rx.clinic_name)}</strong>
+                          ${isNext ? '<span class="badge-next-patient">👉 NEXT PATIENT</span>' : ''}
+                        </div>
+                        <span style="font-size: 12.5px; color: var(--text-muted);">
+                          Dr. ${escapeHtml(rx.doctor_name)} • Received ${timeStr}
+                        </span>
+                      </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                      <button
+                        type="button"
+                        class="btn-dispense"
+                        id="btn-dispense-${safeEventId}"
+                        onclick="markDispensed('${safeEventId}', '${safeToken}', '${escapeHtml(tokenDisplay)}')"
+                      >
+                        ✓ Dispense Medicine
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 10px;">
+                    <span style="font-size: 12px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">
+                      PRESCRIBED MEDICINES:
+                    </span>
+                    <div style="display: flex; flex-wrap: wrap;">${medsHtml}</div>
+                    ${adviceHtml}
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          // 2. Dispensed Today (12-hour history)
+          if (dispensedList.length > 0) {
+            html += `
+              <div class="feed-section-header" style="margin-top: 28px;">
+                <span>✅ Dispensed Today (${dispensedList.length})</span>
+                <span style="font-size: 11.5px; font-weight: 600; text-transform: none; color: #15803d;">12-hour history</span>
+              </div>
+            `;
+
+            dispensedList.forEach((rx) => {
+              const timeStr = rx.timestamp ? new Date(rx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Earlier today";
+              const dispensedTime = rx.dispensed_at ? `Dispensed at ${new Date(rx.dispensed_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : "Dispensed";
+              const tokenDisplay = rx.token_number || rx.daily_token_number || "—";
+              const safeEventId = escapeHtml(rx.event_id);
+
+              const medsHtml = rx.medicines && rx.medicines.length
+                ? rx.medicines.map(m => `
+                    <span class="med-pill" style="background: #f1f5f9; border-color: #cbd5e1; color: var(--text-muted);">
+                      ✓ ${escapeHtml(m.medicine_name)} ${m.dosage ? `(${escapeHtml(m.dosage)})` : ""}
+                    </span>
+                  `).join("")
+                : '<span class="med-pill">Consultation advice given</span>';
+
+              html += `
+                <div class="rx-card rx-dispensed" id="rx-card-${safeEventId}">
+                  <div class="rx-header">
+                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                      <span class="rx-token" style="background: #f1f5f9; border-color: #cbd5e1; color: var(--text-muted);">#${escapeHtml(tokenDisplay)}</span>
+                      <div>
+                        <strong style="font-size: 14.5px; color: var(--text);">${escapeHtml(rx.clinic_name)}</strong>
+                        <div style="font-size: 12px; color: var(--text-muted);">
+                          Dr. ${escapeHtml(rx.doctor_name)} • Order ${timeStr}
+                        </div>
+                      </div>
+                    </div>
+                    <span class="badge-dispensed-tag">
+                      ✓ ${dispensedTime}
+                    </span>
+                  </div>
+
+                  <div style="margin-top: 8px;">
+                    <div style="display: flex; flex-wrap: wrap;">${medsHtml}</div>
+                  </div>
+                </div>
+              `;
+            });
+          }
+
+          container.innerHTML = html;
         } catch (e) {
           console.error("Prescriptions load error:", e);
+        }
+      }
+
+      // ─── Mark Prescription Dispensed ───
+      async function markDispensed(eventId, localToken, tokenNumber) {
+        if (!activePharmacyId || !eventId) return;
+        const btn = document.getElementById(`btn-dispense-${eventId}`);
+        if (btn) {
+          btn.disabled = true;
+          btn.innerHTML = `<span style="display: inline-block; animation: spin 1s linear infinite;">⏳</span> Dispensing...`;
+        }
+
+        try {
+          const res = await fetch(`/api/pharmacy/${activePharmacyId}/dispense/${eventId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              local_token: localToken || null,
+              status: "dispensed"
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.detail || "Failed to mark prescription as dispensed.");
+          }
+
+          showToast("dash-toast", `✓ Prescription #${tokenNumber || ''} marked as dispensed. Next patient moved to top!`);
+          setTimeout(() => hideToast("dash-toast"), 3500);
+
+          // Reload feed immediately to bring next patient up and move dispensed card down
+          await loadIncomingPrescriptions();
+        } catch (err) {
+          console.error("Dispense error:", err);
+          showToast("dash-toast", err.message || "Could not dispense prescription.", true);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "✓ Dispense Medicine";
+          }
         }
       }
 
